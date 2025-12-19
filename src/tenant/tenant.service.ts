@@ -42,12 +42,6 @@ export class TenantService {
 
   async remove(id: string): Promise<Tenant> {
     const tenant = await this.findById(id);
-    if (tenant.deleted == true) {
-      throw new HttpException(
-        'Tenant is already deleted',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
 
     tenant.deleted = true;
 
