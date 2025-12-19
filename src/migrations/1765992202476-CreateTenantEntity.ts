@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateTenantEntity1765987172124 implements MigrationInterface {
-  name = 'CreateTenantEntity1765987172124';
+export class CreateTenantEntity1765992202476 implements MigrationInterface {
+  name = 'CreateTenantEntity1765992202476';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
