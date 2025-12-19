@@ -14,9 +14,9 @@ export class TenantService {
 
   async create(createTenantDto: CreateTenantDto): Promise<Tenant> {
     const tenant = await this.tenantRepository.findOne({
-      where: { slug: createTenantDto.slug },
+      where: { slug: createTenantDto.slug, deleted: false },
     });
-    if (tenant && tenant.deleted == false) {
+    if (tenant) {
       throw new HttpException(
         'Tenant with given slug already exists',
         HttpStatus.BAD_REQUEST,
@@ -55,7 +55,9 @@ export class TenantService {
   }
 
   async findById(id: string): Promise<Tenant> {
-    const tenant = await this.tenantRepository.findOne({ where: { id } });
+    const tenant = await this.tenantRepository.findOne({
+      where: { id, deleted: false },
+    });
     if (!tenant) {
       throw new HttpException(
         'Tenant with given id not found',
@@ -67,7 +69,9 @@ export class TenantService {
   }
 
   private async findBySlug(slug: string): Promise<Tenant> {
-    const tenant = await this.tenantRepository.findOne({ where: { slug } });
+    const tenant = await this.tenantRepository.findOne({
+      where: { slug, deleted: false },
+    });
     if (!tenant) {
       throw new HttpException(
         'Tenant with given slug not found',
