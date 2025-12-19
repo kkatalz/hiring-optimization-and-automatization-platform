@@ -16,7 +16,7 @@ export class TenantService {
     const tenant = await this.tenantRepository.findOne({
       where: { slug: createTenantDto.slug },
     });
-    if (tenant) {
+    if (tenant && tenant.deleted == false) {
       throw new HttpException(
         'Tenant with given slug already exists',
         HttpStatus.BAD_REQUEST,

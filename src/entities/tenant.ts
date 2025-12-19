@@ -8,7 +8,7 @@ export class Tenant {
   @Column()
   email: string;
 
-  @Column({ unique: true, length: 100 })
+  @Column({ length: 100 })
   slug: string;
 
   @Column({ default: false })
