@@ -1,0 +1,25 @@
+name: unit-tests
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  server:
+  runs-on: ubuntu-latest
+  steps:
+    - name: Copy Repo Files
+      uses: actions/checkout@v4
+    - name: Use Node.js 22
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+    - name: check docker
+      run: |
+        docker compose version
+    - name: build and test server
+      run: |
+        cd server
+        npm ci
+        npm run build
+        npm test
