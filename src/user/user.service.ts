@@ -7,7 +7,7 @@ import { UserResponseDto } from 'src/user/dto/user-response.dto';
 import { Tenant } from 'src/entities/tenant';
 import { userToUserResponseDto } from 'src/user/map/user.map';
 import { UpdateUserDto } from 'src/user/dto/update-user.dto';
-import * as bcrypt from 'bcrypt';
+import { PasswordService } from 'src/auth/password.service';
 
 @Injectable()
 export class UserService {
@@ -17,6 +17,8 @@ export class UserService {
 
     @InjectRepository(Tenant)
     private readonly tenantRepository: Repository<Tenant>,
+
+    private readonly passwordService: PasswordService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
@@ -48,7 +50,9 @@ export class UserService {
       );
     }
 
-    createUserDto.password = await this.hashPassword(createUserDto.password);
+    createUserDto.password = await this.passwordService.hash(
+      createUserDto.password,
+    );
     const newUser = this.userRepository.create(createUserDto);
     await this.userRepository.save(newUser);
 
@@ -94,7 +98,9 @@ export class UserService {
       );
     }
 
-    updateUserDto.password = await this.hashPassword(updateUserDto.password);
+    updateUserDto.password = await this.passwordService.hash(
+      updateUserDto.password,
+    );
     Object.assign(user, updateUserDto);
     const updatedUser = await this.userRepository.save(user);
 
@@ -121,11 +127,5 @@ export class UserService {
     }
 
     return user;
-  }
-
-  private async hashPassword(password: string): Promise<string> {
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(password, salt);
-    return hashedPassword;
   }
 }
