@@ -22,7 +22,6 @@ jobs:
 
       - name: Build and test server
         run: |
-          cd server
           npm ci
           npm run build
           npm test
