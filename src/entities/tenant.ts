@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from 'src/entities/user';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'tenants' })
 export class Tenant {
@@ -13,4 +14,7 @@ export class Tenant {
 
   @Column({ default: false })
   deleted: boolean;
+
+  @OneToMany(() => User, (user) => user.tenant, { cascade: true })
+  users!: User[];
 }
