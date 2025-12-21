@@ -1,17 +1,20 @@
 import { User } from 'src/entities/user';
-import { UserDto } from 'src/user/dto/user.dto';
+import { UserResponseDto } from 'src/user/dto/user-response.dto';
 
-export const userToUserDto = ({
-  id,
-  email,
-  firstName,
-  lastName,
-  role,
-}: User): UserDto => ({
-  id,
-  email,
-  firstName,
-  lastName,
-  token: generate,
-  role,
-});
+export const userToUserResponseDto = ({
+  user,
+  token,
+}: {
+  user: User;
+  token?: string;
+}): UserResponseDto => {
+  return {
+    id: user.id,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    role: user.role,
+    tenantId: user.tenantId,
+    token: token,
+  };
+};
