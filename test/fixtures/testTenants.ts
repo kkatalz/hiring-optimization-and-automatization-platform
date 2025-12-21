@@ -1,4 +1,4 @@
-import { Tenant } from 'src/entities/tenant';
+import { Tenant } from '../../src/entities/tenant';
 
 export const testTenants: Tenant[] = [
   {

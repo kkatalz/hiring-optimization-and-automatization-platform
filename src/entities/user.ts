@@ -1,5 +1,5 @@
-import { UserRole } from 'src/entities/enums';
-import { Tenant } from 'src/entities/tenant';
+import { UserRole } from '../entities/enums';
+import { Tenant } from '../entities/tenant';
 import {
   Column,
   Entity,
