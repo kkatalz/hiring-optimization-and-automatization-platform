@@ -2,9 +2,11 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LoginUserDto } from 'src/auth/dto/login-user.dto';
 import { User } from 'src/entities/user';
-import { UserDto } from 'src/user/dto/user.dto';
+import { UserResponseDto } from 'src/user/dto/user-response.dto';
 import { Repository } from 'typeorm';
 import { compare } from 'bcrypt';
+import { sign } from 'jsonwebtoken';
+import { userToUserResponseDto } from 'src/user/map/user.map';
 
 @Injectable()
 export class AuthService {
@@ -13,7 +15,7 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async loginUser(loginUserDto: LoginUserDto): Promise<UserDto> {
+  async loginUser(loginUserDto: LoginUserDto): Promise<UserResponseDto> {
     const user = await this.userRepository.findOne({
       where: {
         email: loginUserDto.email,
@@ -21,21 +23,24 @@ export class AuthService {
     });
 
     if (!user)
-      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('Invalid credentials.', HttpStatus.UNAUTHORIZED);
 
     const matchPassword = await compare(loginUserDto.password, user.password);
 
     if (!matchPassword)
-      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('Invalid credentials.', HttpStatus.UNAUTHORIZED);
 
-    return await this.generateUserResponse(user);
+    return userToUserResponseDto({ user, token: this.generateToken(user) });
   }
 
-  private generateToken(user: UserDto): string {
-    return sign({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-    });
+  generateToken(user: User): string {
+    return sign(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+      process.env.JWT_SECRET ?? 'test',
+    );
   }
 }
