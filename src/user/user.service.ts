@@ -7,6 +7,7 @@ import { UserResponseDto } from 'src/user/dto/user-response.dto';
 import { Tenant } from 'src/entities/tenant';
 import { userToUserResponseDto } from 'src/user/map/user.map';
 import { UpdateUserDto } from 'src/user/dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -19,31 +20,39 @@ export class UserService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
-    let tenantExists;
     if (createUserDto.tenantId) {
-      tenantExists = await this.tenantRepository.exists({
+      const tenantExists = await this.tenantRepository.exists({
         where: { id: createUserDto.tenantId },
       });
-    }
 
-    if (tenantExists === true) {
-      throw new HttpException('Tenant does not exist', HttpStatus.BAD_REQUEST);
+      if (!tenantExists) {
+        throw new HttpException(
+          'Tenant does not exist.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
     }
 
     const users = await this.userRepository.find({
-      where: { email: createUserDto.email, tenantId: createUserDto.tenantId },
+      where: {
+        email: createUserDto.email,
+        tenantId: createUserDto.tenantId,
+        deleted: false,
+      },
     });
 
     if (users.length > 0) {
       throw new HttpException(
-        'User with given email within given tenant already exists.',
+        'User with given email already exists.',
         HttpStatus.BAD_REQUEST,
       );
     }
 
+    createUserDto.password = await this.hashPassword(createUserDto.password);
     const newUser = this.userRepository.create(createUserDto);
+    await this.userRepository.save(newUser);
 
-    return await this.userRepository.save(newUser);
+    return userToUserResponseDto({ user: newUser });
   }
 
   async findDtoById(id: string): Promise<UserResponseDto> {
@@ -74,9 +83,22 @@ export class UserService {
   ): Promise<UserResponseDto> {
     const user = await this.findById(id);
 
-    Object.assign(user, updateUserDto);
+    const userWithUpdateEmailExists = await this.userRepository.exists({
+      where: { email: updateUserDto.email },
+    });
 
-    return await this.userRepository.save(user);
+    if (userWithUpdateEmailExists) {
+      throw new HttpException(
+        'User with given email already exists. Choose a different one.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    updateUserDto.password = await this.hashPassword(updateUserDto.password);
+    Object.assign(user, updateUserDto);
+    const updatedUser = await this.userRepository.save(user);
+
+    return userToUserResponseDto({ user: updatedUser });
   }
 
   async remove(id: string): Promise<UserResponseDto> {
@@ -93,11 +115,17 @@ export class UserService {
     });
     if (!user) {
       throw new HttpException(
-        'User with given id not found',
+        'User with given id not found.',
         HttpStatus.NOT_FOUND,
       );
     }
 
     return user;
+  }
+
+  private async hashPassword(password: string): Promise<string> {
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(password, salt);
+    return hashedPassword;
   }
 }
