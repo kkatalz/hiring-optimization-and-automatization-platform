@@ -27,6 +27,13 @@ export class UserController {
     return this.userService.findAll();
   }
 
+  @Get('tenant/:id')
+  findAllByTenantId(
+    @Param('id', new ParseUUIDPipe()) tenantId: string,
+  ): Promise<UserResponseDto[]> {
+    return this.userService.findAllByTenantId(tenantId);
+  }
+
   @Get(':id')
   findById(
     @Param('id', new ParseUUIDPipe()) id: string,

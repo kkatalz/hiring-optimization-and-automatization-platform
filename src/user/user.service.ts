@@ -81,6 +81,22 @@ export class UserService {
     return users.map((user) => userToUserResponseDto({ user }));
   }
 
+  async findAllByTenantId(tenantId: string): Promise<UserResponseDto[]> {
+    const tenantExists = await this.tenantRepository.exists({
+      where: { id: tenantId },
+    });
+
+    if (!tenantExists) {
+      throw new HttpException('Tenant does not exist.', HttpStatus.BAD_REQUEST);
+    }
+
+    const users = await this.userRepository.find({
+      where: { deleted: false, tenantId },
+    });
+
+    return users.map((user) => userToUserResponseDto({ user }));
+  }
+
   async update(
     id: string,
     updateUserDto: UpdateUserDto,
