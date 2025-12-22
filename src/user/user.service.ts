@@ -82,13 +82,7 @@ export class UserService {
   }
 
   async findAllByTenantId(tenantId: string): Promise<UserResponseDto[]> {
-    const tenantExists = await this.tenantRepository.exists({
-      where: { id: tenantId },
-    });
-
-    if (!tenantExists) {
-      throw new HttpException('Tenant does not exist.', HttpStatus.BAD_REQUEST);
-    }
+    await this.tenantExists(tenantId);
 
     const users = await this.userRepository.find({
       where: { deleted: false, tenantId },
@@ -104,26 +98,9 @@ export class UserService {
   ): Promise<UserResponseDto> {
     const user = await this.findById(userId);
 
-    const tenantExists = await this.tenantRepository.exists({
-      where: { id: tenantId },
-    });
+    await this.tenantExists(tenantId);
 
-    if (!tenantExists) {
-      throw new HttpException('Tenant does not exist.', HttpStatus.BAD_REQUEST);
-    }
-
-    const userExistsWithinProvidedTenant = await this.userRepository.exists({
-      where: {
-        id: user.id,
-        tenantId,
-      },
-    });
-    if (!userExistsWithinProvidedTenant) {
-      throw new HttpException(
-        'User with given id does not exist within provided tenant.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    await this.userExistsWithinProvidedTenant(user, tenantId);
 
     const userWithUpdateEmailExists = await this.userRepository.exists({
       where: { email: updateUserDto.email },
@@ -147,8 +124,10 @@ export class UserService {
     return userToUserResponseDto({ user: updatedUser });
   }
 
-  async remove(id: string): Promise<UserResponseDto> {
-    const user = await this.findById(id);
+  async remove(userId: string, tenantId: string): Promise<UserResponseDto> {
+    const user = await this.findById(userId);
+    await this.tenantExists(tenantId);
+    await this.userExistsWithinProvidedTenant(user, tenantId);
 
     user.deleted = true;
 
@@ -167,5 +146,35 @@ export class UserService {
     }
 
     return user;
+  }
+
+  private async tenantExists(tenantId: string): Promise<boolean> {
+    const tenantExists = await this.tenantRepository.exists({
+      where: { id: tenantId },
+    });
+
+    if (!tenantExists) {
+      throw new HttpException('Tenant does not exist.', HttpStatus.BAD_REQUEST);
+    }
+    return tenantExists;
+  }
+
+  private async userExistsWithinProvidedTenant(
+    user: User,
+    tenantId: string,
+  ): Promise<boolean> {
+    const userExistsWithinProvidedTenant = await this.userRepository.exists({
+      where: {
+        id: user.id,
+        tenantId,
+      },
+    });
+    if (!userExistsWithinProvidedTenant) {
+      throw new HttpException(
+        'User with given id does not exist within provided tenant.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return userExistsWithinProvidedTenant;
   }
 }

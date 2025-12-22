@@ -50,10 +50,11 @@ export class UserController {
     return this.userService.update(userId, tenantId, updateUserDto);
   }
 
-  @Delete(':id')
+  @Delete(':userId/tenant/:tenantId')
   remove(
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+    @Param('tenantId', new ParseUUIDPipe()) tenantId: string,
   ): Promise<UserResponseDto> {
-    return this.userService.remove(id);
+    return this.userService.remove(userId, tenantId);
   }
 }
