@@ -1,12 +1,13 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LoginUserDto } from 'src/auth/dto/login-user.dto';
-import { User } from 'src/entities/user';
-import { UserResponseDto } from 'src/user/dto/user-response.dto';
+import { LoginUserDto } from '../auth/dto/login-user.dto';
+import { User } from '../entities/user';
+import { UserResponseDto } from '../user/dto/user-response.dto';
 import { Repository } from 'typeorm';
 import { compare } from 'bcrypt';
 import { sign } from 'jsonwebtoken';
-import { userToUserResponseDto } from 'src/user/map/user.map';
+import { userToUserResponseDto } from '../user/map/user.map';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -42,5 +43,10 @@ export class AuthService {
       },
       process.env.JWT_SECRET ?? 'test',
     );
+  }
+
+  async hash(password: string): Promise<string> {
+    const salt = await bcrypt.genSalt();
+    return bcrypt.hash(password, salt);
   }
 }

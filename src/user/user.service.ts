@@ -1,13 +1,13 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from 'src/entities/user';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { UserResponseDto } from 'src/user/dto/user-response.dto';
-import { Tenant } from 'src/entities/tenant';
-import { userToUserResponseDto } from 'src/user/map/user.map';
-import { UpdateUserDto } from 'src/user/dto/update-user.dto';
-import { PasswordService } from 'src/auth/password.service';
+import { User } from '../entities/user';
+import { CreateUserDto } from '../user/dto/create-user.dto';
+import { UserResponseDto } from '../user/dto/user-response.dto';
+import { Tenant } from '../entities/tenant';
+import { userToUserResponseDto } from '../user/map/user.map';
+import { UpdateUserDto } from '../user/dto/update-user.dto';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class UserService {
@@ -18,7 +18,7 @@ export class UserService {
     @InjectRepository(Tenant)
     private readonly tenantRepository: Repository<Tenant>,
 
-    private readonly passwordService: PasswordService,
+    private readonly authService: AuthService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
@@ -50,7 +50,7 @@ export class UserService {
       );
     }
 
-    createUserDto.password = await this.passwordService.hash(
+    createUserDto.password = await this.authService.hash(
       createUserDto.password,
     );
     const newUser = this.userRepository.create(createUserDto);
@@ -98,7 +98,7 @@ export class UserService {
       );
     }
 
-    updateUserDto.password = await this.passwordService.hash(
+    updateUserDto.password = await this.authService.hash(
       updateUserDto.password,
     );
     Object.assign(user, updateUserDto);

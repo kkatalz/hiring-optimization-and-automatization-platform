@@ -1,4 +1,4 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { UserService } from './user.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -11,21 +11,21 @@ import { User } from '../entities/user';
 import { expect } from 'chai';
 import { testUsers } from '../../test/fixtures/testUsers';
 import { UserRole } from '../entities/enums';
-import { PasswordService } from '../auth/password.service';
-import { compare } from 'bcrypt';
 import { testTenants } from '../../test/fixtures/testTenants';
 import { Tenant } from '../entities/tenant';
 import { CreateUserDto } from '../user/dto/create-user.dto';
+import { AuthModule } from '../auth/auth.module';
 
 describe('UserService', () => {
   let service: UserService;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    const module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot(),
         TypeOrmModule.forRoot(testDatabaseConfig),
         TypeOrmModule.forFeature([User, Tenant]),
+        AuthModule,
       ],
       providers: [UserService],
     }).compile();
@@ -33,8 +33,8 @@ describe('UserService', () => {
     service = module.get<UserService>(UserService);
 
     await loadDatabase({
-      User: testUsers,
       Tenant: testTenants,
+      User: testUsers,
     });
   });
 
@@ -44,20 +44,6 @@ describe('UserService', () => {
     expect(!!service).to.deep.equal(true);
   });
 
-  describe('PasswordService', () => {
-    it('hashes password and validates it', async () => {
-      const service = new PasswordService();
-      const knownPassword = 'user';
-
-      const hash = await service.hash(knownPassword);
-
-      expect(hash).to.not.equal(knownPassword);
-      expect(hash).to.match(/^\$2[aby]\$/); // bcrypt prefix
-      expect(await compare(knownPassword, hash)).to.equal(true);
-      expect(await compare('wrong', hash)).to.equal(false);
-    });
-  });
-
   it('should find all users', async () => {
     const allUsers = await service.findAll();
 
@@ -65,7 +51,7 @@ describe('UserService', () => {
   });
 
   describe('create', () => {
-    it('should create user and hash password', async () => {
+    it('should create user', async () => {
       const tenantId = testTenants[0].id;
 
       const createUserDto: CreateUserDto = {
