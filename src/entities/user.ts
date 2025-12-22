@@ -19,10 +19,10 @@ export class User {
   @Column()
   password: string;
 
-  @Column({ length: 20 })
+  @Column({ length: 20, name: 'first_name' })
   firstName: string;
 
-  @Column({ length: 50 })
+  @Column({ length: 50, name: 'last_name' })
   lastName: string;
 
   @Column({ default: false })
