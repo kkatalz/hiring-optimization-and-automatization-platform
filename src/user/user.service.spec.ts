@@ -13,7 +13,7 @@ import { testUsers } from '../../test/fixtures/testUsers';
 import { UserRole } from '../entities/enums';
 import { testTenants } from '../../test/fixtures/testTenants';
 import { Tenant } from '../entities/tenant';
-import { CreateUserDto } from '../user/dto/create-user.dto';
+import { CreateUserDto } from './dto/createUser.dto';
 import { AuthModule } from '../auth/auth.module';
 
 describe('UserService', () => {

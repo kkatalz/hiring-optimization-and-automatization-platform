@@ -1,5 +1,5 @@
 import { User } from 'src/entities/user';
-import { UserResponseDto } from 'src/user/dto/user-response.dto';
+import { UserResponseDto } from 'src/user/dto/userResponse.dto';
 
 export const userToUserResponseDto = ({
   user,

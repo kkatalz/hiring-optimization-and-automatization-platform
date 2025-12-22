@@ -2,11 +2,11 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user';
-import { CreateUserDto } from '../user/dto/create-user.dto';
-import { UserResponseDto } from '../user/dto/user-response.dto';
+import { CreateUserDto } from './dto/createUser.dto';
+import { UserResponseDto } from './dto/userResponse.dto';
 import { Tenant } from '../entities/tenant';
 import { userToUserResponseDto } from '../user/map/user.map';
-import { UpdateUserDto } from '../user/dto/update-user.dto';
+import { UpdateUserDto } from './dto/updateUser.dto';
 import { AuthService } from '../auth/auth.service';
 
 @Injectable()

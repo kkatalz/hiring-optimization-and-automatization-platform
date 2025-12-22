@@ -9,8 +9,8 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { TenantService } from './tenant.service';
-import { CreateTenantDto } from './dto/create-tenant.dto';
-import { UpdateTenantDto } from './dto/update-tenant.dto';
+import { CreateTenantDto } from './dto/createTenant.dto';
+import { UpdateTenantDto } from './dto/updateTenant.dto';
 import { TenantDto } from 'src/tenant/dto/tenant.dto';
 import { Tenant } from 'src/entities/tenant';
 
