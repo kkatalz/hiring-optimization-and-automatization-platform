@@ -98,10 +98,32 @@ export class UserService {
   }
 
   async update(
-    id: string,
+    userId: string,
+    tenantId: string,
     updateUserDto: UpdateUserDto,
   ): Promise<UserResponseDto> {
-    const user = await this.findById(id);
+    const user = await this.findById(userId);
+
+    const tenantExists = await this.tenantRepository.exists({
+      where: { id: tenantId },
+    });
+
+    if (!tenantExists) {
+      throw new HttpException('Tenant does not exist.', HttpStatus.BAD_REQUEST);
+    }
+
+    const userExistsWithinProvidedTenant = await this.userRepository.exists({
+      where: {
+        id: user.id,
+        tenantId,
+      },
+    });
+    if (!userExistsWithinProvidedTenant) {
+      throw new HttpException(
+        'User with given id does not exist within provided tenant.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
     const userWithUpdateEmailExists = await this.userRepository.exists({
       where: { email: updateUserDto.email },
@@ -114,9 +136,11 @@ export class UserService {
       );
     }
 
-    updateUserDto.password = await this.authService.hash(
-      updateUserDto.password,
-    );
+    if (updateUserDto.password) {
+      updateUserDto.password = await this.authService.hash(
+        updateUserDto.password,
+      );
+    }
     Object.assign(user, updateUserDto);
     const updatedUser = await this.userRepository.save(user);
 
