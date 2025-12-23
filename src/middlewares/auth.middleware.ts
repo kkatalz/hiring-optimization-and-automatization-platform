@@ -1,7 +1,6 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { NextFunction } from 'express';
 import { verify } from 'jsonwebtoken';
-import { UserRole } from 'src/entities/role.enum';
 import { AuthRequest } from 'src/types/expressRequest.interface';
 import { UserResponseDto } from 'src/user/dto/userResponse.dto';
 import { UserService } from 'src/user/user.service';
@@ -19,8 +18,6 @@ export class AuthMiddleware implements NestMiddleware {
     const token = req.headers.authorization.split(' ')[1];
     try {
       const decode = verify(token, process.env.JWT_SECRET ?? 'test') as {
-        role: UserRole;
-        email: string;
         id: string;
       };
       const id = decode.id;
