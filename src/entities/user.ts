@@ -1,4 +1,4 @@
-import { UserRole } from '../entities/enums';
+import { UserRole } from '../entities/role.enum';
 import { Tenant } from '../entities/tenant';
 import {
   Column,
