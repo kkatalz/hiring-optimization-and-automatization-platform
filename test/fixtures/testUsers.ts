@@ -1,5 +1,5 @@
 import { testTenants } from '../fixtures/testTenants';
-import { UserRole } from '../../src/entities/enums';
+import { UserRole } from '../../src/entities/role.enum';
 import { User } from '../../src/entities/user';
 
 export const testUsers: User[] = [
