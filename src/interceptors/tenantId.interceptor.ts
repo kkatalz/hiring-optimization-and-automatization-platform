@@ -20,15 +20,12 @@ export class TenantInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
     const body = request.body;
-    const path = request.route.path;
 
     if (user) {
       if (user.role === UserRole.admin) {
         body.tenantId = user.tenantId;
       } else if (user.role === UserRole.superAdmin) {
-        const isCreatingSuperAdmin = path.includes('superAdmin');
-
-        if (!isCreatingSuperAdmin && !body?.tenantId) {
+        if (!body?.tenantId) {
           throw new BadRequestException('Tenant ID is required by SuperAdmin.');
         }
       }

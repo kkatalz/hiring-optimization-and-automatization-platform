@@ -45,7 +45,6 @@ export class UserController {
     return this.userService.create(createAdminDto, UserRole.admin);
   }
 
-  @UseInterceptors(TenantInterceptor)
   @Roles(UserRole.superAdmin)
   @Post('superAdmin')
   createSuperAdmin(
