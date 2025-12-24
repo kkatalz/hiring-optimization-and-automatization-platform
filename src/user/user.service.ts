@@ -105,12 +105,7 @@ export class UserService {
     return users.map((user) => userToUserResponseDto({ user }));
   }
 
-  async findAllByTenantId(
-    tenantId: string,
-    requester: UserResponseDto,
-  ): Promise<UserResponseDto[]> {
-    this.validateTenantAccess(requester, tenantId);
-
+  async findAllByTenantId(tenantId: string): Promise<UserResponseDto[]> {
     await this.tenantExists(tenantId);
 
     const users = await this.userRepository.find({
@@ -124,10 +119,7 @@ export class UserService {
     userId: string,
     tenantId: string,
     updateUserDto: UpdateUserDto,
-    requester: UserResponseDto,
   ): Promise<UserResponseDto> {
-    this.validateTenantAccess(requester, tenantId);
-
     const user = await this.findById(userId);
 
     await this.tenantExists(tenantId);
@@ -156,13 +148,7 @@ export class UserService {
     return userToUserResponseDto({ user: updatedUser });
   }
 
-  async remove(
-    userId: string,
-    tenantId: string,
-    requester: UserResponseDto,
-  ): Promise<UserResponseDto> {
-    this.validateTenantAccess(requester, tenantId);
-
+  async remove(userId: string, tenantId: string): Promise<UserResponseDto> {
     const user = await this.findById(userId);
     await this.tenantExists(tenantId);
     await this.userExistsWithinProvidedTenant(user, tenantId);
@@ -214,13 +200,5 @@ export class UserService {
       );
     }
     return userExistsWithinProvidedTenant;
-  }
-
-  private validateTenantAccess(requester: UserResponseDto, tenantId: string) {
-    if (requester.role === UserRole.admin && requester.tenantId !== tenantId) {
-      throw new ForbiddenException(
-        'You can access users only within your own tenant.',
-      );
-    }
   }
 }

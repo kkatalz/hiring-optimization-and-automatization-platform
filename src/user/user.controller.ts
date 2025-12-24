@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   ParseUUIDPipe,
@@ -65,7 +66,8 @@ export class UserController {
     @AuthUser() requester: UserResponseDto,
     @Param('id', new ParseUUIDPipe()) tenantId: string,
   ): Promise<UserResponseDto[]> {
-    return this.userService.findAllByTenantId(tenantId, requester);
+    this.validateTenantAccess(requester, tenantId);
+    return this.userService.findAllByTenantId(tenantId);
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin)
@@ -85,7 +87,9 @@ export class UserController {
     @Param('tenantId', new ParseUUIDPipe()) tenantId: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserResponseDto> {
-    return this.userService.update(userId, tenantId, updateUserDto, requester);
+    this.validateTenantAccess(requester, tenantId);
+
+    return this.userService.update(userId, tenantId, updateUserDto);
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin)
@@ -95,6 +99,16 @@ export class UserController {
     @Param('userId', new ParseUUIDPipe()) userId: string,
     @Param('tenantId', new ParseUUIDPipe()) tenantId: string,
   ): Promise<UserResponseDto> {
-    return this.userService.remove(userId, tenantId, requester);
+    this.validateTenantAccess(requester, tenantId);
+
+    return this.userService.remove(userId, tenantId);
+  }
+
+  private validateTenantAccess(requester: UserResponseDto, tenantId: string) {
+    if (requester.role === UserRole.admin && requester.tenantId !== tenantId) {
+      throw new ForbiddenException(
+        'You can access users only within your own tenant.',
+      );
+    }
   }
 }
