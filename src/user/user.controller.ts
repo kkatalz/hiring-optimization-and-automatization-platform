@@ -9,6 +9,7 @@ import {
   Post,
   UseInterceptors,
 } from '@nestjs/common';
+import { AuthUser } from 'src/decorators/authUser.dto';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRole } from 'src/entities/role.enum';
 import { TenantLogicInterceptor } from 'src/interceptors/tenantId.interceptor';
@@ -53,45 +54,48 @@ export class UserController {
     return this.userService.create(createSuperAdminDto, UserRole.superAdmin);
   }
 
-  // TODO
   @Roles(UserRole.superAdmin)
   @Get()
   findAll(): Promise<UserResponseDto[]> {
     return this.userService.findAll();
   }
 
-  // @Roles(UserRole.superAdmin, UserRole.admin) //admin only for users within his tenant
+  @Roles(UserRole.superAdmin, UserRole.admin)
   @Get('tenant/:id')
   findAllByTenantId(
+    @AuthUser() requester: UserResponseDto,
     @Param('id', new ParseUUIDPipe()) tenantId: string,
   ): Promise<UserResponseDto[]> {
-    return this.userService.findAllByTenantId(tenantId);
+    return this.userService.findAllByTenantId(tenantId, requester);
   }
 
-  // @Roles(UserRole.superAdmin, UserRole.admin) //admin only for users within his tenant
+  @Roles(UserRole.superAdmin, UserRole.admin)
   @Get(':id')
   findById(
+    @AuthUser() requester: UserResponseDto,
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<UserResponseDto> {
-    return this.userService.findDtoById(id);
+    return this.userService.findDtoById(id, requester);
   }
 
-  // @Roles(UserRole.superAdmin, UserRole.admin) //admin only for users within his tenant
+  @Roles(UserRole.superAdmin, UserRole.admin)
   @Patch(':userId/tenant/:tenantId')
   update(
+    @AuthUser() requester: UserResponseDto,
     @Param('userId', new ParseUUIDPipe()) userId: string,
     @Param('tenantId', new ParseUUIDPipe()) tenantId: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserResponseDto> {
-    return this.userService.update(userId, tenantId, updateUserDto);
+    return this.userService.update(userId, tenantId, updateUserDto, requester);
   }
 
-  // @Roles(UserRole.superAdmin, UserRole.admin) //admin only for users within his tenant
+  @Roles(UserRole.superAdmin, UserRole.admin)
   @Delete(':userId/tenant/:tenantId')
   remove(
+    @AuthUser() requester: UserResponseDto,
     @Param('userId', new ParseUUIDPipe()) userId: string,
     @Param('tenantId', new ParseUUIDPipe()) tenantId: string,
   ): Promise<UserResponseDto> {
-    return this.userService.remove(userId, tenantId);
+    return this.userService.remove(userId, tenantId, requester);
   }
 }

@@ -18,7 +18,6 @@ Business logic idea:
 export class TenantLogicInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
-    console.log(request);
     const user = request.user;
     const body = request.body;
     const path = request.route.path;
