@@ -59,11 +59,10 @@ describe('UserService', () => {
         password: 'createUser',
         firstName: 'John',
         lastName: 'Doe',
-        role: UserRole.superAdmin,
         tenantId,
       };
-
-      const result = await service.create(createUserDto);
+      const role = UserRole.superAdmin;
+      const result = await service.create(createUserDto, role);
 
       expect(result.email).to.equal(createUserDto.email);
       expect(result.tenantId).to.equal(tenantId);
@@ -76,12 +75,13 @@ describe('UserService', () => {
         password: 'password',
         firstName: 'John',
         lastName: 'Doe',
-        role: UserRole.superAdmin,
         tenantId: '00000000-0000-0000-0000-000000000000',
       };
 
+      const role = UserRole.superAdmin;
+
       try {
-        await service.create(dto);
+        await service.create(dto, role);
       } catch (e: any) {
         expect(e).to.have.property('status', 400);
         expect(e.response).to.equal('Tenant does not exist.');
@@ -96,14 +96,15 @@ describe('UserService', () => {
         password: 'password',
         firstName: 'John',
         lastName: 'Doe',
-        role: UserRole.superAdmin,
         tenantId,
       };
 
-      await service.create(dto);
+      const role = UserRole.superAdmin;
+
+      await service.create(dto, role);
 
       try {
-        await service.create(dto);
+        await service.create(dto, role);
       } catch (e: any) {
         expect(e).to.have.property('status', 400);
         expect(e.response).to.equal('User with given email already exists.');

@@ -23,7 +23,7 @@ export class AuthMiddleware implements NestMiddleware {
       const id = decode.id;
 
       let user: UserResponseDto | undefined = undefined;
-      user = await this.userService.findDtoById(id);
+      user = await this.userService.findById(id);
 
       if (!user) {
         next();

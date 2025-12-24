@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user';
@@ -8,6 +13,7 @@ import { Tenant } from '../entities/tenant';
 import { userToUserResponseDto } from '../user/map/user.map';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { AuthService } from '../auth/auth.service';
+import { UserRole } from 'src/entities/role.enum';
 
 @Injectable()
 export class UserService {
@@ -21,13 +27,16 @@ export class UserService {
     private readonly authService: AuthService,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+  async create(
+    createUserDto: CreateUserDto,
+    targetRole: UserRole,
+  ): Promise<UserResponseDto> {
     if (createUserDto.tenantId) {
-      const tenantExists = await this.tenantRepository.exists({
+      const tenant = await this.tenantRepository.exists({
         where: { id: createUserDto.tenantId },
       });
 
-      if (!tenantExists) {
+      if (!tenant) {
         throw new HttpException(
           'Tenant does not exist.',
           HttpStatus.BAD_REQUEST,
@@ -53,13 +62,19 @@ export class UserService {
     createUserDto.password = await this.authService.hash(
       createUserDto.password,
     );
-    const newUser = this.userRepository.create(createUserDto);
+    const newUser = this.userRepository.create({
+      ...createUserDto,
+      role: targetRole,
+    });
     await this.userRepository.save(newUser);
 
     return userToUserResponseDto({ user: newUser });
   }
 
-  async findDtoById(id: string): Promise<UserResponseDto> {
+  async findDtoById(
+    id: string,
+    requester: UserResponseDto,
+  ): Promise<UserResponseDto> {
     const user = await this.userRepository.findOne({
       where: { id, deleted: false },
     });
@@ -67,6 +82,15 @@ export class UserService {
       throw new HttpException(
         'User with given id not found.',
         HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (
+      requester.role === UserRole.admin &&
+      requester.tenantId !== user.tenantId
+    ) {
+      throw new ForbiddenException(
+        'You can access users only within your own tenant.',
       );
     }
 
@@ -134,7 +158,7 @@ export class UserService {
     return await this.userRepository.save(user);
   }
 
-  private async findById(id: string): Promise<User> {
+  async findById(id: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id, deleted: false },
     });
