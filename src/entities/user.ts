@@ -32,7 +32,7 @@ export class User {
     type: 'enum',
     enum: UserRole,
     nullable: false,
-    default: UserRole.admin,
+    default: UserRole.candidate,
   })
   role: UserRole;
 
