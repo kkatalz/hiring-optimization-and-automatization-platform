@@ -12,7 +12,7 @@ import {
 import { AuthUser } from 'src/decorators/authUser.dto';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRole } from 'src/entities/role.enum';
-import { TenantLogicInterceptor } from 'src/interceptors/tenantId.interceptor';
+import { TenantInterceptor } from 'src/interceptors/tenantId.interceptor';
 import { CreateUserDto } from 'src/user/dto/createUser.dto';
 import { UpdateUserDto } from 'src/user/dto/updateUser.dto';
 import { UserResponseDto } from 'src/user/dto/userResponse.dto';
@@ -29,7 +29,7 @@ export class UserController {
     return this.userService.create(createCandidateDto, UserRole.candidate);
   }
 
-  @UseInterceptors(TenantLogicInterceptor)
+  @UseInterceptors(TenantInterceptor)
   @Roles(UserRole.admin, UserRole.superAdmin)
   @Post('recruiter')
   createRecruiter(
@@ -38,14 +38,14 @@ export class UserController {
     return this.userService.create(createRecruiterDto, UserRole.recruiter);
   }
 
-  @UseInterceptors(TenantLogicInterceptor)
+  @UseInterceptors(TenantInterceptor)
   @Roles(UserRole.superAdmin)
   @Post('admin')
   createAdmin(@Body() createAdminDto: CreateUserDto): Promise<UserResponseDto> {
     return this.userService.create(createAdminDto, UserRole.admin);
   }
 
-  @UseInterceptors(TenantLogicInterceptor)
+  @UseInterceptors(TenantInterceptor)
   @Roles(UserRole.superAdmin)
   @Post('superAdmin')
   createSuperAdmin(
