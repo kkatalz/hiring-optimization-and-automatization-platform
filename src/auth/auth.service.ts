@@ -38,8 +38,8 @@ export class AuthService {
     return sign(
       {
         id: user.id,
-        email: user.email,
         role: user.role,
+        tenantId: user.tenantId,
       },
       process.env.JWT_SECRET ?? 'test',
     );
