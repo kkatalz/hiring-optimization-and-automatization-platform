@@ -15,5 +15,5 @@ export class CreateUserDto {
   lastName: string;
 
   @IsOptional()
-  tenantId: string;
+  tenantId?: string;
 }

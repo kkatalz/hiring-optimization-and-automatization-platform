@@ -29,7 +29,7 @@ export class TenantLogicInterceptor implements NestInterceptor {
       } else if (user.role === UserRole.superAdmin) {
         const isCreatingSuperAdmin = path.includes('superAdmin');
 
-        if (!isCreatingSuperAdmin && !body.tenantId) {
+        if (!isCreatingSuperAdmin && !body?.tenantId) {
           throw new BadRequestException('Tenant ID is required by SuperAdmin.');
         }
       }

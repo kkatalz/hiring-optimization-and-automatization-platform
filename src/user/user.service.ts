@@ -24,7 +24,7 @@ export class UserService {
 
   async create(
     createUserDto: CreateUserDto,
-    role: UserRole,
+    targetRole: UserRole,
   ): Promise<UserResponseDto> {
     if (createUserDto.tenantId) {
       const tenant = await this.tenantRepository.exists({
@@ -57,7 +57,10 @@ export class UserService {
     createUserDto.password = await this.authService.hash(
       createUserDto.password,
     );
-    const newUser = this.userRepository.create({ ...createUserDto, role });
+    const newUser = this.userRepository.create({
+      ...createUserDto,
+      role: targetRole,
+    });
     await this.userRepository.save(newUser);
 
     return userToUserResponseDto({ user: newUser });

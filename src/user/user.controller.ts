@@ -18,7 +18,6 @@ import { UserResponseDto } from 'src/user/dto/userResponse.dto';
 import { UserService } from 'src/user/user.service';
 
 @Controller('users')
-@UseInterceptors(TenantLogicInterceptor)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -29,6 +28,7 @@ export class UserController {
     return this.userService.create(createCandidateDto, UserRole.candidate);
   }
 
+  @UseInterceptors(TenantLogicInterceptor)
   @Roles(UserRole.admin, UserRole.superAdmin)
   @Post('recruiter')
   createRecruiter(
@@ -37,12 +37,14 @@ export class UserController {
     return this.userService.create(createRecruiterDto, UserRole.recruiter);
   }
 
+  @UseInterceptors(TenantLogicInterceptor)
   @Roles(UserRole.superAdmin)
   @Post('admin')
   createAdmin(@Body() createAdminDto: CreateUserDto): Promise<UserResponseDto> {
     return this.userService.create(createAdminDto, UserRole.admin);
   }
 
+  @UseInterceptors(TenantLogicInterceptor)
   @Roles(UserRole.superAdmin)
   @Post('superAdmin')
   createSuperAdmin(
@@ -52,7 +54,7 @@ export class UserController {
   }
 
   // TODO
-  // @Roles(UserRole.superAdmin)
+  @Roles(UserRole.superAdmin)
   @Get()
   findAll(): Promise<UserResponseDto[]> {
     return this.userService.findAll();
