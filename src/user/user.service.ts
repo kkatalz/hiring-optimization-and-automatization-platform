@@ -8,6 +8,7 @@ import { Tenant } from '../entities/tenant';
 import { userToUserResponseDto } from '../user/map/user.map';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { AuthService } from '../auth/auth.service';
+import { UserRole } from 'src/entities/role.enum';
 
 @Injectable()
 export class UserService {
@@ -21,13 +22,16 @@ export class UserService {
     private readonly authService: AuthService,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+  async create(
+    createUserDto: CreateUserDto,
+    role: UserRole,
+  ): Promise<UserResponseDto> {
     if (createUserDto.tenantId) {
-      const tenantExists = await this.tenantRepository.exists({
+      const tenant = await this.tenantRepository.exists({
         where: { id: createUserDto.tenantId },
       });
 
-      if (!tenantExists) {
+      if (!tenant) {
         throw new HttpException(
           'Tenant does not exist.',
           HttpStatus.BAD_REQUEST,
@@ -53,7 +57,7 @@ export class UserService {
     createUserDto.password = await this.authService.hash(
       createUserDto.password,
     );
-    const newUser = this.userRepository.create(createUserDto);
+    const newUser = this.userRepository.create({ ...createUserDto, role });
     await this.userRepository.save(newUser);
 
     return userToUserResponseDto({ user: newUser });
