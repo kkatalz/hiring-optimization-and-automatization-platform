@@ -2,7 +2,7 @@ import { Injectable, NestMiddleware } from '@nestjs/common';
 import { NextFunction } from 'express';
 import { verify } from 'jsonwebtoken';
 import { AuthRequest } from 'src/types/expressRequest.interface';
-import { UserResponseDto } from 'src/user/dto/userResponse.dto';
+import { UserDto } from 'src/user/dto/user.dto';
 import { UserService } from 'src/user/user.service';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class AuthMiddleware implements NestMiddleware {
       };
       const id = decode.id;
 
-      let user: UserResponseDto | undefined = undefined;
+      let user: UserDto | undefined = undefined;
       user = await this.userService.findById(id);
 
       if (!user) {

@@ -7,7 +7,7 @@ import { VacancyDto } from 'src/vacancy/dto/vacancy.dto';
 import { vacancyToVacancyDto } from 'src/vacancy/map/vacancy.map';
 import { CreateVacancyDto } from 'src/vacancy/dto/createVacancy.dto';
 import { UpdateVacancyDto } from 'src/vacancy/dto/updateVacancy.dto';
-import { UserResponseDto } from 'src/user/dto/userResponse.dto';
+import { UserDto } from 'src/user/dto/user.dto';
 
 @Injectable()
 export class VacancyService {
@@ -52,7 +52,7 @@ export class VacancyService {
 
   async create(
     createVacancyDto: CreateVacancyDto,
-    creator: UserResponseDto,
+    creator: UserDto,
   ): Promise<VacancyDto> {
     const vacancy = this.vacancyRepository.create(createVacancyDto);
 

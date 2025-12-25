@@ -8,9 +8,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user';
 import { CreateUserDto } from './dto/createUser.dto';
-import { UserResponseDto } from './dto/userResponse.dto';
+import { UserDto } from './dto/user.dto';
 import { Tenant } from '../entities/tenant';
-import { userToUserResponseDto } from '../user/map/user.map';
+import { userToUserDto } from '../user/map/user.map';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { AuthService } from '../auth/auth.service';
 import { UserRole } from 'src/entities/role.enum';
@@ -30,7 +30,7 @@ export class UserService {
   async create(
     createUserDto: CreateUserDto,
     targetRole: UserRole,
-  ): Promise<UserResponseDto> {
+  ): Promise<UserDto> {
     if (createUserDto.tenantId) {
       const tenant = await this.tenantRepository.exists({
         where: { id: createUserDto.tenantId },
@@ -68,13 +68,10 @@ export class UserService {
     });
     await this.userRepository.save(newUser);
 
-    return userToUserResponseDto({ user: newUser });
+    return userToUserDto({ user: newUser });
   }
 
-  async findDtoById(
-    id: string,
-    requester: UserResponseDto,
-  ): Promise<UserResponseDto> {
+  async findDtoById(id: string, requester: UserDto): Promise<UserDto> {
     const user = await this.userRepository.findOne({
       where: { id, deleted: false },
     });
@@ -94,32 +91,32 @@ export class UserService {
       );
     }
 
-    return userToUserResponseDto({ user });
+    return userToUserDto({ user });
   }
 
-  async findAll(): Promise<UserResponseDto[]> {
+  async findAll(): Promise<UserDto[]> {
     const users = await this.userRepository.find({
       where: { deleted: false },
     });
 
-    return users.map((user) => userToUserResponseDto({ user }));
+    return users.map((user) => userToUserDto({ user }));
   }
 
-  async findAllByTenantId(tenantId: string): Promise<UserResponseDto[]> {
+  async findAllByTenantId(tenantId: string): Promise<UserDto[]> {
     await this.tenantExists(tenantId);
 
     const users = await this.userRepository.find({
       where: { deleted: false, tenantId },
     });
 
-    return users.map((user) => userToUserResponseDto({ user }));
+    return users.map((user) => userToUserDto({ user }));
   }
 
   async update(
     userId: string,
     tenantId: string,
     updateUserDto: UpdateUserDto,
-  ): Promise<UserResponseDto> {
+  ): Promise<UserDto> {
     const user = await this.findById(userId);
 
     await this.tenantExists(tenantId);
@@ -145,10 +142,10 @@ export class UserService {
     Object.assign(user, updateUserDto);
     const updatedUser = await this.userRepository.save(user);
 
-    return userToUserResponseDto({ user: updatedUser });
+    return userToUserDto({ user: updatedUser });
   }
 
-  async remove(userId: string, tenantId: string): Promise<UserResponseDto> {
+  async remove(userId: string, tenantId: string): Promise<UserDto> {
     const user = await this.findById(userId);
     await this.tenantExists(tenantId);
     await this.userExistsWithinProvidedTenant(user, tenantId);

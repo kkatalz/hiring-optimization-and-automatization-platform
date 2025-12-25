@@ -1,6 +1,6 @@
 import { User } from 'src/entities/user';
 import { VacancySubmission } from 'src/entities/vacancySubmission';
-import { UserResponseDto } from 'src/user/dto/userResponse.dto';
+import { UserDto } from 'src/user/dto/user.dto';
 import {
   Column,
   Entity,
@@ -38,7 +38,7 @@ export class Vacancy {
     nullable: true,
   })
   @JoinColumn({ name: 'created_by_id' })
-  createdBy?: UserResponseDto;
+  createdBy?: UserDto;
 
   @OneToMany(() => VacancySubmission, (submission) => submission.vacancy)
   submissions?: VacancySubmission[];
