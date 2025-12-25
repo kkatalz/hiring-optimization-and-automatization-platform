@@ -11,7 +11,8 @@ import {
 import { AuthUser } from 'src/decorators/authUser.dto';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRole } from 'src/entities/role.enum';
-import { UserResponseDto } from 'src/user/dto/userResponse.dto';
+import { UserDto } from 'src/user/dto/user.dto';
+import { validateTenantAccess } from 'src/utils/validate';
 import { CreateVacancyDto } from 'src/vacancy/dto/createVacancy.dto';
 import { UpdateVacancyDto } from 'src/vacancy/dto/updateVacancy.dto';
 import { VacancyDto } from 'src/vacancy/dto/vacancy.dto';
@@ -25,7 +26,7 @@ export class VacancyController {
   @Post()
   create(
     @Body() createVacancyDto: CreateVacancyDto,
-    @AuthUser() creator: UserResponseDto,
+    @AuthUser() creator: UserDto,
   ): Promise<VacancyDto> {
     return this.vacancyService.create(createVacancyDto, creator);
   }
@@ -36,16 +37,19 @@ export class VacancyController {
   }
 
   @Get(':vacancyId')
-  findVacanciesByVacancyId(
+  findByVacancyId(
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
   ): Promise<VacancyDto> {
     return this.vacancyService.findByVacancyId(vacancyId);
   }
 
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get('tenant/:tenantId')
   findVacanciesByTenantId(
     @Param('tenantId', new ParseUUIDPipe()) tenantId: string,
+    @AuthUser() viewer: UserDto,
   ): Promise<VacancyDto[]> {
+    validateTenantAccess(viewer, tenantId);
     return this.vacancyService.findByTenantId(tenantId);
   }
 
