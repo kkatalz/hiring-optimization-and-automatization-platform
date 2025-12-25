@@ -11,7 +11,7 @@ import { UserRole } from 'src/entities/role.enum';
 /*
 Business logic idea:
   1. Admin can only create users in their own company (e.g. recruiter gets admin's tenant id).
-  2. SuperAdmin must specify which company. Exception: If superAdmin creates a superAdmin, skip tenant requirement
+  2. SuperAdmin must specify which company.
 */
 
 @Injectable()
