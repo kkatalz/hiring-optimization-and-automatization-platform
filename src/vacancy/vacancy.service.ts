@@ -7,6 +7,7 @@ import { VacancyDto } from 'src/vacancy/dto/vacancy.dto';
 import { vacancyToVacancyDto } from 'src/vacancy/map/vacancy.map';
 import { CreateVacancyDto } from 'src/vacancy/dto/createVacancy.dto';
 import { UpdateVacancyDto } from 'src/vacancy/dto/updateVacancy.dto';
+import { UserResponseDto } from 'src/user/dto/userResponse.dto';
 
 @Injectable()
 export class VacancyService {
@@ -49,8 +50,16 @@ export class VacancyService {
     return vacancies.map(vacancyToVacancyDto);
   }
 
-  async create(createVacancyDto: CreateVacancyDto): Promise<VacancyDto> {
+  async create(
+    createVacancyDto: CreateVacancyDto,
+    creator: UserResponseDto,
+  ): Promise<VacancyDto> {
     const vacancy = this.vacancyRepository.create(createVacancyDto);
+
+    if (creator.tenantId) vacancy.tenantId = creator.tenantId;
+    vacancy.createdById = creator.id;
+    vacancy.createdBy = creator;
+
     return await this.vacancyRepository.save(vacancy);
   }
 

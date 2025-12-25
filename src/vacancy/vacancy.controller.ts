@@ -8,6 +8,10 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { AuthUser } from 'src/decorators/authUser.dto';
+import { Roles } from 'src/decorators/roles.decorator';
+import { UserRole } from 'src/entities/role.enum';
+import { UserResponseDto } from 'src/user/dto/userResponse.dto';
 import { CreateVacancyDto } from 'src/vacancy/dto/createVacancy.dto';
 import { UpdateVacancyDto } from 'src/vacancy/dto/updateVacancy.dto';
 import { VacancyDto } from 'src/vacancy/dto/vacancy.dto';
@@ -17,9 +21,13 @@ import { VacancyService } from 'src/vacancy/vacancy.service';
 export class VacancyController {
   constructor(private readonly vacancyService: VacancyService) {}
 
+  @Roles(UserRole.admin, UserRole.recruiter)
   @Post()
-  create(@Body() createVacancyDto: CreateVacancyDto): Promise<VacancyDto> {
-    return this.vacancyService.create(createVacancyDto);
+  create(
+    @Body() createVacancyDto: CreateVacancyDto,
+    @AuthUser() creator: UserResponseDto,
+  ): Promise<VacancyDto> {
+    return this.vacancyService.create(createVacancyDto, creator);
   }
 
   @Get()
