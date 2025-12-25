@@ -9,6 +9,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { VacancySubmission } from 'src/entities/vacancySubmission';
 
 @Entity({ name: 'users' })
 export class User {
@@ -47,4 +48,7 @@ export class User {
 
   @OneToMany(() => Vacancy, (vacancy) => vacancy.createdBy)
   createdVacancies?: Vacancy[];
+
+  @OneToMany(() => VacancySubmission, (submission) => submission.candidate)
+  applications?: VacancySubmission[];
 }

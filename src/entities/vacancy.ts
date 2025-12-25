@@ -1,9 +1,11 @@
 import { User } from 'src/entities/user';
+import { VacancySubmission } from 'src/entities/vacancySubmission';
 import {
   Column,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -36,4 +38,7 @@ export class Vacancy {
   })
   @JoinColumn({ name: 'created_by_id' })
   createdBy?: User;
+
+  @OneToMany(() => VacancySubmission, (submission) => submission.vacancy)
+  submissions?: VacancySubmission[];
 }
