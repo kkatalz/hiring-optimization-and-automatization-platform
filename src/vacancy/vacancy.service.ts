@@ -9,6 +9,7 @@ import { UpdateVacancyDto } from 'src/vacancy/dto/updateVacancy.dto';
 import { UserDto } from 'src/user/dto/user.dto';
 import { validateTenantAccess } from 'src/utils/validate';
 import { UserRole } from 'src/entities/role.enum';
+import { vacancyToVacancyDto } from 'src/vacancy/map/vacancy.map';
 
 @Injectable()
 export class VacancyService {
@@ -18,7 +19,8 @@ export class VacancyService {
   ) {}
 
   async findAll(): Promise<VacancyDto[]> {
-    return await this.vacancyRepository.find();
+    const vacancies = await this.vacancyRepository.find();
+    return vacancies.map((vacancy) => vacancyToVacancyDto(vacancy));
   }
 
   async findVacanciesWithSubmissions(
@@ -29,13 +31,20 @@ export class VacancyService {
       .innerJoinAndSelect('vacancy.submissions', 'submission')
       .getMany();
 
-    if (requester.role === UserRole.superAdmin) return vacanciesWithSubmissions;
+    if (requester.role === UserRole.superAdmin)
+      return vacanciesWithSubmissions.map((vacancyWithSubmission) =>
+        vacancyToVacancyDto(vacancyWithSubmission),
+      );
     else if (
       requester.role === UserRole.admin ||
       requester.role === UserRole.recruiter
     ) {
-      return vacanciesWithSubmissions.filter(
+      const filteredVacanciesWithSubmissions = vacanciesWithSubmissions.filter(
         (vacancy) => vacancy.tenantId === requester.tenantId,
+      );
+
+      return filteredVacanciesWithSubmissions.map((vacancyWithSubmission) =>
+        vacancyToVacancyDto(vacancyWithSubmission),
       );
     }
     return [];
@@ -50,7 +59,7 @@ export class VacancyService {
       throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
     }
 
-    return vacancy;
+    return vacancyToVacancyDto(vacancy);
   }
 
   async findAllByTenantId(tenantId: string): Promise<VacancyDto[]> {
@@ -68,7 +77,8 @@ export class VacancyService {
     const vacancies = await this.vacancyRepository.find({
       where: { tenantId },
     });
-    return vacancies;
+
+    return vacancies.map((vacancy) => vacancyToVacancyDto(vacancy));
   }
 
   async create(
@@ -81,7 +91,8 @@ export class VacancyService {
     vacancy.createdById = creator.id;
     vacancy.createdBy = creator;
 
-    return await this.vacancyRepository.save(vacancy);
+    const savedVacancy = await this.vacancyRepository.save(vacancy);
+    return vacancyToVacancyDto(savedVacancy);
   }
 
   async update(
@@ -94,7 +105,8 @@ export class VacancyService {
 
     Object.assign(vacancy, updateVacancyDto);
 
-    return await this.vacancyRepository.save(vacancy);
+    const updatedVacancy = await this.vacancyRepository.save(vacancy);
+    return vacancyToVacancyDto(updatedVacancy);
   }
 
   async remove(vacancyId: string, deleter: UserDto): Promise<VacancyDto> {
@@ -103,7 +115,7 @@ export class VacancyService {
 
     await this.vacancyRepository.delete(vacancyId);
 
-    return vacancy;
+    return vacancyToVacancyDto(vacancy);
   }
 
   private async findVacancyByVacancyId(vacancyId: string): Promise<VacancyDto> {
@@ -115,6 +127,6 @@ export class VacancyService {
       throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
     }
 
-    return vacancy;
+    return vacancyToVacancyDto(vacancy);
   }
 }
