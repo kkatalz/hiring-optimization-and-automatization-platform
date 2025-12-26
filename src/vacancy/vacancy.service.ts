@@ -20,7 +20,7 @@ export class VacancyService {
 
   async findAll(): Promise<VacancyDto[]> {
     const vacancies = await this.vacancyRepository.find();
-    return vacancies.map((vacancy) => vacancyToVacancyDto(vacancy));
+    return vacancies.map(vacancyToVacancyDto);
   }
 
   async findVacanciesWithSubmissions(
@@ -44,7 +44,7 @@ export class VacancyService {
     }
 
     const vacancies = await vacancyQuery.getMany();
-    return vacancies.map((v) => vacancyToVacancyDto(v));
+    return vacancies.map(vacancyToVacancyDto);
   }
 
   async findDtoByVacancyId(vacancyId: string): Promise<VacancyDto> {
@@ -71,9 +71,7 @@ export class VacancyService {
       );
     }
 
-    return vacanciesWithGivenTenant.map((vacancy) =>
-      vacancyToVacancyDto(vacancy),
-    );
+    return vacanciesWithGivenTenant.map(vacancyToVacancyDto);
   }
 
   async create(

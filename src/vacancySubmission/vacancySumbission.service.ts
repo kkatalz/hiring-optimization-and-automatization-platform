@@ -42,9 +42,7 @@ export class VacancySumbissionService {
     if (viewer.role === UserRole.superAdmin) {
       const vacancySubmissions = await this.vacancySubmissionRepository.find();
 
-      return vacancySubmissions.map((single) =>
-        vacancySubmToVacancySubmDto(single),
-      );
+      return vacancySubmissions.map(vacancySubmToVacancySubmDto);
     } else if (
       viewer.role === UserRole.admin ||
       viewer.role === UserRole.recruiter
@@ -56,9 +54,7 @@ export class VacancySumbissionService {
           },
         },
       });
-      return vacancySubmissions.map((single) =>
-        vacancySubmToVacancySubmDto(single),
-      );
+      return vacancySubmissions.map(vacancySubmToVacancySubmDto);
     }
     return [];
   }
@@ -67,8 +63,6 @@ export class VacancySumbissionService {
     const vacancySubmissions = await this.vacancySubmissionRepository.find({
       where: { vacancy: { tenantId } },
     });
-    return vacancySubmissions.map((single) =>
-      vacancySubmToVacancySubmDto(single),
-    );
+    return vacancySubmissions.map(vacancySubmToVacancySubmDto);
   }
 }
