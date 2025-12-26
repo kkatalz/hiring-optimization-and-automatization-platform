@@ -5,12 +5,10 @@ export const vacancyToVacancyDto = ({
   id,
   name,
   description,
-  tags,
   salary,
 }: Vacancy): VacancyDto => ({
   id,
   name,
   description,
-  tags,
   salary,
 });

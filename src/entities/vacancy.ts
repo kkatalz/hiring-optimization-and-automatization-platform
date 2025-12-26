@@ -21,9 +21,6 @@ export class Vacancy {
   @Column('text')
   description: string;
 
-  @Column('simple-array')
-  tags: string[];
-
   @Column({ nullable: true })
   salary?: string;
 
