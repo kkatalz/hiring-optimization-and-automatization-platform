@@ -63,22 +63,20 @@ export class VacancyService {
   }
 
   async findAllByTenantId(tenantId: string): Promise<VacancyDto[]> {
-    const tenant = await this.vacancyRepository.find({
+    const vacanciesWithGivenTenant = await this.vacancyRepository.find({
       where: { tenantId },
     });
 
-    if (!tenant) {
+    if (!vacanciesWithGivenTenant) {
       throw new HttpException(
         'No vacancies with provided tenant were found.',
         HttpStatus.NOT_FOUND,
       );
     }
 
-    const vacancies = await this.vacancyRepository.find({
-      where: { tenantId },
-    });
-
-    return vacancies.map((vacancy) => vacancyToVacancyDto(vacancy));
+    return vacanciesWithGivenTenant.map((vacancy) =>
+      vacancyToVacancyDto(vacancy),
+    );
   }
 
   async create(
