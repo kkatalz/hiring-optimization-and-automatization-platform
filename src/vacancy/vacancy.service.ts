@@ -26,7 +26,7 @@ export class VacancyService {
   ): Promise<VacancyDto[]> {
     const vacanciesWithSubmissions = await this.vacancyRepository
       .createQueryBuilder('vacancy')
-      .innerJoin('vacancy.submissions', 'submission')
+      .innerJoinAndSelect('vacancy.submissions', 'submission')
       .getMany();
 
     if (requester.role === UserRole.superAdmin) return vacanciesWithSubmissions;

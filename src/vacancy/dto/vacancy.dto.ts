@@ -1,3 +1,5 @@
+import { VacancySubmission } from 'src/entities/vacancySubmission';
+
 export class VacancyDto {
   id: string;
   name: string;
@@ -5,4 +7,5 @@ export class VacancyDto {
   salary?: string;
   tenantId: string;
   createdById: string;
+  submissions?: VacancySubmission[];
 }
