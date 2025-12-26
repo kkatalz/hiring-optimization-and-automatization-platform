@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { Vacancy } from 'src/entities/vacancy';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { VacancyDto } from 'src/vacancy/dto/vacancy.dto';
-import { vacancyToVacancyDto } from 'src/vacancy/map/vacancy.map';
 import { CreateVacancyDto } from 'src/vacancy/dto/createVacancy.dto';
 import { UpdateVacancyDto } from 'src/vacancy/dto/updateVacancy.dto';
 import { UserDto } from 'src/user/dto/user.dto';
@@ -19,28 +18,12 @@ export class VacancyService {
   ) {}
 
   async findAll(): Promise<VacancyDto[]> {
-    const vacancies = await this.vacancyRepository.find();
-    return vacancies.map(vacancyToVacancyDto);
-  }
-
-  async findAllDetailed(viewer: UserDto): Promise<VacancyDto[]> {
-    if (viewer.role === UserRole.superAdmin)
-      return await this.vacancyRepository.find();
-    else if (
-      viewer.role === UserRole.admin ||
-      viewer.role === UserRole.recruiter
-    ) {
-      return await this.vacancyRepository.find({
-        where: {
-          tenantId: viewer.tenantId,
-        },
-      });
-    }
-
     return await this.vacancyRepository.find();
   }
 
-  async findVacanciesWithSubmissions(requester: UserDto): Promise<Vacancy[]> {
+  async findVacanciesWithSubmissions(
+    requester: UserDto,
+  ): Promise<VacancyDto[]> {
     const vacanciesWithSubmissions = await this.vacancyRepository
       .createQueryBuilder('vacancy')
       .innerJoin('vacancy.submissions', 'submission')
@@ -67,7 +50,7 @@ export class VacancyService {
       throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
     }
 
-    return vacancyToVacancyDto(vacancy);
+    return vacancy;
   }
 
   async findAllByTenantId(tenantId: string): Promise<VacancyDto[]> {
@@ -91,7 +74,7 @@ export class VacancyService {
   async create(
     createVacancyDto: CreateVacancyDto,
     creator: UserDto,
-  ): Promise<Vacancy> {
+  ): Promise<VacancyDto> {
     const vacancy = this.vacancyRepository.create(createVacancyDto);
 
     if (creator.tenantId) vacancy.tenantId = creator.tenantId;
@@ -111,7 +94,6 @@ export class VacancyService {
 
     Object.assign(vacancy, updateVacancyDto);
 
-    vacancyToVacancyDto(vacancy);
     return await this.vacancyRepository.save(vacancy);
   }
 
@@ -121,11 +103,10 @@ export class VacancyService {
 
     await this.vacancyRepository.delete(vacancyId);
 
-    vacancyToVacancyDto(vacancy);
     return vacancy;
   }
 
-  private async findVacancyByVacancyId(vacancyId: string): Promise<Vacancy> {
+  private async findVacancyByVacancyId(vacancyId: string): Promise<VacancyDto> {
     const vacancy = await this.vacancyRepository.findOne({
       where: { id: vacancyId },
     });

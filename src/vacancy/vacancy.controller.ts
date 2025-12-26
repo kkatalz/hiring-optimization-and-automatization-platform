@@ -11,7 +11,6 @@ import {
 import { AuthUser } from 'src/decorators/authUser.dto';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRole } from 'src/entities/role.enum';
-import { Vacancy } from 'src/entities/vacancy';
 import { UserDto } from 'src/user/dto/user.dto';
 import { validateTenantAccess } from 'src/utils/validate';
 import { CreateVacancyDto } from 'src/vacancy/dto/createVacancy.dto';
@@ -28,7 +27,7 @@ export class VacancyController {
   create(
     @Body() createVacancyDto: CreateVacancyDto,
     @AuthUser() creator: UserDto,
-  ): Promise<Vacancy> {
+  ): Promise<VacancyDto> {
     return this.vacancyService.create(createVacancyDto, creator);
   }
 
@@ -38,14 +37,10 @@ export class VacancyController {
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
-  @Get('detailed')
-  findAllVacanciesDetailed(@AuthUser() viewer: UserDto): Promise<VacancyDto[]> {
-    return this.vacancyService.findAllDetailed(viewer);
-  }
-
-  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get('with-submissions')
-  findVacanciesWithSubmissions(@AuthUser() requester: UserDto) {
+  findVacanciesWithSubmissions(
+    @AuthUser() requester: UserDto,
+  ): Promise<VacancyDto[]> {
     return this.vacancyService.findVacanciesWithSubmissions(requester);
   }
 
