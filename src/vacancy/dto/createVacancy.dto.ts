@@ -7,9 +7,6 @@ export class CreateVacancyDto {
   @IsNotEmpty()
   description: string;
 
-  @IsNotEmpty()
-  tags: string[];
-
   @IsOptional()
   @IsString()
   salary?: string;

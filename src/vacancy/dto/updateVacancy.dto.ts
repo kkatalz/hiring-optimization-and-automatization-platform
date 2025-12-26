@@ -8,9 +8,6 @@ export class UpdateVacancyDto {
   description: string;
 
   @IsOptional()
-  tags: string[];
-
-  @IsOptional()
   @IsString()
   salary?: string;
 }
