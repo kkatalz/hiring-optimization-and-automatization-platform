@@ -16,6 +16,7 @@ import { AuthMiddleware } from 'src/middlewares/auth.middleware';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { VacancyModule } from 'src/vacancy/vacancy.module';
+import { VacancySumbissionModule } from 'src/vacancySubmission/vacancySubmission.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { VacancyModule } from 'src/vacancy/vacancy.module';
     UserModule,
     AuthModule,
     VacancyModule,
+    VacancySumbissionModule,
   ],
   controllers: [AppController],
   providers: [
