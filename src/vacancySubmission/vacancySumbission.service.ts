@@ -6,6 +6,7 @@ import { UserDto } from 'src/user/dto/user.dto';
 import { VacancyService } from 'src/vacancy/vacancy.service';
 import { CreateVacancySubmissionDto } from 'src/vacancySubmission/dto/applyForVacancy.dto';
 import { VacancySubmissionDto } from 'src/vacancySubmission/dto/vacancySubmission.dto';
+import { vacancySubmToVacancySubmDto } from 'src/vacancySubmission/map/vacancySubmission.map';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -31,30 +32,43 @@ export class VacancySumbissionService {
     vacancySubmission.vacancyId = vacancyId;
     vacancySubmission.candidateId = candidate.id;
 
-    return await this.vacancySubmissionRepository.save(vacancySubmission);
+    const savedVacancySubmission =
+      await this.vacancySubmissionRepository.save(vacancySubmission);
+
+    return vacancySubmToVacancySubmDto(savedVacancySubmission);
   }
 
   async findAll(viewer: UserDto): Promise<VacancySubmissionDto[]> {
-    if (viewer.role === UserRole.superAdmin)
-      return await this.vacancySubmissionRepository.find();
-    else if (
+    if (viewer.role === UserRole.superAdmin) {
+      const vacancySubmissions = await this.vacancySubmissionRepository.find();
+
+      return vacancySubmissions.map((single) =>
+        vacancySubmToVacancySubmDto(single),
+      );
+    } else if (
       viewer.role === UserRole.admin ||
       viewer.role === UserRole.recruiter
     ) {
-      return await this.vacancySubmissionRepository.find({
+      const vacancySubmissions = await this.vacancySubmissionRepository.find({
         where: {
           vacancy: {
             tenantId: viewer.tenantId,
           },
         },
       });
+      return vacancySubmissions.map((single) =>
+        vacancySubmToVacancySubmDto(single),
+      );
     }
     return [];
   }
 
   async findAllByTenantId(tenantId: string): Promise<VacancySubmissionDto[]> {
-    return await this.vacancySubmissionRepository.find({
+    const vacancySubmissions = await this.vacancySubmissionRepository.find({
       where: { vacancy: { tenantId } },
     });
+    return vacancySubmissions.map((single) =>
+      vacancySubmToVacancySubmDto(single),
+    );
   }
 }
