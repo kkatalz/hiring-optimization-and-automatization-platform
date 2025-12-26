@@ -15,7 +15,7 @@ import { UserRole } from 'src/entities/role.enum';
 import { TenantInterceptor } from 'src/interceptors/tenantId.interceptor';
 import { CreateUserDto } from 'src/user/dto/createUser.dto';
 import { UpdateUserDto } from 'src/user/dto/updateUser.dto';
-import { UserResponseDto } from 'src/user/dto/userResponse.dto';
+import { UserDto } from 'src/user/dto/user.dto';
 import { UserService } from 'src/user/user.service';
 import { validateTenantAccess } from 'src/utils/validate';
 
@@ -24,25 +24,21 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('candidate')
-  createCandidate(
-    @Body() createCandidateDto: CreateUserDto,
-  ): Promise<UserResponseDto> {
+  createCandidate(@Body() createCandidateDto: CreateUserDto): Promise<UserDto> {
     return this.userService.create(createCandidateDto, UserRole.candidate);
   }
 
   @UseInterceptors(TenantInterceptor)
   @Roles(UserRole.admin, UserRole.superAdmin)
   @Post('recruiter')
-  createRecruiter(
-    @Body() createRecruiterDto: CreateUserDto,
-  ): Promise<UserResponseDto> {
+  createRecruiter(@Body() createRecruiterDto: CreateUserDto): Promise<UserDto> {
     return this.userService.create(createRecruiterDto, UserRole.recruiter);
   }
 
   @UseInterceptors(TenantInterceptor)
   @Roles(UserRole.superAdmin)
   @Post('admin')
-  createAdmin(@Body() createAdminDto: CreateUserDto): Promise<UserResponseDto> {
+  createAdmin(@Body() createAdminDto: CreateUserDto): Promise<UserDto> {
     return this.userService.create(createAdminDto, UserRole.admin);
   }
 
@@ -50,22 +46,22 @@ export class UserController {
   @Post('superAdmin')
   createSuperAdmin(
     @Body() createSuperAdminDto: CreateUserDto,
-  ): Promise<UserResponseDto> {
+  ): Promise<UserDto> {
     return this.userService.create(createSuperAdminDto, UserRole.superAdmin);
   }
 
   @Roles(UserRole.superAdmin)
   @Get()
-  findAll(): Promise<UserResponseDto[]> {
+  findAll(): Promise<UserDto[]> {
     return this.userService.findAll();
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin)
   @Get('tenant/:id')
   findAllByTenantId(
-    @AuthUser() requester: UserResponseDto,
+    @AuthUser() requester: UserDto,
     @Param('id', new ParseUUIDPipe()) tenantId: string,
-  ): Promise<UserResponseDto[]> {
+  ): Promise<UserDto[]> {
     validateTenantAccess(requester, tenantId);
     return this.userService.findAllByTenantId(tenantId);
   }
@@ -73,20 +69,20 @@ export class UserController {
   @Roles(UserRole.superAdmin, UserRole.admin)
   @Get(':id')
   findById(
-    @AuthUser() requester: UserResponseDto,
+    @AuthUser() requester: UserDto,
     @Param('id', new ParseUUIDPipe()) id: string,
-  ): Promise<UserResponseDto> {
+  ): Promise<UserDto> {
     return this.userService.findDtoById(id, requester);
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin)
   @Patch(':userId/tenant/:tenantId')
   update(
-    @AuthUser() requester: UserResponseDto,
+    @AuthUser() requester: UserDto,
     @Param('userId', new ParseUUIDPipe()) userId: string,
     @Param('tenantId', new ParseUUIDPipe()) tenantId: string,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<UserResponseDto> {
+  ): Promise<UserDto> {
     validateTenantAccess(requester, tenantId);
 
     return this.userService.update(userId, tenantId, updateUserDto);
@@ -95,10 +91,10 @@ export class UserController {
   @Roles(UserRole.superAdmin, UserRole.admin)
   @Delete(':userId/tenant/:tenantId')
   remove(
-    @AuthUser() requester: UserResponseDto,
+    @AuthUser() requester: UserDto,
     @Param('userId', new ParseUUIDPipe()) userId: string,
     @Param('tenantId', new ParseUUIDPipe()) tenantId: string,
-  ): Promise<UserResponseDto> {
+  ): Promise<UserDto> {
     validateTenantAccess(requester, tenantId);
 
     return this.userService.remove(userId, tenantId);

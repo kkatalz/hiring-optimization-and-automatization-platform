@@ -1,3 +1,4 @@
+import { Vacancy } from 'src/entities/vacancy';
 import { UserRole } from '../entities/role.enum';
 import { Tenant } from '../entities/tenant';
 import {
@@ -5,8 +6,10 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { VacancySubmission } from 'src/entities/vacancySubmission';
 
 @Entity({ name: 'users' })
 export class User {
@@ -42,4 +45,10 @@ export class User {
   @ManyToOne(() => Tenant, (tenant) => tenant.users, { nullable: true })
   @JoinColumn({ name: 'tenant_id' })
   tenant?: Tenant;
+
+  @OneToMany(() => Vacancy, (vacancy) => vacancy.createdBy)
+  createdVacancies?: Vacancy[];
+
+  @OneToMany(() => VacancySubmission, (submission) => submission.candidate)
+  applications?: VacancySubmission[];
 }
