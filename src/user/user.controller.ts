@@ -42,7 +42,7 @@ export class UserController {
     return this.userService.create(createAdminDto, UserRole.admin);
   }
 
-  // @Roles(UserRole.superAdmin)
+  @Roles(UserRole.superAdmin)
   @Post('superAdmin')
   createSuperAdmin(
     @Body() createSuperAdminDto: CreateUserDto,
