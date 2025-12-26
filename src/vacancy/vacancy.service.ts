@@ -26,28 +26,25 @@ export class VacancyService {
   async findVacanciesWithSubmissions(
     requester: UserDto,
   ): Promise<VacancyDto[]> {
-    const vacanciesWithSubmissions = await this.vacancyRepository
+    const vacancyQuery = this.vacancyRepository
       .createQueryBuilder('vacancy')
-      .innerJoinAndSelect('vacancy.submissions', 'submission')
-      .getMany();
+      .innerJoinAndSelect('vacancy.submissions', 'submission');
 
-    if (requester.role === UserRole.superAdmin)
-      return vacanciesWithSubmissions.map((vacancyWithSubmission) =>
-        vacancyToVacancyDto(vacancyWithSubmission),
-      );
-    else if (
-      requester.role === UserRole.admin ||
-      requester.role === UserRole.recruiter
-    ) {
-      const filteredVacanciesWithSubmissions = vacanciesWithSubmissions.filter(
-        (vacancy) => vacancy.tenantId === requester.tenantId,
-      );
-
-      return filteredVacanciesWithSubmissions.map((vacancyWithSubmission) =>
-        vacancyToVacancyDto(vacancyWithSubmission),
-      );
+    if (requester.role !== UserRole.superAdmin) {
+      if (
+        requester.role === UserRole.admin ||
+        requester.role === UserRole.recruiter
+      ) {
+        vacancyQuery.andWhere('vacancy.tenantId = :tenantId', {
+          tenantId: requester.tenantId,
+        });
+      } else {
+        return [];
+      }
     }
-    return [];
+
+    const vacancies = await vacancyQuery.getMany();
+    return vacancies.map((v) => vacancyToVacancyDto(v));
   }
 
   async findDtoByVacancyId(vacancyId: string): Promise<VacancyDto> {
