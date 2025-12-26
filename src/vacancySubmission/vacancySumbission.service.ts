@@ -50,4 +50,10 @@ export class VacancySumbissionService {
     }
     return [];
   }
+
+  async findAllByTenantId(tenantId: string): Promise<VacancySubmission[]> {
+    return await this.vacancySubmissionRepository.find({
+      where: { vacancy: { tenantId } },
+    });
+  }
 }

@@ -31,4 +31,10 @@ export class VacancySubmissionController {
   findAll(@AuthUser() viewer: UserDto) {
     return this.vacancySumbissionService.findAll(viewer);
   }
+
+  @Roles(UserRole.superAdmin)
+  @Get(':tenantId')
+  findAllByTenantId(@Param('tenantId') tenantId: string) {
+    return this.vacancySumbissionService.findAllByTenantId(tenantId);
+  }
 }
