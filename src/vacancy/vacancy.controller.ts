@@ -11,6 +11,7 @@ import {
 import { AuthUser } from 'src/decorators/authUser.dto';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRole } from 'src/entities/role.enum';
+import { Vacancy } from 'src/entities/vacancy';
 import { UserDto } from 'src/user/dto/user.dto';
 import { validateTenantAccess } from 'src/utils/validate';
 import { CreateVacancyDto } from 'src/vacancy/dto/createVacancy.dto';
@@ -27,7 +28,7 @@ export class VacancyController {
   create(
     @Body() createVacancyDto: CreateVacancyDto,
     @AuthUser() creator: UserDto,
-  ): Promise<VacancyDto> {
+  ): Promise<Vacancy> {
     return this.vacancyService.create(createVacancyDto, creator);
   }
 
@@ -36,11 +37,10 @@ export class VacancyController {
     return this.vacancyService.findAll();
   }
 
-  @Get(':vacancyId')
-  findByVacancyId(
-    @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
-  ): Promise<VacancyDto> {
-    return this.vacancyService.findByVacancyId(vacancyId);
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
+  @Get('detailed')
+  findAllVacanciesDetailed(): Promise<VacancyDto[]> {
+    return this.vacancyService.findAllDetailed();
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
@@ -50,21 +50,32 @@ export class VacancyController {
     @AuthUser() viewer: UserDto,
   ): Promise<VacancyDto[]> {
     validateTenantAccess(viewer, tenantId);
-    return this.vacancyService.findByTenantId(tenantId);
+    return this.vacancyService.findAllByTenantId(tenantId);
   }
 
+  @Get(':vacancyId')
+  findByVacancyId(
+    @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
+  ): Promise<VacancyDto> {
+    return this.vacancyService.findDtoByVacancyId(vacancyId);
+  }
+
+  @Roles(UserRole.admin, UserRole.recruiter)
   @Patch(':vacancyId')
   update(
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
     @Body() updateVacancyDto: UpdateVacancyDto,
+    @AuthUser() updatedBy: UserDto,
   ): Promise<VacancyDto> {
-    return this.vacancyService.update(vacancyId, updateVacancyDto);
+    return this.vacancyService.update(vacancyId, updateVacancyDto, updatedBy);
   }
 
+  @Roles(UserRole.admin, UserRole.recruiter)
   @Delete(':vacancyId')
   delete(
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
+    @AuthUser() deletedBy: UserDto,
   ): Promise<VacancyDto> {
-    return this.vacancyService.remove(vacancyId);
+    return this.vacancyService.remove(vacancyId, deletedBy);
   }
 }
