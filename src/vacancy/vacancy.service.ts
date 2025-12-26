@@ -40,6 +40,24 @@ export class VacancyService {
     return await this.vacancyRepository.find();
   }
 
+  async findVacanciesWithSubmissions(requester: UserDto): Promise<Vacancy[]> {
+    const vacanciesWithSubmissions = await this.vacancyRepository
+      .createQueryBuilder('vacancy')
+      .innerJoin('vacancy.submissions', 'submission')
+      .getMany();
+
+    if (requester.role === UserRole.superAdmin) return vacanciesWithSubmissions;
+    else if (
+      requester.role === UserRole.admin ||
+      requester.role === UserRole.recruiter
+    ) {
+      return vacanciesWithSubmissions.filter(
+        (vacancy) => vacancy.tenantId === requester.tenantId,
+      );
+    }
+    return [];
+  }
+
   async findDtoByVacancyId(vacancyId: string): Promise<VacancyDto> {
     const vacancy = await this.vacancyRepository.findOne({
       where: { id: vacancyId },

@@ -44,6 +44,12 @@ export class VacancyController {
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
+  @Get('with-submissions')
+  findVacanciesWithSubmissions(@AuthUser() requester: UserDto) {
+    return this.vacancyService.findVacanciesWithSubmissions(requester);
+  }
+
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get('tenant/:tenantId')
   findVacanciesByTenantId(
     @Param('tenantId', new ParseUUIDPipe()) tenantId: string,
