@@ -5,6 +5,7 @@ import { VacancySubmission } from 'src/entities/vacancySubmission';
 import { UserDto } from 'src/user/dto/user.dto';
 import { VacancyService } from 'src/vacancy/vacancy.service';
 import { CreateVacancySubmissionDto } from 'src/vacancySubmission/dto/applyForVacancy.dto';
+import { VacancySubmissionDto } from 'src/vacancySubmission/dto/vacancySubmission.dto';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -20,7 +21,7 @@ export class VacancySumbissionService {
     createVacancySubmissionDto: CreateVacancySubmissionDto,
     vacancyId: string,
     candidate: UserDto,
-  ) {
+  ): Promise<VacancySubmissionDto> {
     await this.vacancyService.findDtoByVacancyId(vacancyId);
 
     const vacancySubmission = this.vacancySubmissionRepository.create(
@@ -33,7 +34,7 @@ export class VacancySumbissionService {
     return await this.vacancySubmissionRepository.save(vacancySubmission);
   }
 
-  async findAll(viewer: UserDto): Promise<VacancySubmission[]> {
+  async findAll(viewer: UserDto): Promise<VacancySubmissionDto[]> {
     if (viewer.role === UserRole.superAdmin)
       return await this.vacancySubmissionRepository.find();
     else if (
@@ -51,7 +52,7 @@ export class VacancySumbissionService {
     return [];
   }
 
-  async findAllByTenantId(tenantId: string): Promise<VacancySubmission[]> {
+  async findAllByTenantId(tenantId: string): Promise<VacancySubmissionDto[]> {
     return await this.vacancySubmissionRepository.find({
       where: { vacancy: { tenantId } },
     });

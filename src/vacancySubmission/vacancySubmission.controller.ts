@@ -4,6 +4,7 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { UserRole } from 'src/entities/role.enum';
 import { UserDto } from 'src/user/dto/user.dto';
 import { CreateVacancySubmissionDto } from 'src/vacancySubmission/dto/applyForVacancy.dto';
+import { VacancySubmissionDto } from 'src/vacancySubmission/dto/vacancySubmission.dto';
 import { VacancySumbissionService } from 'src/vacancySubmission/vacancySumbission.service';
 
 @Controller('vacanciesSubmissions')
@@ -18,7 +19,7 @@ export class VacancySubmissionController {
     @Body() createVacancySubmissionDto: CreateVacancySubmissionDto,
     @Param('vacancyId') vacancyId: string,
     @AuthUser() candidate: UserDto,
-  ) {
+  ): Promise<VacancySubmissionDto> {
     return this.vacancySumbissionService.create(
       createVacancySubmissionDto,
       vacancyId,
@@ -28,13 +29,15 @@ export class VacancySubmissionController {
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get()
-  findAll(@AuthUser() viewer: UserDto) {
+  findAll(@AuthUser() viewer: UserDto): Promise<VacancySubmissionDto[]> {
     return this.vacancySumbissionService.findAll(viewer);
   }
 
   @Roles(UserRole.superAdmin)
   @Get(':tenantId')
-  findAllByTenantId(@Param('tenantId') tenantId: string) {
+  findAllByTenantId(
+    @Param('tenantId') tenantId: string,
+  ): Promise<VacancySubmissionDto[]> {
     return this.vacancySumbissionService.findAllByTenantId(tenantId);
   }
 }
