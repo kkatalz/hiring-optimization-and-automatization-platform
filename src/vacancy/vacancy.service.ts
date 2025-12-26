@@ -9,6 +9,7 @@ import { CreateVacancyDto } from 'src/vacancy/dto/createVacancy.dto';
 import { UpdateVacancyDto } from 'src/vacancy/dto/updateVacancy.dto';
 import { UserDto } from 'src/user/dto/user.dto';
 import { validateTenantAccess } from 'src/utils/validate';
+import { UserRole } from 'src/entities/role.enum';
 
 @Injectable()
 export class VacancyService {
@@ -22,7 +23,20 @@ export class VacancyService {
     return vacancies.map(vacancyToVacancyDto);
   }
 
-  async findAllDetailed(): Promise<VacancyDto[]> {
+  async findAllDetailed(viewer: UserDto): Promise<VacancyDto[]> {
+    if (viewer.role === UserRole.superAdmin)
+      return await this.vacancyRepository.find();
+    else if (
+      viewer.role === UserRole.admin ||
+      viewer.role === UserRole.recruiter
+    ) {
+      return await this.vacancyRepository.find({
+        where: {
+          tenantId: viewer.tenantId,
+        },
+      });
+    }
+
     return await this.vacancyRepository.find();
   }
 

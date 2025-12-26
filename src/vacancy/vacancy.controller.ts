@@ -39,8 +39,8 @@ export class VacancyController {
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get('detailed')
-  findAllVacanciesDetailed(): Promise<VacancyDto[]> {
-    return this.vacancyService.findAllDetailed();
+  findAllVacanciesDetailed(@AuthUser() viewer: UserDto): Promise<VacancyDto[]> {
+    return this.vacancyService.findAllDetailed(viewer);
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
