@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateTenantDto } from './dto/create-tenant.dto';
-import { UpdateTenantDto } from './dto/update-tenant.dto';
+import { CreateTenantDto } from './dto/createTenant.dto';
+import { UpdateTenantDto } from './dto/updateTenant.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Tenant } from '../entities/tenant';
 import { Repository } from 'typeorm';

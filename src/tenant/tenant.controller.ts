@@ -9,31 +9,37 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { TenantService } from './tenant.service';
-import { CreateTenantDto } from './dto/create-tenant.dto';
-import { UpdateTenantDto } from './dto/update-tenant.dto';
-import { TenantDto } from 'src/tenant/dto/tenant.dto';
-import { Tenant } from 'src/entities/tenant';
+import { CreateTenantDto } from './dto/createTenant.dto';
+import { UpdateTenantDto } from './dto/updateTenant.dto';
+import { TenantDto } from '../tenant/dto/tenant.dto';
+import { Tenant } from '../entities/tenant';
+import { Roles } from '../decorators/roles.decorator';
+import { UserRole } from 'src/entities/role.enum';
 
 @Controller('tenants')
 export class TenantController {
   constructor(private readonly tenantService: TenantService) {}
 
   @Post()
+  @Roles(UserRole.superAdmin)
   create(@Body() createTenantDto: CreateTenantDto): Promise<TenantDto> {
     return this.tenantService.create(createTenantDto);
   }
 
   @Get()
+  @Roles(UserRole.superAdmin)
   findAll(): Promise<TenantDto[]> {
     return this.tenantService.findAll();
   }
 
   @Get(':id')
+  @Roles(UserRole.superAdmin)
   findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<TenantDto> {
     return this.tenantService.findDtoById(id);
   }
 
   @Patch(':id')
+  @Roles(UserRole.superAdmin)
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateTenantDto: UpdateTenantDto,
@@ -42,6 +48,7 @@ export class TenantController {
   }
 
   @Delete(':id')
+  @Roles(UserRole.superAdmin)
   remove(@Param('id', new ParseUUIDPipe()) id: string): Promise<Tenant> {
     return this.tenantService.remove(id);
   }

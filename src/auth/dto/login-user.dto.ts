@@ -1,13 +1,11 @@
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
-export class TenantDto {
-  id: string;
-
-  @IsNotEmpty()
+export class LoginUserDto {
   @IsEmail()
+  @IsNotEmpty()
   email: string;
 
-  @IsNotEmpty()
   @IsString()
-  slug: string;
+  @IsNotEmpty()
+  password: string;
 }
