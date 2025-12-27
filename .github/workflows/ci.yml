@@ -1,4 +1,5 @@
 name: unit-tests
+
 on:
   pull_request:
     branches:
@@ -7,8 +8,9 @@ on:
 jobs:
   server:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Copy Repo Files
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Use Node.js 22
@@ -16,12 +18,22 @@ jobs:
         with:
           node-version: 22
 
-      - name: Check docker
+      - name: Start Docker services
+        run: docker compose up -d
+
+      - name: Wait for DB to be ready
         run: |
-          docker compose version
+          echo "Waiting for database..."
+          sleep 10
 
       - name: Build and test server
+        env:
+          NODE_ENV: test
         run: |
           npm ci
           npm run build
           npm test
+
+      - name: Stop Docker services
+        if: always()
+        run: docker compose down
