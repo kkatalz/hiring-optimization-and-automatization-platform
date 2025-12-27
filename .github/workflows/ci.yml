@@ -19,6 +19,9 @@ jobs:
       - name: run docker compose
         run: |
           docker compose up -d
+      - name: wait for services to be ready
+        run: |
+          sleep 10
 
       - name: build and test server
         run: |
