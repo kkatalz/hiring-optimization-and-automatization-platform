@@ -14,12 +14,15 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 22
-    - name: check docker
+    - name: run docker compose
       run: |
-        docker compose version
+        docker compose up -d
     - name: build and test server
       run: |
         cd server
         npm ci
         npm run build
         npm test
+    - name: Stop Docker services
+        if: always()
+        run: docker compose down
