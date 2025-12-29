@@ -1,6 +1,6 @@
 import { ForbiddenException } from '@nestjs/common';
-import { UserRole } from 'src/entities/role.enum';
-import { UserDto } from 'src/user/dto/user.dto';
+import { UserRole } from '../entities/role.enum';
+import { UserDto } from '../user/dto/user.dto';
 
 export const validateTenantAccess = (requester: UserDto, tenantId: string) => {
   if (

@@ -9,15 +9,15 @@ import {
   Post,
   UseInterceptors,
 } from '@nestjs/common';
-import { AuthUser } from 'src/decorators/authUser.dto';
-import { Roles } from 'src/decorators/roles.decorator';
-import { UserRole } from 'src/entities/role.enum';
-import { TenantInterceptor } from 'src/interceptors/tenantId.interceptor';
-import { CreateUserDto } from 'src/user/dto/createUser.dto';
-import { UpdateUserDto } from 'src/user/dto/updateUser.dto';
-import { UserDto } from 'src/user/dto/user.dto';
-import { UserService } from 'src/user/user.service';
-import { validateTenantAccess } from 'src/utils/validate';
+import { AuthUser } from '../decorators/authUser.dto';
+import { Roles } from '../decorators/roles.decorator';
+import { UserRole } from '../entities/role.enum';
+import { TenantInterceptor } from '../interceptors/tenantId.interceptor';
+import { CreateUserDto } from '../user/dto/createUser.dto';
+import { UpdateUserDto } from '../user/dto/updateUser.dto';
+import { UserDto } from '../user/dto/user.dto';
+import { UserService } from '../user/user.service';
+import { validateTenantAccess } from '../utils/validate';
 
 @Controller('users')
 export class UserController {

@@ -1,5 +1,5 @@
-import { Vacancy } from 'src/entities/vacancy';
-import { VacancyDto } from 'src/vacancy/dto/vacancy.dto';
+import { Vacancy } from '../../entities/vacancy';
+import { VacancyDto } from '../../vacancy/dto/vacancy.dto';
 
 export const vacancyToVacancyDto = ({
   id,

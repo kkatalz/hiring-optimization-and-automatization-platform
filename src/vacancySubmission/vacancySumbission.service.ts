@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserRole } from 'src/entities/role.enum';
-import { VacancySubmission } from 'src/entities/vacancySubmission';
-import { UserDto } from 'src/user/dto/user.dto';
-import { VacancyService } from 'src/vacancy/vacancy.service';
-import { CreateVacancySubmissionDto } from 'src/vacancySubmission/dto/applyForVacancy.dto';
-import { VacancySubmissionDto } from 'src/vacancySubmission/dto/vacancySubmission.dto';
-import { vacancySubmToVacancySubmDto } from 'src/vacancySubmission/map/vacancySubmission.map';
+import { UserRole } from '../entities/role.enum';
+import { VacancySubmission } from '../entities/vacancySubmission';
+import { UserDto } from '../user/dto/user.dto';
+import { VacancyService } from '../vacancy/vacancy.service';
+import { CreateVacancySubmissionDto } from '../vacancySubmission/dto/applyForVacancy.dto';
+import { VacancySubmissionDto } from '../vacancySubmission/dto/vacancySubmission.dto';
+import { vacancySubmToVacancySubmDto } from '../vacancySubmission/map/vacancySubmission.map';
 import { Repository } from 'typeorm';
 
 @Injectable()

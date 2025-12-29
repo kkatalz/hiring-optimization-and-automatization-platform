@@ -7,7 +7,7 @@ import { Repository } from 'typeorm';
 import { compare } from 'bcrypt';
 import { sign } from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
-import { userToUserDto } from 'src/user/map/user.map';
+import { userToUserDto } from '../user/map/user.map';
 
 @Injectable()
 export class AuthService {
