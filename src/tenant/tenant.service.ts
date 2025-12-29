@@ -3,7 +3,7 @@ import { CreateTenantDto } from './dto/createTenant.dto';
 import { UpdateTenantDto } from './dto/updateTenant.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Tenant } from '../entities/tenant';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { TenantDto } from '../tenant/dto/tenant.dto';
 import { tenantToTenantDto } from '../tenant/map/tenant.map';
 
@@ -15,15 +15,7 @@ export class TenantService {
   ) {}
 
   async create(createTenantDto: CreateTenantDto): Promise<TenantDto> {
-    const tenant = await this.tenantRepository.findOne({
-      where: { slug: createTenantDto.slug, deleted: false },
-    });
-    if (tenant) {
-      throw new HttpException(
-        'Tenant with given slug already exists',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    await this.tenantExists(createTenantDto);
 
     const newTenant = this.tenantRepository.create(createTenantDto);
 
@@ -44,6 +36,8 @@ export class TenantService {
   ): Promise<TenantDto> {
     const tenant = await this.findById(id);
 
+    await this.tenantExists(updateTenantDto, id);
+
     Object.assign(tenant, updateTenantDto);
 
     return await this.tenantRepository.save(tenant);
@@ -58,15 +52,7 @@ export class TenantService {
   }
 
   async findDtoById(id: string): Promise<TenantDto> {
-    const tenant = await this.tenantRepository.findOne({
-      where: { id, deleted: false },
-    });
-    if (!tenant) {
-      throw new HttpException(
-        'Tenant with given id not found',
-        HttpStatus.NOT_FOUND,
-      );
-    }
+    const tenant = await this.findById(id);
 
     return tenantToTenantDto(tenant);
   }
@@ -77,11 +63,34 @@ export class TenantService {
     });
     if (!tenant) {
       throw new HttpException(
-        'Tenant with given id not found',
+        'Tenant with given id not found.',
         HttpStatus.NOT_FOUND,
       );
     }
 
     return tenant;
+  }
+
+  private async tenantExists(
+    dto: CreateTenantDto | UpdateTenantDto,
+    excludeId?: string,
+  ): Promise<boolean> {
+    if (!dto.slug) return false;
+
+    const tenant = await this.tenantRepository.findOne({
+      where: {
+        slug: dto.slug,
+        deleted: false,
+        ...(excludeId && { id: Not(excludeId) }), // ignore the current tenant's ID
+      },
+    });
+    if (tenant) {
+      throw new HttpException(
+        'Tenant with given slug already exists.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return false;
   }
 }
