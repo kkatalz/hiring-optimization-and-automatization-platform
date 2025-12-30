@@ -1,5 +1,6 @@
-import * as dotenv from 'dotenv';
-import dockerCompose from 'docker-compose';
+/* eslint-disable @typescript-eslint/no-require-imports */
+const dockerCompose = require('docker-compose');
+const dotenv = require('dotenv');
 
 dotenv.config();
 
