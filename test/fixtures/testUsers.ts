@@ -45,7 +45,9 @@ export const testUsers: User[] = [
   },
 ];
 
-export const EXPECTED_ACTIVE_USERS = testUsers.filter(
+export const EXPECTED_ACTIVE_USERS = testUsers.filter((user) => !user.deleted);
+
+export const EXPECTED_ACTIVE_USERS_NUM = testUsers.filter(
   (user) => !user.deleted,
 ).length;
 

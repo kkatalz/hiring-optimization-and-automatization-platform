@@ -11,6 +11,7 @@ import { User } from '../entities/user';
 import { expect } from 'chai';
 import {
   EXPECTED_ACTIVE_USERS,
+  EXPECTED_ACTIVE_USERS_NUM,
   testUsers,
 } from '../../test/fixtures/testUsers';
 import { UserRole } from '../entities/role.enum';
@@ -69,7 +70,7 @@ describe('UserService', () => {
       expect(result).to.have.property('token');
 
       const allUsers = await service.findAll();
-      expect(allUsers.length).to.equal(EXPECTED_ACTIVE_USERS + 1);
+      expect(allUsers.length).to.equal(EXPECTED_ACTIVE_USERS_NUM + 1);
     });
 
     it('should throw if tenantId in createUserDto does not exist', async () => {
@@ -166,12 +167,39 @@ describe('UserService', () => {
     });
   });
 
-  it('should find all users', async () => {
+  it('should find all active users', async () => {
     const allUsers = await service.findAll();
 
-    expect(allUsers.length).to.deep.equal(EXPECTED_ACTIVE_USERS);
+    expect(allUsers.length).to.deep.equal(EXPECTED_ACTIVE_USERS_NUM);
+  });
+
+  describe('findAllByTenantId', () => {
+    it('should find all active users by tenant id', async () => {
+      const tenantId = testTenants[0].id;
+
+      const allUsers = await service.findAllByTenantId(tenantId);
+
+      const expectedActiveUsersNumForProvidedTenantId =
+        EXPECTED_ACTIVE_USERS.filter(
+          (user) => user.tenantId === tenantId,
+        ).length;
+
+      expect(allUsers.length).to.deep.equal(
+        expectedActiveUsersNumForProvidedTenantId,
+      );
+    });
+    it('should throw error if provided tenant id does not exist', async () => {
+      try {
+        await service.findAllByTenantId(nonExistentUUIDId);
+
+        expect.fail('Should have thrown a BAD_REQUEST eror but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal('Tenant does not exist.');
+      }
+    });
   });
 });
 
 // add check that user (superadmin) can not remove himself
 // password can be changed by super and admin. not user himself
+// TODO update, remove
