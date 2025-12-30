@@ -13,7 +13,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "NODE_ENV=test mocha --no-parallel --timeout 20000 --require ts-node/register --require ./test/hooks.ts src/**/*.spec.ts src/**/**/*.spec.ts",
+    "test": "set NODE_ENV=test && npx mocha --no-parallel --timeout 20000 --require ts-node/register --require ./test/hooks.ts src/**/*.*.spec.ts",
     "migration:generate": "ts-node -r dotenv/config -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:generate -d src/ormconfig.ts",
     "migration:run": "ts-node -r dotenv/config -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run      -d src/ormconfig.ts",
     "migration:revert": "ts-node -r dotenv/config -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:revert   -d src/ormconfig.ts",
