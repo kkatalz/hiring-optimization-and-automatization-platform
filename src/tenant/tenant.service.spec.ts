@@ -99,6 +99,18 @@ describe('TenantService', () => {
         expect(e.response).to.deep.equal('Tenant with given id not found.');
       }
     });
+
+    it('should return tenant if fields in updateTenantDto dont differ from tenants', async () => {
+      const updatedTenant = await service.update(testTenants[0].id, {
+        email: 'test1@dot.com',
+        slug: 'test1',
+      });
+
+      expect(updatedTenant).to.not.throw;
+      expect(updatedTenant.email).to.deep.equal('test1@dot.com');
+      expect(updatedTenant.slug).to.deep.equal('test1');
+    });
+
     it('should throw error if updateTenantDto has slug that already exists', async () => {
       try {
         await service.update(testTenants[0].id, {
