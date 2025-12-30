@@ -53,7 +53,7 @@ export class TenantService {
       where: {
         slug: updateTenantDto.slug,
         deleted: false,
-        ...(id && { id: Not(id) }),
+        id: Not(id),
       },
     });
 
