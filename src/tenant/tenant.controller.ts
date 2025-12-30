@@ -14,7 +14,7 @@ import { UpdateTenantDto } from './dto/updateTenant.dto';
 import { TenantDto } from '../tenant/dto/tenant.dto';
 import { Tenant } from '../entities/tenant';
 import { Roles } from '../decorators/roles.decorator';
-import { UserRole } from 'src/entities/role.enum';
+import { UserRole } from '../entities/role.enum';
 
 @Controller('tenants')
 export class TenantController {

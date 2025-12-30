@@ -1,5 +1,5 @@
-import { User } from 'src/entities/user';
-import { Vacancy } from 'src/entities/vacancy';
+import { User } from '../entities/user';
+import { Vacancy } from '../entities/vacancy';
 import {
   Column,
   Entity,

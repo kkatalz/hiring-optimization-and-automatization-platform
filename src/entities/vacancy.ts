@@ -1,6 +1,6 @@
-import { User } from 'src/entities/user';
-import { VacancySubmission } from 'src/entities/vacancySubmission';
-import { UserDto } from 'src/user/dto/user.dto';
+import { User } from '../entities/user';
+import { VacancySubmission } from '../entities/vacancySubmission';
+import { UserDto } from '../user/dto/user.dto';
 import {
   Column,
   Entity,

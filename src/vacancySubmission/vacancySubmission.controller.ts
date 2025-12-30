@@ -1,11 +1,11 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { AuthUser } from 'src/decorators/authUser.dto';
-import { Roles } from 'src/decorators/roles.decorator';
-import { UserRole } from 'src/entities/role.enum';
-import { UserDto } from 'src/user/dto/user.dto';
-import { CreateVacancySubmissionDto } from 'src/vacancySubmission/dto/applyForVacancy.dto';
-import { VacancySubmissionDto } from 'src/vacancySubmission/dto/vacancySubmission.dto';
-import { VacancySumbissionService } from 'src/vacancySubmission/vacancySumbission.service';
+import { AuthUser } from '../decorators/authUser.dto';
+import { Roles } from '../decorators/roles.decorator';
+import { UserRole } from '../entities/role.enum';
+import { UserDto } from '../user/dto/user.dto';
+import { CreateVacancySubmissionDto } from '../vacancySubmission/dto/applyForVacancy.dto';
+import { VacancySubmissionDto } from '../vacancySubmission/dto/vacancySubmission.dto';
+import { VacancySumbissionService } from '../vacancySubmission/vacancySumbission.service';
 
 @Controller('vacanciesSubmissions')
 export class VacancySubmissionController {

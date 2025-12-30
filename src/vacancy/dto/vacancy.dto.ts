@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { VacancySubmission } from 'src/entities/vacancySubmission';
+import { VacancySubmission } from '../../entities/vacancySubmission';
 
 export class VacancyDto {
   id: string;
