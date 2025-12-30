@@ -8,15 +8,15 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { AuthUser } from 'src/decorators/authUser.dto';
-import { Roles } from 'src/decorators/roles.decorator';
-import { UserRole } from 'src/entities/role.enum';
-import { UserDto } from 'src/user/dto/user.dto';
-import { validateTenantAccess } from 'src/utils/validate';
-import { CreateVacancyDto } from 'src/vacancy/dto/createVacancy.dto';
-import { UpdateVacancyDto } from 'src/vacancy/dto/updateVacancy.dto';
-import { VacancyDto } from 'src/vacancy/dto/vacancy.dto';
-import { VacancyService } from 'src/vacancy/vacancy.service';
+import { AuthUser } from '../decorators/authUser.dto';
+import { Roles } from '../decorators/roles.decorator';
+import { UserRole } from '../entities/role.enum';
+import { UserDto } from '../user/dto/user.dto';
+import { validateTenantAccess } from '../utils/validate';
+import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
+import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
+import { VacancyDto } from '../vacancy/dto/vacancy.dto';
+import { VacancyService } from '../vacancy/vacancy.service';
 
 @Controller('vacancies')
 export class VacancyController {

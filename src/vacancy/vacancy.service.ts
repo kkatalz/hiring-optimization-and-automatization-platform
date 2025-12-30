@@ -1,15 +1,15 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Vacancy } from 'src/entities/vacancy';
+import { Vacancy } from '../entities/vacancy';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { VacancyDto } from 'src/vacancy/dto/vacancy.dto';
-import { CreateVacancyDto } from 'src/vacancy/dto/createVacancy.dto';
-import { UpdateVacancyDto } from 'src/vacancy/dto/updateVacancy.dto';
-import { UserDto } from 'src/user/dto/user.dto';
-import { validateTenantAccess } from 'src/utils/validate';
-import { UserRole } from 'src/entities/role.enum';
-import { vacancyToVacancyDto } from 'src/vacancy/map/vacancy.map';
+import { VacancyDto } from '../vacancy/dto/vacancy.dto';
+import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
+import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
+import { UserDto } from '../user/dto/user.dto';
+import { validateTenantAccess } from '../utils/validate';
+import { UserRole } from '../entities/role.enum';
+import { vacancyToVacancyDto } from '../vacancy/map/vacancy.map';
 
 @Injectable()
 export class VacancyService {

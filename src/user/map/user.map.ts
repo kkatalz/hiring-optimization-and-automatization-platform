@@ -1,5 +1,5 @@
-import { User } from 'src/entities/user';
-import { UserDto } from 'src/user/dto/user.dto';
+import { User } from '../../entities/user';
+import { UserDto } from '../../user/dto/user.dto';
 
 export const userToUserDto = ({
   user,

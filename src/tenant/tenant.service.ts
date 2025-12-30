@@ -3,7 +3,7 @@ import { CreateTenantDto } from './dto/createTenant.dto';
 import { UpdateTenantDto } from './dto/updateTenant.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Tenant } from '../entities/tenant';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { TenantDto } from '../tenant/dto/tenant.dto';
 import { tenantToTenantDto } from '../tenant/map/tenant.map';
 
@@ -16,18 +16,23 @@ export class TenantService {
 
   async create(createTenantDto: CreateTenantDto): Promise<TenantDto> {
     const tenant = await this.tenantRepository.findOne({
-      where: { slug: createTenantDto.slug, deleted: false },
+      where: {
+        slug: createTenantDto.slug,
+        deleted: false,
+      },
     });
+
     if (tenant) {
       throw new HttpException(
-        'Tenant with given slug already exists',
+        'Tenant with given slug already exists.',
         HttpStatus.BAD_REQUEST,
       );
     }
 
     const newTenant = this.tenantRepository.create(createTenantDto);
+    await this.tenantRepository.save(newTenant);
 
-    return await this.tenantRepository.save(newTenant);
+    return tenantToTenantDto(newTenant);
   }
 
   async findAll(): Promise<TenantDto[]> {
@@ -44,9 +49,25 @@ export class TenantService {
   ): Promise<TenantDto> {
     const tenant = await this.findById(id);
 
-    Object.assign(tenant, updateTenantDto);
+    const tenantWithGivenSlug = await this.tenantRepository.findOne({
+      where: {
+        slug: updateTenantDto.slug,
+        deleted: false,
+        id: Not(id),
+      },
+    });
 
-    return await this.tenantRepository.save(tenant);
+    if (tenantWithGivenSlug) {
+      throw new HttpException(
+        'Tenant with given slug already exists.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    Object.assign(tenant, updateTenantDto);
+    const updatedTenant = await this.tenantRepository.save(tenant);
+
+    return tenantToTenantDto(updatedTenant);
   }
 
   async remove(id: string): Promise<Tenant> {
@@ -58,15 +79,7 @@ export class TenantService {
   }
 
   async findDtoById(id: string): Promise<TenantDto> {
-    const tenant = await this.tenantRepository.findOne({
-      where: { id, deleted: false },
-    });
-    if (!tenant) {
-      throw new HttpException(
-        'Tenant with given id not found',
-        HttpStatus.NOT_FOUND,
-      );
-    }
+    const tenant = await this.findById(id);
 
     return tenantToTenantDto(tenant);
   }
@@ -77,7 +90,7 @@ export class TenantService {
     });
     if (!tenant) {
       throw new HttpException(
-        'Tenant with given id not found',
+        'Tenant with given id not found.',
         HttpStatus.NOT_FOUND,
       );
     }

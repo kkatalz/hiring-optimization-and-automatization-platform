@@ -6,7 +6,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { UserRole } from 'src/entities/role.enum';
+import { UserRole } from '../entities/role.enum';
 
 /*
 Business logic idea:

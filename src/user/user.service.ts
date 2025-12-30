@@ -13,7 +13,7 @@ import { Tenant } from '../entities/tenant';
 import { userToUserDto } from '../user/map/user.map';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { AuthService } from '../auth/auth.service';
-import { UserRole } from 'src/entities/role.enum';
+import { UserRole } from '../entities/role.enum';
 
 @Injectable()
 export class UserService {
