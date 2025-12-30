@@ -71,7 +71,6 @@ export const loadDatabaseWithConnection = async (
       const copiedData = data[table].map((item) => ({ ...item }));
       const rep = connection.getRepository(table);
       await rep.insert(copiedData);
-      console.log('DB loaded: ', table, data[table].length);
     }
   } catch (error) {
     console.log('loadDatabaseWithConnection error:', error);
