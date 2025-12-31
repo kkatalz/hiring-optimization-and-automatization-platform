@@ -14,6 +14,7 @@ import { userToUserDto } from '../user/map/user.map';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { AuthService } from '../auth/auth.service';
 import { UserRole } from '../entities/role.enum';
+import { ChangeCredentialsDto } from 'src/user/dto/changeCredentials.dto';
 
 @Injectable()
 export class UserService {
@@ -123,22 +124,6 @@ export class UserService {
 
     await this.userExistsWithinProvidedTenant(user, tenantId);
 
-    const userWithUpdateEmailExists = await this.userRepository.exists({
-      where: { email: updateUserDto.email, tenantId, id: Not(userId) },
-    });
-
-    if (userWithUpdateEmailExists) {
-      throw new HttpException(
-        'User with given email already exists. Choose a different one.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    if (updateUserDto.password) {
-      updateUserDto.password = await this.authService.hash(
-        updateUserDto.password,
-      );
-    }
     Object.assign(user, updateUserDto);
     const updatedUser = await this.userRepository.save(user);
 
@@ -154,6 +139,35 @@ export class UserService {
     user.deleted = true;
 
     return await this.userRepository.save(user);
+  }
+
+  async changeCredentials(
+    userId: string,
+    changeCredentials: ChangeCredentialsDto,
+  ): Promise<UserDto> {
+    const user = await this.findById(userId);
+
+    const userWithGivenEmail = await this.userRepository.findOne({
+      where: {
+        email: changeCredentials.email,
+        deleted: false,
+        id: Not(userId),
+      },
+    });
+    if (userWithGivenEmail) {
+      throw new HttpException(
+        'User with given email already exists. Choose a different email.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (changeCredentials.email) user.email = changeCredentials.email;
+    if (changeCredentials.password)
+      user.password = await this.authService.hash(changeCredentials.password);
+
+    await this.userRepository.save(user);
+
+    return userToUserDto({ user });
   }
 
   async findById(id: string): Promise<User> {

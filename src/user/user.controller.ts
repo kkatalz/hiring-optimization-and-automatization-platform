@@ -20,6 +20,7 @@ import { UpdateUserDto } from '../user/dto/updateUser.dto';
 import { UserDto } from '../user/dto/user.dto';
 import { UserService } from '../user/user.service';
 import { validateTenantAccess } from '../utils/validate';
+import { ChangeCredentialsDto } from 'src/user/dto/changeCredentials.dto';
 
 @Controller('users')
 export class UserController {
@@ -90,6 +91,33 @@ export class UserController {
     return this.userService.update(userId, tenantId, updateUserDto);
   }
 
+  @Roles(
+    UserRole.candidate,
+    UserRole.recruiter,
+    UserRole.superAdmin,
+    UserRole.admin,
+  )
+  @Patch('changeCredentials/:userId')
+  async changeCredentials(
+    @AuthUser() requester: UserDto,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+    @Body() changeCredentialsDto: ChangeCredentialsDto,
+  ): Promise<UserDto> {
+    if (!changeCredentialsDto.email && !changeCredentialsDto.password) {
+      throw new HttpException(
+        'No data provided to update. (Maybe you forgot Body?)',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.validateUserForChangingCredentials(requester, userId);
+
+    return await this.userService.changeCredentials(
+      userId,
+      changeCredentialsDto,
+    );
+  }
+
   @Roles(UserRole.superAdmin, UserRole.admin)
   @Delete(':userId/tenant/:tenantId')
   async remove(
@@ -123,5 +151,22 @@ export class UserController {
         HttpStatus.FORBIDDEN,
       );
     }
+  }
+
+  private async validateUserForChangingCredentials(
+    requester: UserDto,
+    userId: string,
+  ) {
+    await this.userService.findDtoById(userId, requester);
+
+    if (
+      (requester.role === UserRole.candidate ||
+        requester.role === UserRole.recruiter) &&
+      requester.id !== userId
+    )
+      throw new HttpException(
+        'Candidate and recruiter can change only their own credentials.',
+        HttpStatus.FORBIDDEN,
+      );
   }
 }
