@@ -147,14 +147,16 @@ export class UserService {
   ): Promise<UserDto> {
     const user = await this.findById(userId);
 
-    const userWithGivenEmail = await this.userRepository.findOne({
-      where: {
-        email: changeCredentials.email,
-        deleted: false,
-        id: Not(userId),
-      },
-    });
-    if (userWithGivenEmail) {
+    const userWithGivenEmailWithinTheSameTenant =
+      await this.userRepository.findOne({
+        where: {
+          email: changeCredentials.email,
+          tenantId: user.tenantId,
+          deleted: false,
+          id: Not(userId),
+        },
+      });
+    if (userWithGivenEmailWithinTheSameTenant) {
       throw new HttpException(
         'User with given email already exists. Choose a different email.',
         HttpStatus.BAD_REQUEST,
