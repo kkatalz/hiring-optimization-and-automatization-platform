@@ -25,7 +25,7 @@ export const testUsers: User[] = [
   },
   {
     id: '82361886-55aa-4d4b-a86f-c8841e9311c4',
-    email: 'test1@dot.com',
+    email: 'test2@dot.com',
     password: '$2a$10$7TWxkB5ZBRtj8WmpqhJBUeysQKkuNaxIC0MjM/wOeRK.F08gHjBva',
     firstName: 'Recruiter_2',
     lastName: 'Recruiter_2',
@@ -35,7 +35,7 @@ export const testUsers: User[] = [
   },
   {
     id: 'b00cde85-e4ed-45ca-a8bd-26e67f46e2c7',
-    email: 'test1@dot.com',
+    email: 'test3@dot.com',
     password: '$2a$10$7TWxkB5ZBRtj8WmpqhJBUeysQKkuNaxIC0MjM/wOeRK.F08gHjBva',
     firstName: 'Recruiter_3',
     lastName: 'Recruiter_3',
