@@ -23,7 +23,7 @@ import { UpdateUserDto } from '../user/dto/updateUser.dto';
 import { AuthService } from '../auth/auth.service';
 import * as sinon from 'sinon';
 import { Repository } from 'typeorm';
-import { ChangeCredentialsDto } from 'src/user/dto/changeCredentials.dto';
+import { ChangeCredentialsDto } from '../user/dto/changeCredentials.dto';
 
 describe('UserService', () => {
   let service: UserService;

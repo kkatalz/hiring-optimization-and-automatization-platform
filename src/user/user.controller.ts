@@ -20,7 +20,7 @@ import { UpdateUserDto } from '../user/dto/updateUser.dto';
 import { UserDto } from '../user/dto/user.dto';
 import { UserService } from '../user/user.service';
 import { validateTenantAccess } from '../utils/validate';
-import { ChangeCredentialsDto } from 'src/user/dto/changeCredentials.dto';
+import { ChangeCredentialsDto } from '../user/dto/changeCredentials.dto';
 
 @Controller('users')
 export class UserController {

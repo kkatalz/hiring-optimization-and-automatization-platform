@@ -14,7 +14,7 @@ import { userToUserDto } from '../user/map/user.map';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { AuthService } from '../auth/auth.service';
 import { UserRole } from '../entities/role.enum';
-import { ChangeCredentialsDto } from 'src/user/dto/changeCredentials.dto';
+import { ChangeCredentialsDto } from '../user/dto/changeCredentials.dto';
 
 @Injectable()
 export class UserService {
