@@ -5,7 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { User } from '../entities/user';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UserDto } from './dto/user.dto';
@@ -124,7 +124,7 @@ export class UserService {
     await this.userExistsWithinProvidedTenant(user, tenantId);
 
     const userWithUpdateEmailExists = await this.userRepository.exists({
-      where: { email: updateUserDto.email },
+      where: { email: updateUserDto.email, tenantId, id: Not(userId) },
     });
 
     if (userWithUpdateEmailExists) {
