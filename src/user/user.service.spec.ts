@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { UserService } from './user.service';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
 import {
   cleanDatabase,
   loadDatabase,
@@ -19,9 +19,15 @@ import { testTenants } from '../../test/fixtures/testTenants';
 import { Tenant } from '../entities/tenant';
 import { CreateUserDto } from './dto/createUser.dto';
 import { AuthModule } from '../auth/auth.module';
+import { UpdateUserDto } from '../user/dto/updateUser.dto';
+import { AuthService } from '../auth/auth.service';
+import * as sinon from 'sinon';
+import { Repository } from 'typeorm';
 
 describe('UserService', () => {
   let service: UserService;
+  let authService: AuthService;
+  let userRepository: Repository<User>;
   const nonExistentUUIDId = '00000000-0000-0000-0000-000000000000';
 
   beforeEach(async () => {
@@ -36,6 +42,8 @@ describe('UserService', () => {
     }).compile();
 
     service = module.get<UserService>(UserService);
+    userRepository = module.get<Repository<User>>(getRepositoryToken(User));
+    authService = module.get<AuthService>(AuthService);
 
     await loadDatabase({
       Tenant: testTenants,
@@ -43,7 +51,10 @@ describe('UserService', () => {
     });
   });
 
-  afterEach(() => cleanDatabase());
+  afterEach(async () => {
+    sinon.restore();
+    await cleanDatabase();
+  });
 
   it('should be defined', () => {
     expect(!!service).to.deep.equal(true);
@@ -198,8 +209,137 @@ describe('UserService', () => {
       }
     });
   });
+
+  describe('update', () => {
+    it('should update user by userId', async () => {
+      const userRecruiterId = testUsers[1].id;
+      const tenantId = testTenants[0].id;
+
+      const updateUserDto: UpdateUserDto = {
+        email: 'test1@dot.com',
+        password: 'updateUser',
+        firstName: 'updateRecruiter',
+        lastName: 'updateRecruiter',
+        role: UserRole.admin,
+      };
+
+      const updateResult = await service.update(
+        userRecruiterId,
+        tenantId,
+        updateUserDto,
+      );
+
+      expect(updateResult.id).to.deep.equal(userRecruiterId);
+      expect(updateResult.email).to.deep.equal(updateUserDto.email);
+      expect(updateResult.firstName).to.deep.equal(updateUserDto.firstName);
+      expect(updateResult.lastName).to.deep.equal(updateUserDto.lastName);
+      expect(updateResult.role).to.deep.equal(updateUserDto.role);
+      expect(updateResult.tenantId).to.deep.equal(tenantId);
+      expect(updateResult).to.have.property('token');
+
+      expect(updateResult).to.not.have.property('password');
+    });
+
+    it('should allow update if the email from updateUserDto belongs to the current user', async () => {
+      const userRecruiter = testUsers[1];
+      const tenantId = testTenants[0].id;
+
+      const updateDto: UpdateUserDto = {
+        email: userRecruiter.email,
+      };
+
+      const result = await service.update(
+        userRecruiter.id,
+        tenantId,
+        updateDto,
+      );
+
+      expect(result.email).to.equal(userRecruiter.email);
+    });
+
+    it('should use AuthService to hash password and save the result', async () => {
+      const plainPassword = 'my-plain-password';
+      const hashedResult = 'mocked-hash-result';
+      const updateUserDto = {
+        email: 'updateEmail@test.com',
+        password: plainPassword,
+      };
+
+      const hashStub = sinon.stub(authService, 'hash').resolves(hashedResult);
+
+      await service.update(testUsers[0].id, testTenants[0].id, updateUserDto);
+
+      expect(hashStub.calledOnceWith(plainPassword)).to.be.true;
+
+      const userInDb = await userRepository.findOneBy({ id: testUsers[0].id });
+      expect(userInDb?.password).to.equal(hashedResult);
+    });
+
+    it('should throw error if user with given id not found', async () => {
+      const updateUserDto = {
+        email: 'updateEmail@test.com',
+      };
+
+      try {
+        await service.update(
+          nonExistentUUIDId,
+          testTenants[0].id,
+          updateUserDto,
+        );
+
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal('User with given id not found.');
+      }
+    });
+
+    it('should throw error if provided tenant id does not exist', async () => {
+      const updateUserDto = {
+        email: 'updateEmail@test.com',
+      };
+
+      try {
+        await service.update(testUsers[1].id, nonExistentUUIDId, updateUserDto);
+
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal('Tenant does not exist.');
+      }
+    });
+
+    it('should throw error if user doesnt exist within provided tenant', async () => {
+      const updateUserDto = {
+        email: 'updateEmail@test.com',
+      };
+
+      try {
+        await service.update(testUsers[1].id, testTenants[1].id, updateUserDto);
+
+        expect.fail('Should have thrown a BAD_REQUEST error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal(
+          'User with given id does not exist within provided tenant.',
+        );
+      }
+    });
+
+    it('should throw error if provided email in updateUserDto already belongs to another user within one tenant', async () => {
+      const updateUserDto = {
+        email: testUsers[2].email,
+      };
+
+      try {
+        await service.update(testUsers[1].id, testTenants[0].id, updateUserDto);
+
+        expect.fail('Should have thrown a BAD_REQUEST error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal(
+          'User with given email already exists. Choose a different one.',
+        );
+      }
+    });
+  });
 });
 
-// add check that user (superadmin) can not remove himself
-// password can be changed by super and admin. not user himself
-// TODO update, remove
+// TODO remove, changePassword
+// password can be changed by super and admin. not user himself -fix
