@@ -339,7 +339,62 @@ describe('UserService', () => {
       }
     });
   });
+
+  describe('remove', () => {
+    it('should remove user (update deleted to true), but the record should still exist', async () => {
+      const deleteUserWithId = testUsers[1].id;
+
+      const removedUserResult = await service.remove(
+        deleteUserWithId,
+        testTenants[0].id,
+      );
+      expect(removedUserResult.deleted).to.be.true;
+
+      const allUsers = await service.findAll();
+      expect(allUsers.length).to.equal(EXPECTED_ACTIVE_USERS_NUM - 1);
+
+      const deletedUserRecordInDb = await userRepository.findOne({
+        where: { id: deleteUserWithId },
+      });
+
+      expect(deletedUserRecordInDb).to.not.be.null;
+      expect(deletedUserRecordInDb?.deleted).to.be.true;
+    });
+
+    it('should throw error if user with given id not found', async () => {
+      try {
+        await service.remove(nonExistentUUIDId, testTenants[0].id);
+
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal('User with given id not found.');
+      }
+    });
+  });
+
+  it('should throw if tenantId in remove does not exist', async () => {
+    try {
+      await service.remove(testUsers[1].id, nonExistentUUIDId);
+
+      expect.fail('Should have thrown a BAD_REQUEST error but did not');
+    } catch (e: any) {
+      expect(e).to.have.property('status', 400);
+      expect(e.response).to.equal('Tenant does not exist.');
+    }
+
+    it('should throw error if user doesnt exist within provided tenant', async () => {
+      try {
+        await service.remove(testUsers[1].id, testTenants[1].id);
+
+        expect.fail('Should have thrown a BAD_REQUEST error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal(
+          'User with given id does not exist within provided tenant.',
+        );
+      }
+    });
+  });
 });
 
-// TODO remove, changePassword
+// TODO changePassword
 // password can be changed by super and admin. not user himself -fix

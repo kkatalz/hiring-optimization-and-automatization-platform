@@ -145,7 +145,7 @@ export class UserService {
     return userToUserDto({ user: updatedUser });
   }
 
-  async remove(userId: string, tenantId: string): Promise<UserDto> {
+  async remove(userId: string, tenantId: string): Promise<User> {
     const user = await this.findById(userId);
 
     await this.tenantExists(tenantId);
