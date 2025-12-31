@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -90,13 +92,36 @@ export class UserController {
 
   @Roles(UserRole.superAdmin, UserRole.admin)
   @Delete(':userId/tenant/:tenantId')
-  remove(
+  async remove(
     @AuthUser() requester: UserDto,
     @Param('userId', new ParseUUIDPipe()) userId: string,
     @Param('tenantId', new ParseUUIDPipe()) tenantId: string,
   ): Promise<UserDto> {
     validateTenantAccess(requester, tenantId);
+    await this.validateUserForRemoveAccess(requester, userId);
 
     return this.userService.remove(userId, tenantId);
+  }
+
+  private async validateUserForRemoveAccess(
+    requester: UserDto,
+    userId: string,
+  ) {
+    const user = await this.userService.findById(userId);
+
+    if (user.role === UserRole.superAdmin) {
+      throw new HttpException(
+        'SuperAdmin can not be removed via URL.',
+        HttpStatus.FORBIDDEN,
+      );
+    } else if (
+      user.role === UserRole.admin &&
+      requester.role === UserRole.admin
+    ) {
+      throw new HttpException(
+        'User can be removed only by a higher role.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
   }
 }

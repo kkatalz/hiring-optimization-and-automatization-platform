@@ -147,12 +147,6 @@ export class UserService {
 
   async remove(userId: string, tenantId: string): Promise<UserDto> {
     const user = await this.findById(userId);
-    if (user.role === UserRole.superAdmin) {
-      throw new HttpException(
-        'SuperAdmin can not be removed via url.',
-        HttpStatus.FORBIDDEN,
-      );
-    }
 
     await this.tenantExists(tenantId);
     await this.userExistsWithinProvidedTenant(user, tenantId);
