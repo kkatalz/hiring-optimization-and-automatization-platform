@@ -43,6 +43,24 @@ export const testUsers: User[] = [
     role: UserRole.recruiter,
     tenantId: testTenants[1].id,
   },
+  {
+    id: '09ad1bc3-4343-4960-b606-2572b9934b7f',
+    email: 'test4@dot.com',
+    password: '$2a$10$irakIV4F2c6.sBxpuhH.v.W8TRnQsACo7HjHeTmB/vWKXC02tMuAW',
+    firstName: 'SuperAdmin_4',
+    lastName: 'SuperAdmin_4',
+    deleted: false,
+    role: UserRole.superAdmin,
+  },
+  {
+    id: 'dd8e52b6-f1c9-46ef-afb3-f2d3bcfc70c7',
+    email: 'test5@dot.com',
+    password: '$2a$10$ETmVvqTIl84z/jw6bxiwe.S9Me.xcmYP861skUEUWA5prmHXHWy6e',
+    firstName: 'Candidate_5',
+    lastName: 'Candidate_5',
+    deleted: false,
+    role: UserRole.candidate,
+  },
 ];
 
 export const EXPECTED_ACTIVE_USERS = testUsers.filter((user) => !user.deleted);
