@@ -38,8 +38,11 @@ export class VacancyService {
         vacancyQuery.andWhere('vacancy.tenantId = :tenantId', {
           tenantId: requester.tenantId,
         });
-      } else {
-        return [];
+      } else if (requester.role === UserRole.candidate) {
+        throw new HttpException(
+          'Candidates are not allowed to see if vacancies have sumbissions.',
+          HttpStatus.FORBIDDEN,
+        );
       }
     }
 
