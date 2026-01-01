@@ -14,7 +14,8 @@ import { userToUserDto } from '../user/map/user.map';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { AuthService } from '../auth/auth.service';
 import { UserRole } from '../entities/role.enum';
-import { ChangeCredentialsDto } from '../user/dto/changeCredentials.dto';
+import { ChangeEmailDto } from 'src/user/dto/changeEmail.dto';
+import { ChangePasswordDto } from 'src/user/dto/changePassword.dto';
 
 @Injectable()
 export class UserService {
@@ -141,21 +142,20 @@ export class UserService {
     await this.userRepository.save(user);
   }
 
-  async changeCredentials(
-    userId: string,
-    changeCredentials: ChangeCredentialsDto,
-  ): Promise<UserDto> {
+  async changeEmail(userId: string, changeEmailDto: ChangeEmailDto) {
     const user = await this.findById(userId);
+    const email = changeEmailDto.email;
 
     const userWithGivenEmailWithinTheSameTenant =
       await this.userRepository.findOne({
         where: {
-          email: changeCredentials.email,
+          email,
           tenantId: user.tenantId,
           deleted: false,
           id: Not(userId),
         },
       });
+
     if (userWithGivenEmailWithinTheSameTenant) {
       throw new HttpException(
         'User with given email already exists. Choose a different email.',
@@ -163,13 +163,22 @@ export class UserService {
       );
     }
 
-    if (changeCredentials.email) user.email = changeCredentials.email;
-    if (changeCredentials.password)
-      user.password = await this.authService.hash(changeCredentials.password);
+    user.email = email;
 
-    await this.userRepository.save(user);
+    const updatedUser = await this.userRepository.save(user);
 
-    return userToUserDto({ user });
+    return userToUserDto({ user: updatedUser });
+  }
+
+  async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
+    const user = await this.findById(userId);
+    const password = changePasswordDto.password;
+
+    user.password = password;
+
+    const updatedUser = await this.userRepository.save(user);
+
+    return userToUserDto({ user: updatedUser });
   }
 
   async findById(id: string): Promise<User> {

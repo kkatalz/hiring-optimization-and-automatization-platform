@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpException,
   HttpStatus,
@@ -20,7 +21,8 @@ import { UpdateUserDto } from '../user/dto/updateUser.dto';
 import { UserDto } from '../user/dto/user.dto';
 import { UserService } from '../user/user.service';
 import { validateTenantAccess } from '../utils/validate';
-import { ChangeCredentialsDto } from '../user/dto/changeCredentials.dto';
+import { ChangeEmailDto } from 'src/user/dto/changeEmail.dto';
+import { ChangePasswordDto } from 'src/user/dto/changePassword.dto';
 
 @Controller('users')
 export class UserController {
@@ -97,25 +99,34 @@ export class UserController {
     UserRole.superAdmin,
     UserRole.admin,
   )
-  @Patch('credentials/:userId')
-  async changeCredentials(
+  @Patch('credentials/email/:userId')
+  async changeEmail(
     @AuthUser() requester: UserDto,
     @Param('userId', new ParseUUIDPipe()) userId: string,
-    @Body() changeCredentialsDto: ChangeCredentialsDto,
-  ): Promise<UserDto> {
-    if (!changeCredentialsDto.email && !changeCredentialsDto.password) {
-      throw new HttpException(
-        'No data provided to update. (Maybe you forgot Body?)',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    @Body() changeEmailDto: ChangeEmailDto,
+  ) {
+    const user = await this.userService.findById(userId);
 
-    await this.validateUserForChangingCredentials(requester, userId);
+    if (user.tenantId)
+      this.validateAdminRecruiterForCredentialsAccess(requester, user.tenantId);
+    else this.validateCandidateSuperAdminForCredentialsAccess(requester, user);
 
-    return await this.userService.changeCredentials(
-      userId,
-      changeCredentialsDto,
-    );
+    return await this.userService.changeEmail(userId, changeEmailDto);
+  }
+
+  @Patch('credentials/password/:userId')
+  async changePassword(
+    @AuthUser() requester: UserDto,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    const user = await this.userService.findById(userId);
+
+    if (user.tenantId)
+      this.validateAdminRecruiterForCredentialsAccess(requester, user.tenantId);
+    else this.validateCandidateSuperAdminForCredentialsAccess(requester, user);
+
+    return await this.userService.changePassword(userId, changePasswordDto);
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin)
@@ -153,19 +164,37 @@ export class UserController {
     }
   }
 
-  private async validateUserForChangingCredentials(
+  private validateAdminRecruiterForCredentialsAccess(
     requester: UserDto,
-    userId: string,
-  ) {
-    await this.userService.findDtoById(userId, requester);
-
+    userTenantId: string,
+  ): void {
     if (
-      (requester.role === UserRole.candidate ||
-        requester.role === UserRole.recruiter) &&
-      requester.id !== userId
+      requester.role === UserRole.admin &&
+      requester.tenantId !== userTenantId
+    ) {
+      throw new ForbiddenException(
+        'You can access users only within your own tenant.',
+      );
+    } else if (
+      requester.role === UserRole.recruiter &&
+      requester.tenantId !== userTenantId
     )
       throw new HttpException(
-        'Candidate and recruiter can change only their own credentials.',
+        'Recruiter can change only their own credentials.',
+        HttpStatus.FORBIDDEN,
+      );
+  }
+
+  private validateCandidateSuperAdminForCredentialsAccess(
+    requester: UserDto,
+    user: UserDto,
+  ): void {
+    if (
+      (user.role === UserRole.candidate || user.role === UserRole.superAdmin) &&
+      requester.id !== user.id
+    )
+      throw new HttpException(
+        'Candidate and super admin can change only their own credentials.',
         HttpStatus.FORBIDDEN,
       );
   }
