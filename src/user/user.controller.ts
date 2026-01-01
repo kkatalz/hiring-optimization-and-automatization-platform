@@ -104,7 +104,7 @@ export class UserController {
     @AuthUser() requester: UserDto,
     @Param('userId', new ParseUUIDPipe()) userId: string,
     @Body() changeEmailDto: ChangeEmailDto,
-  ) {
+  ): Promise<UserDto> {
     const user = await this.userService.findById(userId);
 
     if (user.tenantId)
@@ -119,7 +119,7 @@ export class UserController {
     @AuthUser() requester: UserDto,
     @Param('userId', new ParseUUIDPipe()) userId: string,
     @Body() changePasswordDto: ChangePasswordDto,
-  ) {
+  ): Promise<UserDto> {
     const user = await this.userService.findById(userId);
 
     if (user.tenantId)
