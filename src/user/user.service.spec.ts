@@ -289,11 +289,7 @@ describe('UserService', () => {
     it('should remove user (update deleted to true), but the record should still exist', async () => {
       const deleteUserWithId = testUsers[1].id;
 
-      const removedUserResult = await service.remove(
-        deleteUserWithId,
-        testTenants[0].id,
-      );
-      expect(removedUserResult.deleted).to.be.true;
+      await service.remove(deleteUserWithId, testTenants[0].id);
 
       const allUsers = await service.findAll();
       expect(allUsers.length).to.equal(EXPECTED_ACTIVE_USERS_NUM - 1);

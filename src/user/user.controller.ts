@@ -124,11 +124,11 @@ export class UserController {
     @AuthUser() requester: UserDto,
     @Param('userId', new ParseUUIDPipe()) userId: string,
     @Param('tenantId', new ParseUUIDPipe()) tenantId: string,
-  ): Promise<UserDto> {
+  ): Promise<void> {
     validateTenantAccess(requester, tenantId);
     await this.validateUserForRemoveAccess(requester, userId);
 
-    return this.userService.remove(userId, tenantId);
+    await this.userService.remove(userId, tenantId);
   }
 
   private async validateUserForRemoveAccess(

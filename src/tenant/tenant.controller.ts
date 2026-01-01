@@ -12,7 +12,6 @@ import { TenantService } from './tenant.service';
 import { CreateTenantDto } from './dto/createTenant.dto';
 import { UpdateTenantDto } from './dto/updateTenant.dto';
 import { TenantDto } from '../tenant/dto/tenant.dto';
-import { Tenant } from '../entities/tenant';
 import { Roles } from '../decorators/roles.decorator';
 import { UserRole } from '../entities/role.enum';
 
@@ -49,7 +48,7 @@ export class TenantController {
 
   @Delete(':id')
   @Roles(UserRole.superAdmin)
-  remove(@Param('id', new ParseUUIDPipe()) id: string): Promise<Tenant> {
-    return this.tenantService.remove(id);
+  async remove(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
+    await this.tenantService.remove(id);
   }
 }

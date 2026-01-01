@@ -130,7 +130,7 @@ export class UserService {
     return userToUserDto({ user: updatedUser });
   }
 
-  async remove(userId: string, tenantId: string): Promise<User> {
+  async remove(userId: string, tenantId: string): Promise<void> {
     const user = await this.findById(userId);
 
     await this.tenantExists(tenantId);
@@ -138,7 +138,7 @@ export class UserService {
 
     user.deleted = true;
 
-    return await this.userRepository.save(user);
+    await this.userRepository.save(user);
   }
 
   async changeCredentials(
