@@ -97,7 +97,7 @@ export class UserController {
     UserRole.superAdmin,
     UserRole.admin,
   )
-  @Patch('changeCredentials/:userId')
+  @Patch('credentials/:userId')
   async changeCredentials(
     @AuthUser() requester: UserDto,
     @Param('userId', new ParseUUIDPipe()) userId: string,
