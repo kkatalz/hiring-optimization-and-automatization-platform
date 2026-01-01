@@ -67,9 +67,9 @@ export class VacancyService {
       where: { tenantId },
     });
 
-    if (!vacanciesWithGivenTenant) {
+    if (vacanciesWithGivenTenant.length === 0) {
       throw new HttpException(
-        'No vacancies with provided tenant were found.',
+        'No vacancies within provided tenant were found.',
         HttpStatus.NOT_FOUND,
       );
     }
