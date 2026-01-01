@@ -23,7 +23,8 @@ import { UpdateUserDto } from '../user/dto/updateUser.dto';
 import { AuthService } from '../auth/auth.service';
 import * as sinon from 'sinon';
 import { Repository } from 'typeorm';
-import { ChangeCredentialsDto } from '../user/dto/changeCredentials.dto';
+import { ChangeEmailDto } from 'src/user/dto/changeEmail.dto';
+import { ChangePasswordDto } from 'src/user/dto/changePassword.dto';
 
 describe('UserService', () => {
   let service: UserService;
@@ -336,51 +337,78 @@ describe('UserService', () => {
     });
   });
 
-  describe('changeCredentials', () => {
-    it('should update credentials', async () => {
-      const changeCredentialsDto: ChangeCredentialsDto = {
+  describe('changeEmail', () => {
+    it('should change email', async () => {
+      const changeEmailDto: ChangeEmailDto = {
         email: 'changeEmail',
-        password: 'changePasword',
       };
 
-      const changeCredentialsResult = await service.changeCredentials(
+      const changeEmailResult = await service.changeEmail(
         testUsers[0].id,
-        changeCredentialsDto,
+        changeEmailDto,
       );
 
-      expect(changeCredentialsResult.email).to.deep.equal(
-        changeCredentialsDto.email,
-      );
+      expect(changeEmailResult.email).to.deep.equal(changeEmailDto.email);
 
-      expect(changeCredentialsResult).to.not.have.property('password');
+      expect(changeEmailResult).to.not.have.property('password');
     });
 
-    it('should allow to change credentials if the email from changeCredentialsDto belongs to the current user', async () => {
-      const userRecruiter = testUsers[1];
-
-      const changeCredentialsDto: ChangeCredentialsDto = {
-        email: userRecruiter.email,
+    it('should allow change email if the email from changeEmailDto is the same as current user already has', async () => {
+      const changeEmailDto: ChangeEmailDto = {
+        email: testUsers[0].email,
       };
 
-      const result = await service.changeCredentials(
-        userRecruiter.id,
-        changeCredentialsDto,
+      const changeEmailResult = await service.changeEmail(
+        testUsers[0].id,
+        changeEmailDto,
       );
 
-      expect(result.email).to.equal(userRecruiter.email);
+      expect(changeEmailResult.email).to.equal(testUsers[0].email);
     });
 
-    it('should use AuthService to hash password and save the result', async () => {
+    it('should throw error if user with given id not found', async () => {
+      const changeEmailDto: ChangeEmailDto = {
+        email: testUsers[0].email,
+      };
+
+      try {
+        await service.changeEmail(nonExistentUUIDId, changeEmailDto);
+
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal('User with given id not found.');
+      }
+    });
+
+    it('should throw if user with provided email in changeEmailDto already exists within provided tenant', async () => {
+      const changeEmailDto: ChangeEmailDto = {
+        email: testUsers[0].email,
+      };
+
+      try {
+        await service.changeEmail(testUsers[1].id, changeEmailDto);
+
+        expect.fail('Should have thrown a BAD_REQUEST error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal(
+          'User with given email already exists. Choose a different email.',
+        );
+      }
+    });
+  });
+
+  describe('changePassword', () => {
+    it('should change password using AuthService to hash password and save the result', async () => {
       const plainPassword = 'my-plain-password';
       const hashedResult = 'mocked-hash-result';
-      const changeCredentialsDto: ChangeCredentialsDto = {
-        email: 'updateEmail@test.com',
+
+      const changePasswordDto: ChangePasswordDto = {
         password: plainPassword,
       };
 
       const hashStub = sinon.stub(authService, 'hash').resolves(hashedResult);
 
-      await service.changeCredentials(testUsers[0].id, changeCredentialsDto);
+      await service.changePassword(testUsers[0].id, changePasswordDto);
 
       expect(hashStub.calledOnceWith(plainPassword)).to.be.true;
 
@@ -389,36 +417,16 @@ describe('UserService', () => {
     });
 
     it('should throw error if user with given id not found', async () => {
-      const changeCredentialsDto: ChangeCredentialsDto = {
-        email: 'changeEmail',
-        password: 'changePasword',
+      const changePasswordDto: ChangePasswordDto = {
+        password: 'changePassword',
       };
 
       try {
-        await service.changeCredentials(
-          nonExistentUUIDId,
-          changeCredentialsDto,
-        );
+        await service.changePassword(nonExistentUUIDId, changePasswordDto);
 
         expect.fail('Should have thrown a NOT_FOUND error but did not');
       } catch (e) {
         expect(e.response).to.deep.equal('User with given id not found.');
-      }
-    });
-
-    it('should throw if user with provided email in changeCredentialsDto already exists within provided tenant', async () => {
-      const changeCredentialsDto: ChangeCredentialsDto = {
-        email: testUsers[0].email,
-      };
-
-      try {
-        await service.changeCredentials(testUsers[1].id, changeCredentialsDto);
-
-        expect.fail('Should have thrown a BAD_REQUEST error but did not');
-      } catch (e) {
-        expect(e.response).to.deep.equal(
-          'User with given email already exists. Choose a different email.',
-        );
       }
     });
   });
