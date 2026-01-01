@@ -1,5 +1,5 @@
 import { ConfigModule } from '@nestjs/config';
-import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { Vacancy } from '../entities/vacancy';
 import { VacancyService } from '../vacancy/vacancy.service';
 import {
@@ -9,9 +9,9 @@ import {
 } from '../../test/database-setup';
 import {
   EXPECTED__VACANCIES_NUM,
+  EXPECTED__VACANCIES_WITH_SUBM_NUM,
   testVacancies,
 } from '../../test/fixtures/testVacancies';
-import { Repository } from 'typeorm';
 import { expect } from 'chai';
 import { Test, TestingModule } from '@nestjs/testing';
 import { testUsers } from '../../test/fixtures/testUsers';
@@ -22,7 +22,6 @@ const nonExistentUUIDId = '00000000-0000-0000-0000-000000000000';
 
 describe('VacancyServer', () => {
   let service: VacancyService;
-  let repository: Repository<Vacancy>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -35,7 +34,6 @@ describe('VacancyServer', () => {
     }).compile();
 
     service = module.get<VacancyService>(VacancyService);
-    repository = module.get<Repository<Vacancy>>(getRepositoryToken(Vacancy));
 
     await loadDatabase({
       Tenant: testTenants,
@@ -66,7 +64,7 @@ describe('VacancyServer', () => {
         await service.findVacanciesWithSubmissions(superAdmin);
 
       expect(vacanciesWithSubmissionsResullt.length).to.equal(
-        EXPECTED__VACANCIES_NUM,
+        EXPECTED__VACANCIES_WITH_SUBM_NUM,
       );
     });
     it('should find all vacancies with submissions for recruiter only within their tenant', async () => {
@@ -76,7 +74,7 @@ describe('VacancyServer', () => {
         await service.findVacanciesWithSubmissions(recruiter);
 
       expect(vacanciesWithSubmissionsResult.length).to.equal(
-        EXPECTED__VACANCIES_NUM,
+        EXPECTED__VACANCIES_WITH_SUBM_NUM,
       );
       expect(vacanciesWithSubmissionsResult[0].tenantId).to.deep.equal(
         recruiter.tenantId,
@@ -90,7 +88,7 @@ describe('VacancyServer', () => {
         await service.findVacanciesWithSubmissions(admin);
 
       expect(vacanciesWithSubmissionsResult.length).to.equal(
-        EXPECTED__VACANCIES_NUM,
+        EXPECTED__VACANCIES_WITH_SUBM_NUM,
       );
       expect(vacanciesWithSubmissionsResult[0].tenantId).to.deep.equal(
         admin.tenantId,
@@ -137,6 +135,44 @@ describe('VacancyServer', () => {
         expect.fail('Should have thrown a NOT_FOUND error but did not');
       } catch (e) {
         expect(e.response).to.deep.equal('Vacancy is not found.');
+      }
+    });
+  });
+
+  describe('findAllByTenantId', () => {
+    it('should find all vacancies by tenant id within this id', async () => {
+      const tenantId = testTenants[0].id;
+
+      const vacanciesDtoResult = await service.findAllByTenantId(tenantId);
+
+      expect(vacanciesDtoResult.length).to.equal(EXPECTED__VACANCIES_NUM);
+
+      vacanciesDtoResult.forEach((vacancy) => {
+        expect(vacancy).to.have.all.keys(
+          'id',
+          'name',
+          'description',
+          'salary',
+          'tenantId',
+          'createdById',
+          'submissions',
+        );
+      });
+
+      vacanciesDtoResult.forEach((vacancy) => {
+        expect(vacancy.tenantId).to.equal(tenantId);
+      });
+    });
+
+    it('should throw if vacancy by within given provided tenant id is not found', async () => {
+      try {
+        await service.findAllByTenantId(nonExistentUUIDId);
+
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e) {
+        expect(e.message).to.deep.equal(
+          'No vacancies within provided tenant were found.',
+        );
       }
     });
   });
