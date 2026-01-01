@@ -322,18 +322,18 @@ describe('UserService', () => {
         expect(e).to.have.property('status', 400);
         expect(e.response).to.equal('Tenant does not exist.');
       }
+    });
 
-      it('should throw error if user doesnt exist within provided tenant', async () => {
-        try {
-          await service.remove(testUsers[1].id, testTenants[1].id);
+    it('should throw error if user doesnt exist within provided tenant', async () => {
+      try {
+        await service.remove(testUsers[1].id, testTenants[1].id);
 
-          expect.fail('Should have thrown a BAD_REQUEST error but did not');
-        } catch (e) {
-          expect(e.response).to.deep.equal(
-            'User with given id does not exist within provided tenant.',
-          );
-        }
-      });
+        expect.fail('Should have thrown a BAD_REQUEST error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal(
+          'User with given id does not exist within provided tenant.',
+        );
+      }
     });
   });
 
