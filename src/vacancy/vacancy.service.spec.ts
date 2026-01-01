@@ -18,6 +18,8 @@ import { testUsers } from '../../test/fixtures/testUsers';
 import { testTenants } from '../../test/fixtures/testTenants';
 import { testVacancySubmissions } from '../../test/fixtures/testVacancySubmissions';
 
+const nonExistentUUIDId = '00000000-0000-0000-0000-000000000000';
+
 describe('VacancyServer', () => {
   let service: VacancyService;
   let repository: Repository<Vacancy>;
@@ -105,6 +107,36 @@ describe('VacancyServer', () => {
         expect(e.response).to.equal(
           'Candidates are not allowed to see if vacancies have sumbissions.',
         );
+      }
+    });
+  });
+
+  describe('findDtoByVacancyId', () => {
+    it('should find vacancy dto by id', async () => {
+      const vacancyDtoResult = await service.findDtoByVacancyId(
+        testVacancies[0].id,
+      );
+
+      expect(vacancyDtoResult.id).to.equal(testVacancies[0].id);
+
+      expect(vacancyDtoResult).to.have.all.keys(
+        'id',
+        'name',
+        'description',
+        'salary',
+        'tenantId',
+        'createdById',
+        'submissions',
+      );
+    });
+
+    it('should throw id vacancy is not found', async () => {
+      try {
+        await service.findDtoByVacancyId(nonExistentUUIDId);
+
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal('Vacancy is not found.');
       }
     });
   });
