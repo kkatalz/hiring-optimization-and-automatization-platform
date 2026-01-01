@@ -142,7 +142,10 @@ export class UserService {
     await this.userRepository.save(user);
   }
 
-  async changeEmail(userId: string, changeEmailDto: ChangeEmailDto) {
+  async changeEmail(
+    userId: string,
+    changeEmailDto: ChangeEmailDto,
+  ): Promise<UserDto> {
     const user = await this.findById(userId);
     const email = changeEmailDto.email;
 
@@ -170,11 +173,14 @@ export class UserService {
     return userToUserDto({ user: updatedUser });
   }
 
-  async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<UserDto> {
     const user = await this.findById(userId);
     const password = changePasswordDto.password;
 
-    user.password = password;
+    user.password = await this.authService.hash(password);
 
     const updatedUser = await this.userRepository.save(user);
 
