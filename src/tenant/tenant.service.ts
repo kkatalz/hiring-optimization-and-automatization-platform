@@ -70,12 +70,12 @@ export class TenantService {
     return tenantToTenantDto(updatedTenant);
   }
 
-  async remove(id: string): Promise<Tenant> {
+  async remove(id: string): Promise<void> {
     const tenant = await this.findById(id);
 
     tenant.deleted = true;
 
-    return await this.tenantRepository.save(tenant);
+    await this.tenantRepository.save(tenant);
   }
 
   async findDtoById(id: string): Promise<TenantDto> {

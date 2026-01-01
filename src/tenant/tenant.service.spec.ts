@@ -149,8 +149,7 @@ describe('TenantService', () => {
       }
     });
     it('should remove tenant (update deleted to true), but the record should still exist', async () => {
-      const removedTenant = await service.remove(testTenants[0].id);
-      expect(removedTenant.deleted).to.be.true;
+      await service.remove(testTenants[0].id);
 
       const allActiveTenants = await service.findAll();
       expect(allActiveTenants.length).to.deep.equal(1);

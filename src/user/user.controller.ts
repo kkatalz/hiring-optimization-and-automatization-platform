@@ -2,7 +2,10 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -18,6 +21,8 @@ import { UpdateUserDto } from '../user/dto/updateUser.dto';
 import { UserDto } from '../user/dto/user.dto';
 import { UserService } from '../user/user.service';
 import { validateTenantAccess } from '../utils/validate';
+import { ChangeEmailDto } from '../user/dto/changeEmail.dto';
+import { ChangePasswordDto } from '../user/dto/changePassword.dto';
 
 @Controller('users')
 export class UserController {
@@ -88,15 +93,109 @@ export class UserController {
     return this.userService.update(userId, tenantId, updateUserDto);
   }
 
+  @Roles(
+    UserRole.candidate,
+    UserRole.recruiter,
+    UserRole.superAdmin,
+    UserRole.admin,
+  )
+  @Patch('credentials/email/:userId')
+  async changeEmail(
+    @AuthUser() requester: UserDto,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+    @Body() changeEmailDto: ChangeEmailDto,
+  ): Promise<UserDto> {
+    const user = await this.userService.findById(userId);
+
+    if (user.tenantId)
+      this.validateAdminRecruiterForCredentialsAccess(requester, user.tenantId);
+    else this.validateCandidateSuperAdminForCredentialsAccess(requester, user);
+
+    return await this.userService.changeEmail(userId, changeEmailDto);
+  }
+
+  @Patch('credentials/password/:userId')
+  async changePassword(
+    @AuthUser() requester: UserDto,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ): Promise<UserDto> {
+    const user = await this.userService.findById(userId);
+
+    if (user.tenantId)
+      this.validateAdminRecruiterForCredentialsAccess(requester, user.tenantId);
+    else this.validateCandidateSuperAdminForCredentialsAccess(requester, user);
+
+    return await this.userService.changePassword(userId, changePasswordDto);
+  }
+
   @Roles(UserRole.superAdmin, UserRole.admin)
   @Delete(':userId/tenant/:tenantId')
-  remove(
+  async remove(
     @AuthUser() requester: UserDto,
     @Param('userId', new ParseUUIDPipe()) userId: string,
     @Param('tenantId', new ParseUUIDPipe()) tenantId: string,
-  ): Promise<UserDto> {
+  ): Promise<void> {
     validateTenantAccess(requester, tenantId);
+    await this.validateUserForRemoveAccess(requester, userId);
 
-    return this.userService.remove(userId, tenantId);
+    await this.userService.remove(userId, tenantId);
+  }
+
+  private async validateUserForRemoveAccess(
+    requester: UserDto,
+    userId: string,
+  ) {
+    const user = await this.userService.findById(userId);
+
+    if (user.role === UserRole.superAdmin) {
+      throw new HttpException(
+        'SuperAdmin can not be removed via URL.',
+        HttpStatus.FORBIDDEN,
+      );
+    } else if (
+      user.role === UserRole.admin &&
+      requester.role === UserRole.admin
+    ) {
+      throw new HttpException(
+        'User can be removed only by a higher role.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+  }
+
+  private validateAdminRecruiterForCredentialsAccess(
+    requester: UserDto,
+    userTenantId: string,
+  ): void {
+    if (
+      requester.role === UserRole.admin &&
+      requester.tenantId !== userTenantId
+    ) {
+      throw new ForbiddenException(
+        'You can access users only within your own tenant.',
+      );
+    } else if (
+      requester.role === UserRole.recruiter &&
+      requester.tenantId !== userTenantId
+    )
+      throw new HttpException(
+        'Recruiter can change only their own credentials.',
+        HttpStatus.FORBIDDEN,
+      );
+  }
+
+  private validateCandidateSuperAdminForCredentialsAccess(
+    requester: UserDto,
+    user: UserDto,
+  ): void {
+    if (
+      (user.role === UserRole.candidate || user.role === UserRole.superAdmin) &&
+      requester.id !== user.id
+    )
+      throw new HttpException(
+        'Candidate and super admin can change only their own credentials.',
+        HttpStatus.FORBIDDEN,
+      );
   }
 }
