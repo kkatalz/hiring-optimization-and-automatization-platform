@@ -21,8 +21,8 @@ import { UpdateUserDto } from '../user/dto/updateUser.dto';
 import { UserDto } from '../user/dto/user.dto';
 import { UserService } from '../user/user.service';
 import { validateTenantAccess } from '../utils/validate';
-import { ChangeEmailDto } from 'src/user/dto/changeEmail.dto';
-import { ChangePasswordDto } from 'src/user/dto/changePassword.dto';
+import { ChangeEmailDto } from '../user/dto/changeEmail.dto';
+import { ChangePasswordDto } from '../user/dto/changePassword.dto';
 
 @Controller('users')
 export class UserController {
