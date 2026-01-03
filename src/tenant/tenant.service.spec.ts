@@ -34,7 +34,7 @@ describe('TenantService', () => {
     });
   });
 
-  afterEach(() => cleanDatabase());
+  afterEach(async () => await cleanDatabase());
 
   it('should be defined', () => {
     expect(!!service).to.deep.equal(true);
