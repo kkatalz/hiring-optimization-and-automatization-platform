@@ -1,5 +1,5 @@
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
 import { Vacancy } from '../entities/vacancy';
 import { VacancyService } from '../vacancy/vacancy.service';
 import {
@@ -17,11 +17,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { testUsers } from '../../test/fixtures/testUsers';
 import { testTenants } from '../../test/fixtures/testTenants';
 import { testVacancySubmissions } from '../../test/fixtures/testVacancySubmissions';
+import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
+import { VacancyDto } from '../vacancy/dto/vacancy.dto';
+import { Repository } from 'typeorm';
+import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
 
 const nonExistentUUIDId = '00000000-0000-0000-0000-000000000000';
 
-describe('VacancyServer', () => {
+describe('VacancyService', () => {
   let service: VacancyService;
+  let vacancyRepository: Repository<Vacancy>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -34,6 +39,9 @@ describe('VacancyServer', () => {
     }).compile();
 
     service = module.get<VacancyService>(VacancyService);
+    vacancyRepository = module.get<Repository<Vacancy>>(
+      getRepositoryToken(Vacancy),
+    );
 
     await loadDatabase({
       Tenant: testTenants,
@@ -43,7 +51,7 @@ describe('VacancyServer', () => {
     });
   });
 
-  afterEach(() => cleanDatabase());
+  afterEach(async () => await cleanDatabase());
 
   it('should be defined', () => {
     expect(!!service).to.deep.equal(true);
@@ -53,17 +61,17 @@ describe('VacancyServer', () => {
     const allVacaniesResult = await service.findAll();
 
     expect(allVacaniesResult.length).to.equal(EXPECTED__VACANCIES_NUM);
-    expect(allVacaniesResult).to.not.have.property('createdBy');
+    expect(allVacaniesResult[0]).to.not.have.property('createdBy');
   });
 
   describe('findVacanciesWithSubmissions', () => {
     it('should find all vacancies with submissions for SuperAdmin', async () => {
       const superAdmin = testUsers[4];
 
-      const vacanciesWithSubmissionsResullt =
+      const vacanciesWithSubmissionsResult =
         await service.findVacanciesWithSubmissions(superAdmin);
 
-      expect(vacanciesWithSubmissionsResullt.length).to.equal(
+      expect(vacanciesWithSubmissionsResult.length).to.equal(
         EXPECTED__VACANCIES_WITH_SUBM_NUM,
       );
     });
@@ -95,7 +103,7 @@ describe('VacancyServer', () => {
       );
     });
 
-    it('should throw if a Candidate tries to see vacancies with sumbission', async () => {
+    it('should throw if a Candidate tries to see vacancies with submission', async () => {
       const candidate = testUsers[5];
 
       try {
@@ -103,7 +111,7 @@ describe('VacancyServer', () => {
         expect.fail('Should have thrown a FORBIDDEN but did not');
       } catch (e: any) {
         expect(e.response).to.equal(
-          'Candidates are not allowed to see if vacancies have sumbissions.',
+          'Candidates are not allowed to see if vacancies have submissions.',
         );
       }
     });
@@ -174,6 +182,72 @@ describe('VacancyServer', () => {
           'No vacancies within provided tenant were found.',
         );
       }
+    });
+  });
+
+  describe('create', () => {
+    it('should create and save vacancy', async () => {
+      const createVacancyDto: CreateVacancyDto = {
+        name: 'Zoo keeper',
+        description: 'I want to be zookeper!',
+        salary: '1000-1100 USD',
+      };
+
+      const admin = testUsers[0];
+
+      const createVacancyResult: VacancyDto = await service.create(
+        createVacancyDto,
+        admin,
+      );
+
+      expect(createVacancyResult.name).to.equal(createVacancyDto.name);
+      expect(createVacancyResult.description).to.equal(
+        createVacancyDto.description,
+      );
+      expect(createVacancyResult.tenantId).to.equal(admin.tenantId);
+      expect(createVacancyResult.createdById).to.equal(admin.id);
+
+      const totalVacancies = await service.findAll();
+      expect(totalVacancies.length).to.equal(EXPECTED__VACANCIES_NUM + 1);
+    });
+  });
+
+  describe('update', () => {
+    it('should update vacancy with updateVacancyDto', async () => {
+      const updateVacancyDto: UpdateVacancyDto = {
+        name: 'Zoo keeper Updated',
+        description: 'I want to be zookeper!',
+        // salary: '500-600 USD',
+      };
+
+      const updateVacancyResult: VacancyDto = await service.update(
+        testVacancies[0],
+        updateVacancyDto,
+      );
+
+      expect(updateVacancyResult.salary).to.equal(testVacancies[0].salary);
+      expect(updateVacancyResult.name).to.equal(updateVacancyDto.name);
+      expect(updateVacancyResult.description).to.equal(
+        updateVacancyDto.description,
+      );
+    });
+  });
+  describe('remove', () => {
+    it('should remove vacancy', async () => {
+      const removeVacancy = testVacancies[0];
+
+      const removedVacancyDto: VacancyDto = await service.remove(removeVacancy);
+
+      expect(removedVacancyDto.id).to.equal(removeVacancy.id);
+
+      const totalVacancies = await service.findAll();
+      expect(totalVacancies.length).to.equal(EXPECTED__VACANCIES_NUM - 1);
+
+      const vacancyIsNotFound = await vacancyRepository.findOne({
+        where: { id: removeVacancy.id },
+      });
+      console.log('vacancyIsNotFound', vacancyIsNotFound);
+      expect(vacancyIsNotFound).to.equal(null);
     });
   });
 });
