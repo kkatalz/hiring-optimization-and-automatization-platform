@@ -22,6 +22,7 @@ import { VacancyDto } from '../vacancy/dto/vacancy.dto';
 import { Repository } from 'typeorm';
 import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
 import { nonExistentUUIDId } from '../../test/utils';
+import { UserModule } from '../user/user.module';
 
 describe('VacancyService', () => {
   let service: VacancyService;
@@ -33,6 +34,7 @@ describe('VacancyService', () => {
         ConfigModule.forRoot(),
         TypeOrmModule.forRoot(testDatabaseConfig),
         TypeOrmModule.forFeature([Vacancy]),
+        UserModule,
       ],
       providers: [VacancyService],
     }).compile();
