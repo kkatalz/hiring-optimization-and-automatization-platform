@@ -9,12 +9,15 @@ import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
 import { UserDto } from '../user/dto/user.dto';
 import { UserRole } from '../entities/role.enum';
 import { vacancyToVacancyDto } from '../vacancy/map/vacancy.map';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class VacancyService {
   constructor(
     @InjectRepository(Vacancy)
     private readonly vacancyRepository: Repository<Vacancy>,
+
+    private readonly userService: UserService,
   ) {}
 
   async findAll(): Promise<VacancyDto[]> {
@@ -23,8 +26,10 @@ export class VacancyService {
   }
 
   async findVacanciesWithSubmissions(
-    requester: UserDto,
+    requesterId: string,
   ): Promise<VacancyDto[]> {
+    const requester = await this.userService.findById(requesterId);
+
     const vacancyQuery = this.vacancyRepository
       .createQueryBuilder('vacancy')
       .innerJoinAndSelect('vacancy.submissions', 'submission');
@@ -49,7 +54,7 @@ export class VacancyService {
     return vacancies.map(vacancyToVacancyDto);
   }
 
-  async findDtoByVacancyId(vacancyId: string): Promise<VacancyDto> {
+  async findVacancyById(vacancyId: string): Promise<VacancyDto> {
     const vacancy = await this.vacancyRepository.findOne({
       where: { id: vacancyId },
     });
@@ -66,7 +71,7 @@ export class VacancyService {
       where: { tenantId },
     });
 
-    if (vacanciesWithGivenTenant.length === 0) {
+    if (!vacanciesWithGivenTenant?.length) {
       throw new HttpException(
         'No vacancies within provided tenant were found.',
         HttpStatus.NOT_FOUND,
@@ -100,9 +105,7 @@ export class VacancyService {
     return vacancyToVacancyDto(updatedVacancy);
   }
 
-  async remove(vacancy: Vacancy): Promise<VacancyDto> {
+  async remove(vacancy: Vacancy): Promise<void> {
     await this.vacancyRepository.delete(vacancy.id);
-
-    return vacancyToVacancyDto(vacancy);
   }
 }

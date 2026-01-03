@@ -23,7 +23,7 @@ export class VacancySumbissionService {
     vacancyId: string,
     candidate: UserDto,
   ): Promise<VacancySubmissionDto> {
-    await this.vacancyService.findDtoByVacancyId(vacancyId);
+    await this.vacancyService.findVacancyById(vacancyId);
 
     const vacancySubmission = this.vacancySubmissionRepository.create(
       createVacancySubmissionDto,
