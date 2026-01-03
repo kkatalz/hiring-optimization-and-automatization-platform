@@ -10,7 +10,7 @@ import { vacancySubmToVacancySubmDto } from '../vacancySubmission/map/vacancySub
 import { Repository } from 'typeorm';
 
 @Injectable()
-export class VacancySumbissionService {
+export class VacancySubmissionService {
   constructor(
     @InjectRepository(VacancySubmission)
     private readonly vacancySubmissionRepository: Repository<VacancySubmission>,
@@ -23,14 +23,15 @@ export class VacancySumbissionService {
     vacancyId: string,
     candidate: UserDto,
   ): Promise<VacancySubmissionDto> {
-    await this.vacancyService.findVacancyById(vacancyId);
+    const vacancy = await this.vacancyService.findVacancyById(vacancyId);
 
-    const vacancySubmission = this.vacancySubmissionRepository.create(
-      createVacancySubmissionDto,
-    );
-
-    vacancySubmission.vacancyId = vacancyId;
-    vacancySubmission.candidateId = candidate.id;
+    const vacancySubmission = this.vacancySubmissionRepository.create({
+      ...createVacancySubmissionDto,
+      vacancyId: vacancyId,
+      candidateId: candidate.id,
+      vacancy: vacancy,
+      candidate: candidate,
+    });
 
     const savedVacancySubmission =
       await this.vacancySubmissionRepository.save(vacancySubmission);

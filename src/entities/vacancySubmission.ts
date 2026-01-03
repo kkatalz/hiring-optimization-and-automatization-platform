@@ -1,3 +1,4 @@
+import { UserDto } from '../user/dto/user.dto';
 import { User } from '../entities/user';
 import { Vacancy } from '../entities/vacancy';
 import {
@@ -34,5 +35,5 @@ export class VacancySubmission {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'candidate_id' })
-  candidate?: User[];
+  candidate?: UserDto;
 }
