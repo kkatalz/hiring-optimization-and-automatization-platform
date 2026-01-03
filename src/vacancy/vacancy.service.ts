@@ -7,7 +7,6 @@ import { VacancyDto } from '../vacancy/dto/vacancy.dto';
 import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
 import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
 import { UserDto } from '../user/dto/user.dto';
-import { validateTenantAccess } from '../utils/validate';
 import { UserRole } from '../entities/role.enum';
 import { vacancyToVacancyDto } from '../vacancy/map/vacancy.map';
 
@@ -40,7 +39,7 @@ export class VacancyService {
         });
       } else if (requester.role === UserRole.candidate) {
         throw new HttpException(
-          'Candidates are not allowed to see if vacancies have sumbissions.',
+          'Candidates are not allowed to see if vacancies have submissions.',
           HttpStatus.FORBIDDEN,
         );
       }
@@ -92,36 +91,17 @@ export class VacancyService {
   }
 
   async update(
-    vacancyId: string,
+    vacancy: Vacancy,
     updateVacancyDto: UpdateVacancyDto,
-    updater: UserDto,
   ): Promise<VacancyDto> {
-    const vacancy = await this.findVacancyByVacancyId(vacancyId);
-    validateTenantAccess(updater, vacancy.tenantId);
-
     Object.assign(vacancy, updateVacancyDto);
 
     const updatedVacancy = await this.vacancyRepository.save(vacancy);
     return vacancyToVacancyDto(updatedVacancy);
   }
 
-  async remove(vacancyId: string, deleter: UserDto): Promise<VacancyDto> {
-    const vacancy = await this.findVacancyByVacancyId(vacancyId);
-    validateTenantAccess(deleter, vacancy.tenantId);
-
-    await this.vacancyRepository.delete(vacancyId);
-
-    return vacancyToVacancyDto(vacancy);
-  }
-
-  private async findVacancyByVacancyId(vacancyId: string): Promise<VacancyDto> {
-    const vacancy = await this.vacancyRepository.findOne({
-      where: { id: vacancyId },
-    });
-
-    if (!vacancy) {
-      throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
-    }
+  async remove(vacancy: Vacancy): Promise<VacancyDto> {
+    await this.vacancyRepository.delete(vacancy.id);
 
     return vacancyToVacancyDto(vacancy);
   }
