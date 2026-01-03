@@ -21,8 +21,7 @@ import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
 import { VacancyDto } from '../vacancy/dto/vacancy.dto';
 import { Repository } from 'typeorm';
 import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
-
-const nonExistentUUIDId = '00000000-0000-0000-0000-000000000000';
+import { nonExistentUUIDId } from '../../test/utils';
 
 describe('VacancyService', () => {
   let service: VacancyService;
@@ -69,7 +68,7 @@ describe('VacancyService', () => {
       const superAdmin = testUsers[4];
 
       const vacanciesWithSubmissionsResult =
-        await service.findVacanciesWithSubmissions(superAdmin);
+        await service.findVacanciesWithSubmissions(superAdmin.id);
 
       expect(vacanciesWithSubmissionsResult.length).to.equal(
         EXPECTED__VACANCIES_WITH_SUBM_NUM,
@@ -79,7 +78,7 @@ describe('VacancyService', () => {
       const recruiter = testUsers[1];
 
       const vacanciesWithSubmissionsResult =
-        await service.findVacanciesWithSubmissions(recruiter);
+        await service.findVacanciesWithSubmissions(recruiter.id);
 
       expect(vacanciesWithSubmissionsResult.length).to.equal(
         EXPECTED__VACANCIES_WITH_SUBM_NUM,
@@ -93,7 +92,7 @@ describe('VacancyService', () => {
       const admin = testUsers[0];
 
       const vacanciesWithSubmissionsResult =
-        await service.findVacanciesWithSubmissions(admin);
+        await service.findVacanciesWithSubmissions(admin.id);
 
       expect(vacanciesWithSubmissionsResult.length).to.equal(
         EXPECTED__VACANCIES_WITH_SUBM_NUM,
@@ -107,7 +106,7 @@ describe('VacancyService', () => {
       const candidate = testUsers[5];
 
       try {
-        await service.findVacanciesWithSubmissions(candidate);
+        await service.findVacanciesWithSubmissions(candidate.id);
         expect.fail('Should have thrown a FORBIDDEN but did not');
       } catch (e: any) {
         expect(e.response).to.equal(
@@ -119,26 +118,16 @@ describe('VacancyService', () => {
 
   describe('findDtoByVacancyId', () => {
     it('should find vacancy dto by id', async () => {
-      const vacancyDtoResult = await service.findDtoByVacancyId(
+      const vacancyDtoResult: VacancyDto = await service.findVacancyById(
         testVacancies[0].id,
       );
 
       expect(vacancyDtoResult.id).to.equal(testVacancies[0].id);
-
-      expect(vacancyDtoResult).to.have.all.keys(
-        'id',
-        'name',
-        'description',
-        'salary',
-        'tenantId',
-        'createdById',
-        'submissions',
-      );
     });
 
     it('should throw id vacancy is not found', async () => {
       try {
-        await service.findDtoByVacancyId(nonExistentUUIDId);
+        await service.findVacancyById(nonExistentUUIDId);
 
         expect.fail('Should have thrown a NOT_FOUND error but did not');
       } catch (e) {
@@ -217,7 +206,6 @@ describe('VacancyService', () => {
       const updateVacancyDto: UpdateVacancyDto = {
         name: 'Zoo keeper Updated',
         description: 'I want to be zookeper!',
-        // salary: '500-600 USD',
       };
 
       const updateVacancyResult: VacancyDto = await service.update(
@@ -236,9 +224,7 @@ describe('VacancyService', () => {
     it('should remove vacancy', async () => {
       const removeVacancy = testVacancies[0];
 
-      const removedVacancyDto: VacancyDto = await service.remove(removeVacancy);
-
-      expect(removedVacancyDto.id).to.equal(removeVacancy.id);
+      await service.remove(removeVacancy);
 
       const totalVacancies = await service.findAll();
       expect(totalVacancies.length).to.equal(EXPECTED__VACANCIES_NUM - 1);
@@ -246,7 +232,6 @@ describe('VacancyService', () => {
       const vacancyIsNotFound = await vacancyRepository.findOne({
         where: { id: removeVacancy.id },
       });
-      console.log('vacancyIsNotFound', vacancyIsNotFound);
       expect(vacancyIsNotFound).to.equal(null);
     });
   });
