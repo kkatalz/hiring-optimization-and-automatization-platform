@@ -9,7 +9,7 @@ import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
 import { UserDto } from '../user/dto/user.dto';
 import { UserRole } from '../entities/role.enum';
 import { vacancyToVacancyDto } from '../vacancy/map/vacancy.map';
-import { UserService } from 'src/user/user.service';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class VacancyService {
