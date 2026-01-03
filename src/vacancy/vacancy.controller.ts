@@ -41,7 +41,7 @@ export class VacancyController {
   findVacanciesWithSubmissions(
     @AuthUser() requester: UserDto,
   ): Promise<VacancyDto[]> {
-    return this.vacancyService.findVacanciesWithSubmissions(requester);
+    return this.vacancyService.findVacanciesWithSubmissions(requester.id);
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
@@ -58,25 +58,31 @@ export class VacancyController {
   findByVacancyId(
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
   ): Promise<VacancyDto> {
-    return this.vacancyService.findDtoByVacancyId(vacancyId);
+    return this.vacancyService.findVacancyById(vacancyId);
   }
 
   @Roles(UserRole.admin, UserRole.recruiter)
   @Patch(':vacancyId')
-  update(
+  async update(
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
     @Body() updateVacancyDto: UpdateVacancyDto,
     @AuthUser() updatedBy: UserDto,
   ): Promise<VacancyDto> {
-    return this.vacancyService.update(vacancyId, updateVacancyDto, updatedBy);
+    const vacancy = await this.vacancyService.findVacancyById(vacancyId);
+    validateTenantAccess(updatedBy, vacancy.tenantId);
+
+    return this.vacancyService.update(vacancy, updateVacancyDto);
   }
 
   @Roles(UserRole.admin, UserRole.recruiter)
   @Delete(':vacancyId')
-  delete(
+  async delete(
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
     @AuthUser() deletedBy: UserDto,
-  ): Promise<VacancyDto> {
-    return this.vacancyService.remove(vacancyId, deletedBy);
+  ): Promise<void> {
+    const vacancy = await this.vacancyService.findVacancyById(vacancyId);
+    validateTenantAccess(deletedBy, vacancy.tenantId);
+
+    await this.vacancyService.remove(vacancy);
   }
 }

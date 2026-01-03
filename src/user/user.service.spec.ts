@@ -25,12 +25,12 @@ import * as sinon from 'sinon';
 import { Repository } from 'typeorm';
 import { ChangeEmailDto } from '../user/dto/changeEmail.dto';
 import { ChangePasswordDto } from '../user/dto/changePassword.dto';
+import { nonExistentUUIDId } from '../../test/utils';
 
 describe('UserService', () => {
   let service: UserService;
   let authService: AuthService;
   let userRepository: Repository<User>;
-  const nonExistentUUIDId = '00000000-0000-0000-0000-000000000000';
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({

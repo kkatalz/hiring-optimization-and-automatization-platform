@@ -11,6 +11,7 @@ import {
 import { testTenants } from '../../test/fixtures/testTenants';
 import { expect } from 'chai';
 import { Repository } from 'typeorm';
+import { nonExistentUUIDId } from '../../test/utils';
 
 describe('TenantService', () => {
   let service: TenantService;
@@ -34,7 +35,7 @@ describe('TenantService', () => {
     });
   });
 
-  afterEach(() => cleanDatabase());
+  afterEach(async () => await cleanDatabase());
 
   it('should be defined', () => {
     expect(!!service).to.deep.equal(true);
@@ -87,9 +88,8 @@ describe('TenantService', () => {
 
   describe('update', () => {
     it('should throw error if tenant with given id not found', async () => {
-      const nonExistentId = 'aeb51f80-adf0-4316-9b42-10237c14acf6';
       try {
-        await service.update(nonExistentId, {
+        await service.update(nonExistentUUIDId, {
           email: 'updateTenant@gmail.com',
           slug: 'updateTenant',
         });
@@ -139,9 +139,8 @@ describe('TenantService', () => {
 
   describe('remove', () => {
     it('should throw error if tenant with given id not found', async () => {
-      const nonExistentId = 'aeb51f80-adf0-4316-9b42-10237c14acf6';
       try {
-        await service.remove(nonExistentId);
+        await service.remove(nonExistentUUIDId);
 
         expect.fail('Should have thrown a NOT_FOUND error but did not');
       } catch (e) {
@@ -164,9 +163,8 @@ describe('TenantService', () => {
   });
 
   it('should find tenant dto by id', async () => {
-    const nonExistentId = 'aeb51f80-adf0-4316-9b42-10237c14acf6';
     try {
-      await service.findDtoById(nonExistentId);
+      await service.findDtoById(nonExistentUUIDId);
 
       expect.fail('Should have thrown a NOT_FOUND error but did not');
     } catch (e) {
