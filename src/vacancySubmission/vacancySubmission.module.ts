@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { VacancySubmission } from '../entities/vacancySubmission';
 import { VacancyModule } from '../vacancy/vacancy.module';
 import { VacancySubmissionController } from '../vacancySubmission/vacancySubmission.controller';
-import { VacancySumbissionService } from '../vacancySubmission/vacancySumbission.service';
+import { VacancySumbissionService } from './vacancySubmission.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([VacancySubmission]), VacancyModule],

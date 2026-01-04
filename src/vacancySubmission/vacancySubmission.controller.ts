@@ -5,7 +5,7 @@ import { UserRole } from '../entities/role.enum';
 import { UserDto } from '../user/dto/user.dto';
 import { CreateVacancySubmissionDto } from '../vacancySubmission/dto/applyForVacancy.dto';
 import { VacancySubmissionDto } from '../vacancySubmission/dto/vacancySubmission.dto';
-import { VacancySubmissionService } from '../vacancySubmission/vacancySumbission.service';
+import { VacancySubmissionService } from './vacancySubmission.service';
 
 @Controller('vacanciesSubmissions')
 export class VacancySubmissionController {

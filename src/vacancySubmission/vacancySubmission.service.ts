@@ -4,9 +4,9 @@ import { UserRole } from '../entities/role.enum';
 import { VacancySubmission } from '../entities/vacancySubmission';
 import { UserDto } from '../user/dto/user.dto';
 import { VacancyService } from '../vacancy/vacancy.service';
-import { CreateVacancySubmissionDto } from '../vacancySubmission/dto/applyForVacancy.dto';
-import { VacancySubmissionDto } from '../vacancySubmission/dto/vacancySubmission.dto';
-import { vacancySubmToVacancySubmDto } from '../vacancySubmission/map/vacancySubmission.map';
+import { CreateVacancySubmissionDto } from './dto/applyForVacancy.dto';
+import { VacancySubmissionDto } from './dto/vacancySubmission.dto';
+import { vacancySubmToVacancySubmDto } from './map/vacancySubmission.map';
 import { Repository } from 'typeorm';
 
 @Injectable()
