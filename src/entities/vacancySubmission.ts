@@ -34,5 +34,5 @@ export class VacancySubmission {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'candidate_id' })
-  candidate?: User[];
+  candidate?: User;
 }

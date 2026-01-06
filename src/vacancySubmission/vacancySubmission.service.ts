@@ -4,18 +4,21 @@ import { UserRole } from '../entities/role.enum';
 import { VacancySubmission } from '../entities/vacancySubmission';
 import { UserDto } from '../user/dto/user.dto';
 import { VacancyService } from '../vacancy/vacancy.service';
-import { CreateVacancySubmissionDto } from '../vacancySubmission/dto/applyForVacancy.dto';
-import { VacancySubmissionDto } from '../vacancySubmission/dto/vacancySubmission.dto';
-import { vacancySubmToVacancySubmDto } from '../vacancySubmission/map/vacancySubmission.map';
+import { CreateVacancySubmissionDto } from './dto/applyForVacancy.dto';
+import { VacancySubmissionDto } from './dto/vacancySubmission.dto';
+import { vacancySubmToVacancySubmDto } from './map/vacancySubmission.map';
 import { Repository } from 'typeorm';
+import { UserService } from '../user/user.service';
 
 @Injectable()
-export class VacancySumbissionService {
+export class VacancySubmissionService {
   constructor(
     @InjectRepository(VacancySubmission)
     private readonly vacancySubmissionRepository: Repository<VacancySubmission>,
 
     private readonly vacancyService: VacancyService,
+
+    private readonly userService: UserService,
   ) {}
 
   async create(
@@ -23,14 +26,15 @@ export class VacancySumbissionService {
     vacancyId: string,
     candidate: UserDto,
   ): Promise<VacancySubmissionDto> {
-    await this.vacancyService.findVacancyById(vacancyId);
+    const vacancy = await this.vacancyService.findVacancyById(vacancyId);
 
-    const vacancySubmission = this.vacancySubmissionRepository.create(
-      createVacancySubmissionDto,
-    );
-
-    vacancySubmission.vacancyId = vacancyId;
-    vacancySubmission.candidateId = candidate.id;
+    const vacancySubmission = this.vacancySubmissionRepository.create({
+      ...createVacancySubmissionDto,
+      vacancyId: vacancyId,
+      candidateId: candidate.id,
+      vacancy: vacancy,
+      candidate: candidate,
+    });
 
     const savedVacancySubmission =
       await this.vacancySubmissionRepository.save(vacancySubmission);
@@ -38,7 +42,9 @@ export class VacancySumbissionService {
     return vacancySubmToVacancySubmDto(savedVacancySubmission);
   }
 
-  async findAll(viewer: UserDto): Promise<VacancySubmissionDto[]> {
+  async findAll(viewerId: string): Promise<VacancySubmissionDto[]> {
+    const viewer = await this.userService.findById(viewerId);
+
     if (viewer.role === UserRole.superAdmin) {
       const vacancySubmissions = await this.vacancySubmissionRepository.find();
 

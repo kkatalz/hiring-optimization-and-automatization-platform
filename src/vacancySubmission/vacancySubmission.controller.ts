@@ -5,12 +5,12 @@ import { UserRole } from '../entities/role.enum';
 import { UserDto } from '../user/dto/user.dto';
 import { CreateVacancySubmissionDto } from '../vacancySubmission/dto/applyForVacancy.dto';
 import { VacancySubmissionDto } from '../vacancySubmission/dto/vacancySubmission.dto';
-import { VacancySumbissionService } from '../vacancySubmission/vacancySumbission.service';
+import { VacancySubmissionService } from './vacancySubmission.service';
 
 @Controller('vacanciesSubmissions')
 export class VacancySubmissionController {
   constructor(
-    private readonly vacancySumbissionService: VacancySumbissionService,
+    private readonly vacancySubmissionService: VacancySubmissionService,
   ) {}
 
   @Roles(UserRole.candidate)
@@ -20,7 +20,7 @@ export class VacancySubmissionController {
     @Param('vacancyId') vacancyId: string,
     @AuthUser() candidate: UserDto,
   ): Promise<VacancySubmissionDto> {
-    return this.vacancySumbissionService.create(
+    return this.vacancySubmissionService.create(
       createVacancySubmissionDto,
       vacancyId,
       candidate,
@@ -30,7 +30,7 @@ export class VacancySubmissionController {
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get()
   findAll(@AuthUser() viewer: UserDto): Promise<VacancySubmissionDto[]> {
-    return this.vacancySumbissionService.findAll(viewer);
+    return this.vacancySubmissionService.findAll(viewer.id);
   }
 
   @Roles(UserRole.superAdmin)
@@ -38,6 +38,6 @@ export class VacancySubmissionController {
   findAllByTenantId(
     @Param('tenantId') tenantId: string,
   ): Promise<VacancySubmissionDto[]> {
-    return this.vacancySumbissionService.findAllByTenantId(tenantId);
+    return this.vacancySubmissionService.findAllByTenantId(tenantId);
   }
 }
