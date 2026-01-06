@@ -30,7 +30,7 @@ export class VacancySubmissionController {
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get()
   findAll(@AuthUser() viewer: UserDto): Promise<VacancySubmissionDto[]> {
-    return this.vacancySubmissionService.findAll(viewer);
+    return this.vacancySubmissionService.findAll(viewer.id);
   }
 
   @Roles(UserRole.superAdmin)

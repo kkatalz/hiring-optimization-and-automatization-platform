@@ -8,6 +8,7 @@ import { CreateVacancySubmissionDto } from './dto/applyForVacancy.dto';
 import { VacancySubmissionDto } from './dto/vacancySubmission.dto';
 import { vacancySubmToVacancySubmDto } from './map/vacancySubmission.map';
 import { Repository } from 'typeorm';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class VacancySubmissionService {
@@ -16,6 +17,8 @@ export class VacancySubmissionService {
     private readonly vacancySubmissionRepository: Repository<VacancySubmission>,
 
     private readonly vacancyService: VacancyService,
+
+    private readonly userService: UserService,
   ) {}
 
   async create(
@@ -39,7 +42,9 @@ export class VacancySubmissionService {
     return vacancySubmToVacancySubmDto(savedVacancySubmission);
   }
 
-  async findAll(viewer: UserDto): Promise<VacancySubmissionDto[]> {
+  async findAll(viewerId: string): Promise<VacancySubmissionDto[]> {
+    const viewer = await this.userService.findById(viewerId);
+
     if (viewer.role === UserRole.superAdmin) {
       const vacancySubmissions = await this.vacancySubmissionRepository.find();
 

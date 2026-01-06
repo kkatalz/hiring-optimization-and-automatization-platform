@@ -79,7 +79,7 @@ describe('VacancySubmissionService', () => {
         );
 
       const expectedVacancySubmissionLength = (
-        await service.findAll(testUsers[4])
+        await service.findAll(testUsers[4].id)
       ).length;
 
       expect(expectedVacancySubmissionLength).to.equal(
@@ -116,10 +116,10 @@ describe('VacancySubmissionService', () => {
 
   describe('findAll', () => {
     it('should return all vacancy submissions if viewer is superAdmin', async () => {
-      const superAdmin = testUsers[4];
+      const superAdminId = testUsers[4].id;
 
       const vacancySubmissionsResult: VacancySubmissionDto[] =
-        await service.findAll(superAdmin);
+        await service.findAll(superAdminId);
 
       expect(vacancySubmissionsResult.length).to.equal(
         EXPECTED_VACANCY_SUBMISSIONS_NUM,
@@ -127,10 +127,10 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return vacancy submissions only within viewer tenant if viewer is admin or recruiter', async () => {
-      const recruiter = testUsers[1];
+      const recruiterId = testUsers[1].id;
 
       const vacancySubmissionsResult: VacancySubmissionDto[] =
-        await service.findAll(recruiter);
+        await service.findAll(recruiterId);
       expect(vacancySubmissionsResult.length).to.equal(
         EXPECTED_VACANCY_SUBMISSIONS_NUM,
       );
@@ -138,10 +138,10 @@ describe('VacancySubmissionService', () => {
   });
 
   it('should return empty array if viewer is candidate', async () => {
-    const candidate = testUsers[5];
+    const candidateId = testUsers[5].id;
 
     const vacancySubmissionsResult: VacancySubmissionDto[] =
-      await service.findAll(candidate);
+      await service.findAll(candidateId);
 
     expect(vacancySubmissionsResult.length).to.equal(0);
   });
