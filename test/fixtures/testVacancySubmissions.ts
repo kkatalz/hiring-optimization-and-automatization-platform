@@ -11,3 +11,5 @@ export const testVacancySubmissions: VacancySubmission[] = [
     candidateId: testUsers[5].id,
   },
 ];
+
+export const EXPECTED_VACANCY_SUBMISSIONS_NUM = testVacancySubmissions.length;
