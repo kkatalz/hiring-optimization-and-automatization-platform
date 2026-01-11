@@ -9,7 +9,7 @@ export const validateTenantAccess = (requester: UserDto, tenantId: string) => {
     requester.tenantId !== tenantId
   ) {
     throw new ForbiddenException(
-      'You can access users only within your own tenant.',
+      'You can access users and vacancies only within your own tenant.',
     );
   }
 };
