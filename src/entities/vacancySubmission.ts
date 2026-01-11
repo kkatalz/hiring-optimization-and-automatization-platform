@@ -7,6 +7,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { VacancySubmissionStatus } from './status.enum';
 
 @Entity({ name: 'vacancy_submissions' })
 export class VacancySubmission {
@@ -21,6 +22,12 @@ export class VacancySubmission {
 
   @Column({ name: 'candidate_id', type: 'uuid', nullable: false })
   candidateId: string;
+
+  @Column('enum', {
+    enum: VacancySubmissionStatus,
+    default: VacancySubmissionStatus.pending,
+  })
+  status: VacancySubmissionStatus;
 
   @ManyToOne(() => Vacancy, (vacancy) => vacancy.submissions, {
     nullable: false,
