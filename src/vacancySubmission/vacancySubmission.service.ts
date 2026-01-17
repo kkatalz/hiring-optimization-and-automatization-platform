@@ -44,12 +44,12 @@ export class VacancySubmissionService {
   }
 
   async getTenantIdBySubmissionId(submissionId: string): Promise<string> {
-    const submission = await this.vacancySubmissionRepository.findOneOrFail({
+    const submission = await this.vacancySubmissionRepository.findOne({
       where: { id: submissionId },
       relations: ['vacancy'],
     });
 
-    if (!submission.vacancy) {
+    if (!submission) {
       throw new HttpException(
         'Vacancy not found for the submission',
         HttpStatus.NOT_FOUND,
@@ -90,9 +90,18 @@ export class VacancySubmissionService {
   }
 
   async approve(submissionId: string): Promise<VacancySubmissionDto> {
-    const submission = await this.vacancySubmissionRepository.findOneByOrFail({
-      id: submissionId,
+    const submission = await this.vacancySubmissionRepository.findOne({
+      where: {
+        id: submissionId,
+      },
     });
+
+    if (!submission) {
+      throw new HttpException(
+        'Vacancy Submission not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
     submission.status = VacancySubmissionStatus.approved;
 
@@ -100,9 +109,18 @@ export class VacancySubmissionService {
   }
 
   async reject(submissionId: string): Promise<VacancySubmissionDto> {
-    const submission = await this.vacancySubmissionRepository.findOneByOrFail({
-      id: submissionId,
+    const submission = await this.vacancySubmissionRepository.findOne({
+      where: {
+        id: submissionId,
+      },
     });
+
+    if (!submission) {
+      throw new HttpException(
+        'Vacancy Submission not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
     submission.status = VacancySubmissionStatus.rejected;
 

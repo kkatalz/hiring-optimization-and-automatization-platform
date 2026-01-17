@@ -45,8 +45,8 @@ export class VacancySubmissionController {
       await this.vacancySubmissionService.getTenantIdBySubmissionId(
         submissionId,
       );
-
     validateTenantAccess(requester, submissionTenantId);
+
     return await this.vacancySubmissionService.approve(submissionId);
   }
 
@@ -54,7 +54,15 @@ export class VacancySubmissionController {
   @Post('reject/:submissionId')
   async rejectVacancySubmission(
     @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
+    @AuthUser() requester: UserDto,
   ): Promise<VacancySubmissionDto> {
+    const submissionTenantId =
+      await this.vacancySubmissionService.getTenantIdBySubmissionId(
+        submissionId,
+      );
+
+    validateTenantAccess(requester, submissionTenantId);
+
     return await this.vacancySubmissionService.reject(submissionId);
   }
 
