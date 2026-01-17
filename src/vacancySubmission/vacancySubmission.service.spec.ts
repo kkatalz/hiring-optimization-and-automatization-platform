@@ -137,7 +137,7 @@ describe('VacancySubmissionService', () => {
     });
   });
 
-  it('should return empty array if viewer is candidate', async () => {
+  it('should return empty array if viewer is candidate (only admin and superAdmin can view vacancy submissions)', async () => {
     const candidateId = testUsers[5].id;
 
     const vacancySubmissionsResult: VacancySubmissionDto[] =
@@ -156,6 +156,52 @@ describe('VacancySubmissionService', () => {
       expect(vacancySubmissionsResult.length).to.equal(
         EXPECTED_VACANCY_SUBMISSIONS_NUM,
       );
+    });
+  });
+
+  describe('approve', () => {
+    it('should approve a vacancy submission', async () => {
+      const submissionId = testVacancySubmissions[0].id;
+
+      const approvedVacancySubmission: VacancySubmissionDto =
+        await service.approve(submissionId);
+
+      expect(approvedVacancySubmission.status).to.equal('approved');
+    });
+
+    it('should throw NOT_FOUND error if vacancy submission does not exist', async () => {
+      const nonExistentSubmissionId = nonExistentUUIDId;
+
+      try {
+        await service.approve(nonExistentSubmissionId);
+
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal('Vacancy Submission not found.');
+      }
+    });
+  });
+
+  describe('reject', () => {
+    it('should reject a vacancy submission', async () => {
+      const submissionId = testVacancySubmissions[0].id;
+
+      const rejectedVacancySubmission: VacancySubmissionDto =
+        await service.reject(submissionId);
+
+      expect(rejectedVacancySubmission.status).to.equal('rejected');
+    });
+
+    it('should throw NOT_FOUND error if vacancy submission does not exist', async () => {
+      const nonExistentSubmissionId = nonExistentUUIDId;
+
+      try {
+        await service.approve(nonExistentSubmissionId);
+
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal('Vacancy Submission not found.');
+      }
     });
   });
 });

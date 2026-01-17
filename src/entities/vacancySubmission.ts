@@ -34,12 +34,12 @@ export class VacancySubmission {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'vacancy_id' })
-  vacancy?: Vacancy;
+  vacancy: Vacancy;
 
   @ManyToOne(() => User, (candidate) => candidate.applications, {
     nullable: false,
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'candidate_id' })
-  candidate?: User;
+  candidate: User;
 }
