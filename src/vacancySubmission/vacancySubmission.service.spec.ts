@@ -26,6 +26,7 @@ import { User } from '../entities/user';
 import { Tenant } from '../entities/tenant';
 import { TenantService } from '../tenant/tenant.service';
 import { AuthService } from '../auth/auth.service';
+import { VacancySubmissionStatus } from '../entities/status.enum';
 
 describe('VacancySubmissionService', () => {
   let service: VacancySubmissionService;
@@ -166,7 +167,9 @@ describe('VacancySubmissionService', () => {
       const approvedVacancySubmission: VacancySubmissionDto =
         await service.approve(submissionId);
 
-      expect(approvedVacancySubmission.status).to.equal('approved');
+      expect(approvedVacancySubmission.status).to.equal(
+        VacancySubmissionStatus.approved,
+      );
     });
 
     it('should throw NOT_FOUND error if vacancy submission does not exist', async () => {
@@ -189,7 +192,9 @@ describe('VacancySubmissionService', () => {
       const rejectedVacancySubmission: VacancySubmissionDto =
         await service.reject(submissionId);
 
-      expect(rejectedVacancySubmission.status).to.equal('rejected');
+      expect(rejectedVacancySubmission.status).to.equal(
+        VacancySubmissionStatus.rejected,
+      );
     });
 
     it('should throw NOT_FOUND error if vacancy submission does not exist', async () => {
