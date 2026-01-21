@@ -14,4 +14,7 @@ export class VacancySubmissionDto {
   @IsOptional()
   @IsString()
   candidateId: string;
+
+  @IsString()
+  status: string;
 }

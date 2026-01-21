@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRole } from '../entities/role.enum';
 import { VacancySubmission } from '../entities/vacancySubmission';
@@ -9,6 +9,7 @@ import { VacancySubmissionDto } from './dto/vacancySubmission.dto';
 import { vacancySubmToVacancySubmDto } from './map/vacancySubmission.map';
 import { Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
+import { VacancySubmissionStatus } from '../entities/status.enum';
 
 @Injectable()
 export class VacancySubmissionService {
@@ -42,6 +43,22 @@ export class VacancySubmissionService {
     return vacancySubmToVacancySubmDto(savedVacancySubmission);
   }
 
+  async getTenantIdBySubmissionId(submissionId: string): Promise<string> {
+    const submission = await this.vacancySubmissionRepository.findOne({
+      where: { id: submissionId },
+      relations: ['vacancy'],
+    });
+
+    if (!submission) {
+      throw new HttpException(
+        'Vacancy not found for the submission',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return submission.vacancy.tenantId;
+  }
+
   async findAll(viewerId: string): Promise<VacancySubmissionDto[]> {
     const viewer = await this.userService.findById(viewerId);
 
@@ -70,5 +87,45 @@ export class VacancySubmissionService {
       where: { vacancy: { tenantId } },
     });
     return vacancySubmissions.map(vacancySubmToVacancySubmDto);
+  }
+
+  async approve(submissionId: string): Promise<VacancySubmissionDto> {
+    const submission = await this.vacancySubmissionRepository.findOne({
+      where: {
+        id: submissionId,
+      },
+    });
+
+    if (!submission) {
+      throw new HttpException(
+        'Vacancy Submission not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (submission.status !== VacancySubmissionStatus.approved)
+      submission.status = VacancySubmissionStatus.approved;
+
+    return this.vacancySubmissionRepository.save(submission);
+  }
+
+  async reject(submissionId: string): Promise<VacancySubmissionDto> {
+    const submission = await this.vacancySubmissionRepository.findOne({
+      where: {
+        id: submissionId,
+      },
+    });
+
+    if (!submission) {
+      throw new HttpException(
+        'Vacancy Submission not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (submission.status !== VacancySubmissionStatus.rejected)
+      submission.status = VacancySubmissionStatus.rejected;
+
+    return await this.vacancySubmissionRepository.save(submission);
   }
 }

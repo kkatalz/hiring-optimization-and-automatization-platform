@@ -6,11 +6,13 @@ export const vacancySubmToVacancySubmDto = ({
   comment,
   vacancyId,
   candidateId,
+  status,
 }: VacancySubmission): VacancySubmissionDto => {
   return {
     id,
     comment,
     vacancyId,
     candidateId,
+    status,
   };
 };
