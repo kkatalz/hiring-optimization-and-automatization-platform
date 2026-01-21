@@ -103,7 +103,8 @@ export class VacancySubmissionService {
       );
     }
 
-    submission.status = VacancySubmissionStatus.approved;
+    if (submission.status !== VacancySubmissionStatus.approved)
+      submission.status = VacancySubmissionStatus.approved;
 
     return this.vacancySubmissionRepository.save(submission);
   }
@@ -122,7 +123,8 @@ export class VacancySubmissionService {
       );
     }
 
-    submission.status = VacancySubmissionStatus.rejected;
+    if (submission.status !== VacancySubmissionStatus.rejected)
+      submission.status = VacancySubmissionStatus.rejected;
 
     return await this.vacancySubmissionRepository.save(submission);
   }
