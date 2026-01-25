@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 const dockerCompose = require('docker-compose');
 const dotenv = require('dotenv');
 
