@@ -13,6 +13,10 @@ export class VacancySubmissionDto {
 
   @IsOptional()
   @IsString()
+  tenantId: string;
+
+  @IsOptional()
+  @IsString()
   candidateId: string;
 
   @IsString()

@@ -5,9 +5,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { VacancySubmissionStatus } from './status.enum';
+import { Interview } from 'src/entities/interview';
 
 @Entity({ name: 'vacancy_submissions' })
 export class VacancySubmission {
@@ -19,6 +21,9 @@ export class VacancySubmission {
 
   @Column({ name: 'vacancy_id', type: 'uuid', nullable: false })
   vacancyId: string;
+
+  @Column({ name: 'tenant_id', type: 'uuid', nullable: false })
+  tenantId: string;
 
   @Column({ name: 'candidate_id', type: 'uuid', nullable: false })
   candidateId: string;
@@ -42,4 +47,7 @@ export class VacancySubmission {
   })
   @JoinColumn({ name: 'candidate_id' })
   candidate: User;
+
+  @OneToMany(() => Interview, (interview) => interview.submission)
+  interviews?: Interview[];
 }

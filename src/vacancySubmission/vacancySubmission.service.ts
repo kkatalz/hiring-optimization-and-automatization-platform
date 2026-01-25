@@ -32,6 +32,7 @@ export class VacancySubmissionService {
     const vacancySubmission = this.vacancySubmissionRepository.create({
       ...createVacancySubmissionDto,
       vacancyId: vacancyId,
+      tenantId: vacancy.tenantId,
       candidateId: candidate.id,
       vacancy: vacancy,
       candidate: candidate,
@@ -46,17 +47,16 @@ export class VacancySubmissionService {
   async getTenantIdBySubmissionId(submissionId: string): Promise<string> {
     const submission = await this.vacancySubmissionRepository.findOne({
       where: { id: submissionId },
-      relations: ['vacancy'],
     });
 
     if (!submission) {
       throw new HttpException(
-        'Vacancy not found for the submission',
+        'Vacancy Submission not found.',
         HttpStatus.NOT_FOUND,
       );
     }
 
-    return submission.vacancy.tenantId;
+    return submission.tenantId;
   }
 
   async findAll(viewerId: string): Promise<VacancySubmissionDto[]> {
@@ -106,7 +106,10 @@ export class VacancySubmissionService {
     if (submission.status !== VacancySubmissionStatus.approved)
       submission.status = VacancySubmissionStatus.approved;
 
-    return this.vacancySubmissionRepository.save(submission);
+    const savedSubmission =
+      await this.vacancySubmissionRepository.save(submission);
+
+    return vacancySubmToVacancySubmDto(savedSubmission);
   }
 
   async reject(submissionId: string): Promise<VacancySubmissionDto> {
@@ -126,6 +129,9 @@ export class VacancySubmissionService {
     if (submission.status !== VacancySubmissionStatus.rejected)
       submission.status = VacancySubmissionStatus.rejected;
 
-    return await this.vacancySubmissionRepository.save(submission);
+    const savedSubmission =
+      await this.vacancySubmissionRepository.save(submission);
+
+    return vacancySubmToVacancySubmDto(savedSubmission);
   }
 }
