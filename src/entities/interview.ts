@@ -35,7 +35,7 @@ export class Interview {
     default: [],
     nullable: true,
   })
-  interviewers: string[];
+  interviewersEmails: string[];
 
   @Column({
     name: 'candidate_email',
