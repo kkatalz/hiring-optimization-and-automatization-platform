@@ -15,7 +15,11 @@ export class InterviewController {
   @Roles(UserRole.admin, UserRole.recruiter)
   @Get()
   async getAllInterviews(@AuthUser() viewer: UserDto): Promise<Interview[]> {
-    return await this.interviewService.getAllInterviews(viewer.id);
+    if (!viewer.tenantId) {
+      throw new Error('Viewer does not belong to a tenant');
+    }
+
+    return await this.interviewService.getAllInterviews(viewer.tenantId);
   }
 
   @Roles(UserRole.admin, UserRole.recruiter)

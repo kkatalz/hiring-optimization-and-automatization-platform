@@ -11,9 +11,9 @@ export class InterviewService {
     private interviewRepository: Repository<Interview>,
   ) {}
 
-  async getAllInterviews(viewerId: string): Promise<Interview[]> {
+  async getAllInterviews(viewersTenantId: string): Promise<Interview[]> {
     return await this.interviewRepository.find({
-      where: { tenantId: viewerId },
+      where: { tenantId: viewersTenantId },
     });
   }
 
