@@ -1,5 +1,5 @@
-import { InterviewStatus } from 'src/entities/status.enum';
-import { VacancySubmission } from 'src/entities/vacancySubmission';
+import { InterviewStatus } from './status.enum';
+import { VacancySubmission } from './vacancySubmission';
 import {
   Column,
   CreateDateColumn,

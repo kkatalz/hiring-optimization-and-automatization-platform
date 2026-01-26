@@ -1,5 +1,5 @@
-import { User } from '../entities/user';
-import { Vacancy } from '../entities/vacancy';
+import { User } from './user';
+import { Vacancy } from './vacancy';
 import {
   Column,
   Entity,
@@ -9,7 +9,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { VacancySubmissionStatus } from './status.enum';
-import { Interview } from 'src/entities/interview';
+import { Interview } from './interview';
 
 @Entity({ name: 'vacancy_submissions' })
 export class VacancySubmission {
