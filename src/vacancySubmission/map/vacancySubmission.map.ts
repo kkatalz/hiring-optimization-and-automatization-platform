@@ -5,6 +5,7 @@ export const vacancySubmToVacancySubmDto = ({
   id,
   comment,
   vacancyId,
+  tenantId,
   candidateId,
   status,
 }: VacancySubmission): VacancySubmissionDto => {
@@ -12,6 +13,7 @@ export const vacancySubmToVacancySubmDto = ({
     id,
     comment,
     vacancyId,
+    tenantId,
     candidateId,
     status,
   };

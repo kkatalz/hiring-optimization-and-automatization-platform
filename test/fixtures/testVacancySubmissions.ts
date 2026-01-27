@@ -20,6 +20,7 @@ testVacancySubmissions = [
     id: '0899dc13-fab7-4041-b99c-9865925588f9',
     comment: 'I want to work!',
     vacancyId: VACANCY_ID,
+    tenantId: 'df0787ee-3bd2-49bd-a0aa-de97b112e3b6',
     candidateId: testUsers[5].id,
     status: VacancySubmissionStatus.pending,
     vacancy: VACANCY,

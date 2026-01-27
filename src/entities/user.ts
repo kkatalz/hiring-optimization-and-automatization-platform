@@ -1,6 +1,6 @@
-import { Vacancy } from '../entities/vacancy';
-import { UserRole } from '../entities/role.enum';
-import { Tenant } from '../entities/tenant';
+import { Vacancy } from './vacancy';
+import { UserRole } from './role.enum';
+import { Tenant } from './tenant';
 import {
   Column,
   Entity,
@@ -9,7 +9,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { VacancySubmission } from '../entities/vacancySubmission';
+import { VacancySubmission } from './vacancySubmission';
 
 @Entity({ name: 'users' })
 export class User {

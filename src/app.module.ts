@@ -17,6 +17,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { VacancyModule } from 'src/vacancy/vacancy.module';
 import { VacancySubmissionModule } from './vacancySubmission/vacancySubmission.module';
+import { InterviewModule } from 'src/interview/interview.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { VacancySubmissionModule } from './vacancySubmission/vacancySubmission.m
     AuthModule,
     VacancyModule,
     VacancySubmissionModule,
+    InterviewModule,
   ],
   controllers: [AppController],
   providers: [
