@@ -10,7 +10,7 @@ import {
 } from '../../test/database-setup';
 import { testInterviews } from '../../test/fixtures/testInterviews';
 import { expect } from 'chai';
-import { InterviewStatus } from '../../src/entities/status.enum';
+import { InterviewStatus } from '../entities/statuses.enum';
 import { nonExistentInterviewId, TENANT_ID } from '../../test/utils';
 import { testTenants } from '../../test/fixtures/testTenants';
 import { testUsers } from '../../test/fixtures/testUsers';

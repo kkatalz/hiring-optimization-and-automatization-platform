@@ -26,7 +26,7 @@ import { User } from '../entities/user';
 import { Tenant } from '../entities/tenant';
 import { TenantService } from '../tenant/tenant.service';
 import { AuthService } from '../auth/auth.service';
-import { VacancySubmissionStatus } from '../entities/status.enum';
+import { VacancySubmissionStatus } from '../entities/statuses.enum';
 
 describe('VacancySubmissionService', () => {
   let service: VacancySubmissionService;

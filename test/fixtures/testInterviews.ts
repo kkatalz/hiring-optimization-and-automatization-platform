@@ -1,4 +1,4 @@
-import { InterviewStatus } from '../../src/entities/status.enum';
+import { InterviewStatus } from '../../src/entities/statuses.enum';
 import { Interview } from '../../src/entities/interview';
 import { testVacancySubmissions } from '../../test/fixtures/testVacancySubmissions';
 import { TENANT_ID } from '../utils';

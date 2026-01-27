@@ -1,4 +1,4 @@
-import { VacancySubmissionStatus } from '../../src/entities/status.enum';
+import { VacancySubmissionStatus } from '../../src/entities/statuses.enum';
 import { VacancySubmission } from '../../src/entities/vacancySubmission';
 import { testUsers } from '../fixtures/testUsers';
 

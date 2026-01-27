@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Interview } from '../entities/interview';
-import { InterviewStatus } from '../entities/status.enum';
+import { InterviewStatus } from '../entities/statuses.enum';
 
 @Injectable()
 export class InterviewService {

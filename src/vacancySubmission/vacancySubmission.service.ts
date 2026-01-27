@@ -9,7 +9,7 @@ import { VacancySubmissionDto } from './dto/vacancySubmission.dto';
 import { vacancySubmToVacancySubmDto } from './map/vacancySubmission.map';
 import { Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
-import { VacancySubmissionStatus } from '../entities/status.enum';
+import { VacancySubmissionStatus } from '../entities/statuses.enum';
 
 @Injectable()
 export class VacancySubmissionService {

@@ -8,7 +8,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { VacancySubmissionStatus } from './status.enum';
+import { VacancySubmissionStatus } from './statuses.enum';
 import { Interview } from './interview';
 
 @Entity({ name: 'vacancy_submissions' })

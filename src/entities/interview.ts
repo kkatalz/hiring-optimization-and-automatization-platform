@@ -1,4 +1,4 @@
-import { InterviewStatus } from './status.enum';
+import { InterviewStatus } from './statuses.enum';
 import { VacancySubmission } from './vacancySubmission';
 import {
   Column,
