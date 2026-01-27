@@ -1,4 +1,4 @@
-import { testTenants } from '../fixtures/testTenants';
+import { testTenants } from './testTenants';
 import { UserRole } from '../../src/entities/role.enum';
 import { User } from '../../src/entities/user';
 
