@@ -1,6 +1,7 @@
+import { LanguageLevel, TimeCommitment } from '../../src/entities/hiring.enum';
 import { VacancySubmissionStatus } from '../../src/entities/statuses.enum';
 import { VacancySubmission } from '../../src/entities/vacancySubmission';
-import { testUsers } from '../fixtures/testUsers';
+import { testUsers } from './testUsers';
 
 const VACANCY_ID = 'ced1d3f0-fe3e-4b22-9c26-54f2e5ff4b2e';
 export let testVacancySubmissions: VacancySubmission[] = [];
@@ -13,6 +14,11 @@ const VACANCY = {
   tenantId: 'df0787ee-3bd2-49bd-a0aa-de97b112e3b6',
   createdById: '90e39f71-7f21-4911-81a9-10bbeafe33b7',
   submissions: [testVacancySubmissions[0]],
+  timeCommitment: TimeCommitment.FULL_TIME,
+  languageRequirements: [
+    { code: 'en', level: LanguageLevel.B2 },
+    { code: 'de', level: LanguageLevel.A1 },
+  ],
 };
 
 testVacancySubmissions = [
