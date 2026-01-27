@@ -1,4 +1,8 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  LanguageProficiency,
+  TimeCommitment,
+} from '../../entities/hiring.enum';
 
 export class CreateVacancyDto {
   @IsNotEmpty()
@@ -12,4 +16,12 @@ export class CreateVacancyDto {
   @IsOptional()
   @IsString()
   salary?: string;
+
+  @IsOptional()
+  @IsString()
+  timeCommitment?: TimeCommitment;
+
+  @IsOptional()
+  @IsArray()
+  languageRequirements?: LanguageProficiency[];
 }
