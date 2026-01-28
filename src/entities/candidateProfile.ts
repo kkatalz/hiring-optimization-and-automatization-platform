@@ -1,6 +1,12 @@
 import { User } from './user';
 import { LanguageProficiency } from './hiring.enum';
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity({ name: 'candidate_profiles' })
 export class CandidateProfile {
@@ -20,5 +26,6 @@ export class CandidateProfile {
   languages: LanguageProficiency[];
 
   @OneToOne(() => User, (user) => user.candidateProfile)
+  @JoinColumn({ name: 'user_id' })
   user: User;
 }

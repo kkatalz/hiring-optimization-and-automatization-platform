@@ -57,6 +57,5 @@ export class User {
   @OneToOne(() => CandidateProfile, (profile) => profile.user, {
     nullable: true,
   })
-  @JoinColumn()
   candidateProfile?: CandidateProfile;
 }
