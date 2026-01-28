@@ -204,15 +204,7 @@ export class UserService {
       );
     }
 
-    const user = await this.userRepository.findOne({
-      where: {
-        email: candidateProfile?.user.email,
-        firstName: candidateProfile?.user.firstName,
-        lastName: candidateProfile?.user.lastName,
-      },
-    });
-
-    if (!user) {
+    if (!candidateProfile.user) {
       throw new HttpException(
         'User associated with candidate profile not found.',
         HttpStatus.NOT_FOUND,
@@ -230,13 +222,13 @@ export class UserService {
     const updatedCandidateProfile =
       await this.candidateProfileRepository.save(candidateProfile);
 
-    const firstName = updateCandidateProfileDto.firstName;
-    const lastName = updateCandidateProfileDto.lastName;
+    if (updateCandidateProfileDto.firstName)
+      candidateProfile.user.firstName = updateCandidateProfileDto.firstName;
 
-    if (firstName) user.firstName = firstName;
-    if (lastName) user.lastName = lastName;
+    if (updateCandidateProfileDto.lastName)
+      candidateProfile.user.lastName = updateCandidateProfileDto.lastName;
 
-    const savedUser = await this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(candidateProfile.user);
 
     return candidateToCandidateProfileDto({
       user: {
