@@ -1,5 +1,4 @@
 import { Test } from '@nestjs/testing';
-import { UserService } from './user.service';
 import { ConfigModule } from '@nestjs/config';
 import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
 import {
@@ -26,6 +25,16 @@ import { Repository } from 'typeorm';
 import { ChangeEmailDto } from '../user/dto/changeEmail.dto';
 import { ChangePasswordDto } from '../user/dto/changePassword.dto';
 import { nonExistentUUIDId } from '../../test/utils';
+import { CandidateProfile } from '../../src/entities/candidateProfile';
+import {
+  testCandidatesProfiles,
+  TOTAL_CANDIDATES,
+} from '../../test/fixtures/testCandidatesProfiles';
+import { CreateCandidateProfileDto } from './dto/createCandidateProfile.dto';
+import { LanguageLevel } from '../../src/entities/hiring.enum';
+import { UserService } from './user.service';
+import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
+import { CandidateProfileDto } from './dto/candidateProfile.dto';
 
 describe('UserService', () => {
   let service: UserService;
@@ -37,7 +46,7 @@ describe('UserService', () => {
       imports: [
         ConfigModule.forRoot(),
         TypeOrmModule.forRoot(testDatabaseConfig),
-        TypeOrmModule.forFeature([User, Tenant]),
+        TypeOrmModule.forFeature([User, CandidateProfile, Tenant]),
         AuthModule,
       ],
       providers: [UserService],
@@ -50,6 +59,7 @@ describe('UserService', () => {
     await loadDatabase({
       Tenant: testTenants,
       User: testUsers,
+      CandidateProfile: testCandidatesProfiles,
     });
   });
 
@@ -62,7 +72,7 @@ describe('UserService', () => {
     expect(!!service).to.deep.equal(true);
   });
 
-  describe('create', () => {
+  describe('create superadmin/admin/recruiter', () => {
     it('should create user superAdmin', async () => {
       const tenantId = testTenants[0].id;
 
@@ -125,6 +135,54 @@ describe('UserService', () => {
       } catch (e: any) {
         expect(e).to.have.property('status', 400);
         expect(e.response).to.be.equal('User with given email already exists.');
+      }
+    });
+  });
+
+  describe('create candidate', () => {
+    it('should create candidate user', async () => {
+      const createCandidateDto: CreateCandidateProfileDto = {
+        email: 'createCandidate@gmail.com',
+        password: 'createCandidate',
+        firstName: 'Candidate FirstName',
+        lastName: 'Candidate LastName',
+        yearsOfExperience: 5,
+        country: 'Country',
+        city: 'City',
+        languages: [{ code: 'EN', level: LanguageLevel.NATIVE }],
+      };
+
+      const result = await service.createCandidate(createCandidateDto);
+
+      expect(result.email).to.equal(createCandidateDto.email);
+      expect(result.role).to.equal(UserRole.candidate);
+      expect(result.languages).to.deep.equal(createCandidateDto.languages);
+      expect(result).to.not.have.property('password');
+
+      const allUsers = await service.findAll();
+      expect(allUsers.length).to.equal(EXPECTED_ACTIVE_USERS_NUM + 1);
+
+      const allCandidates = allUsers.filter(
+        (user) => user.role === UserRole.candidate,
+      );
+
+      expect(allCandidates.length).to.equal(TOTAL_CANDIDATES + 1);
+    });
+
+    it('should throw if candidate with provided email, firstName and lastName already exists', async () => {
+      const createCandidateDto: CreateCandidateProfileDto = {
+        ...testUsers[5],
+        ...testCandidatesProfiles[0],
+      };
+
+      try {
+        await service.createCandidate(createCandidateDto);
+        expect.fail('Should have thrown a BAD_REQUEST error but did not');
+      } catch (e: any) {
+        expect(e).to.have.property('status', 400);
+        expect(e.response).to.be.equal(
+          'Candidate with given details already exists.',
+        );
       }
     });
   });
@@ -212,7 +270,7 @@ describe('UserService', () => {
     });
   });
 
-  describe('update', () => {
+  describe('update superAdmin/admin/recruiter', () => {
     it('should update user by userId', async () => {
       const userRecruiterId = testUsers[1].id;
       const tenantId = testTenants[0].id;
@@ -281,6 +339,50 @@ describe('UserService', () => {
       } catch (e) {
         expect(e.response).to.deep.equal(
           'User with given id does not exist within provided tenant.',
+        );
+      }
+    });
+  });
+
+  describe('update candidate profile', () => {
+    it('should update candidate profile by candidateId', async () => {
+      const updateCandidateProfileDto: UpdateCandidateProfileDto = {
+        firstName: 'Updated FirstName',
+        yearsOfExperience: 10,
+        languages: [
+          { code: 'EN', level: LanguageLevel.NATIVE },
+          { code: 'FR', level: LanguageLevel.B1 },
+        ],
+      };
+
+      const updateResult: CandidateProfileDto = await service.updateCandidate(
+        testCandidatesProfiles[0].id,
+        updateCandidateProfileDto,
+      );
+
+      expect(updateResult.firstName).to.deep.equal(
+        updateCandidateProfileDto.firstName,
+      );
+      expect(updateResult.yearsOfExperience).to.deep.equal(
+        updateCandidateProfileDto.yearsOfExperience,
+      );
+      expect(updateResult.languages).to.deep.equal(
+        updateCandidateProfileDto.languages,
+      );
+      expect(updateResult.role).to.equal(UserRole.candidate);
+
+      expect(updateResult.email).to.not.be.undefined;
+      expect(updateResult.city).to.not.be.undefined;
+    });
+
+    it('should throw error if candidate profile with given id not found', async () => {
+      try {
+        await service.updateCandidate(nonExistentUUIDId, {});
+
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal(
+          'Candidate profile with given id not found.',
         );
       }
     });
