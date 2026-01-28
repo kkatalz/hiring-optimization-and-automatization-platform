@@ -10,7 +10,9 @@ import {
 } from '../../test/database-setup';
 import { User } from '../entities/user';
 import { Tenant } from '../entities/tenant';
-import { AuthService } from '../auth/auth.service';
+import { CandidateProfile } from '../entities/candidateProfile';
+import { UserModule } from '../../src/user/user.module';
+import { AuthModule } from '../../src/auth/auth.module';
 
 describe('UserController', () => {
   let controller: UserController;
@@ -19,10 +21,12 @@ describe('UserController', () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         TypeOrmModule.forRoot(testDatabaseConfig),
-        TypeOrmModule.forFeature([User, Tenant]),
+        TypeOrmModule.forFeature([User, CandidateProfile, Tenant]),
+        UserModule,
+        AuthModule,
       ],
       controllers: [UserController],
-      providers: [UserService, AuthService],
+      providers: [UserService],
     }).compile();
 
     controller = module.get<UserController>(UserController);

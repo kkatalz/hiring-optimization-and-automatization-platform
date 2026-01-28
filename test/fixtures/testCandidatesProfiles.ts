@@ -11,3 +11,5 @@ export const testCandidatesProfiles = [
     user: testUsers[5],
   },
 ];
+
+export const TOTAL_CANDIDATES = testCandidatesProfiles.length;

@@ -27,6 +27,8 @@ import { Tenant } from '../entities/tenant';
 import { TenantService } from '../tenant/tenant.service';
 import { AuthService } from '../auth/auth.service';
 import { VacancySubmissionStatus } from '../entities/statuses.enum';
+import { CandidateProfile } from '../entities/candidateProfile';
+import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfiles';
 
 describe('VacancySubmissionService', () => {
   let service: VacancySubmissionService;
@@ -36,7 +38,13 @@ describe('VacancySubmissionService', () => {
       imports: [
         ConfigModule.forRoot(),
         TypeOrmModule.forRoot(testDatabaseConfig),
-        TypeOrmModule.forFeature([VacancySubmission, Vacancy, User, Tenant]),
+        TypeOrmModule.forFeature([
+          VacancySubmission,
+          Vacancy,
+          User,
+          CandidateProfile,
+          Tenant,
+        ]),
       ],
       providers: [
         VacancySubmissionService,
@@ -52,6 +60,7 @@ describe('VacancySubmissionService', () => {
     await loadDatabase({
       Tenant: testTenants,
       User: testUsers,
+      CandidateProfile: testCandidatesProfiles,
       Vacancy: testVacancies,
       VacancySubmission: testVacancySubmissions,
     });
