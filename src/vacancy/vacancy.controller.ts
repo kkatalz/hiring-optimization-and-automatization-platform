@@ -71,7 +71,7 @@ export class VacancyController {
     const vacancy = await this.vacancyService.findVacancyById(vacancyId);
     validateTenantAccess(updatedBy, vacancy.tenantId);
 
-    return this.vacancyService.update(vacancy, updateVacancyDto);
+    return this.vacancyService.update(vacancyId, updateVacancyDto);
   }
 
   @Roles(UserRole.admin, UserRole.recruiter)
@@ -83,6 +83,6 @@ export class VacancyController {
     const vacancy = await this.vacancyService.findVacancyById(vacancyId);
     validateTenantAccess(deletedBy, vacancy.tenantId);
 
-    await this.vacancyService.remove(vacancy);
+    await this.vacancyService.remove(vacancyId);
   }
 }

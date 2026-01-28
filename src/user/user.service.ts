@@ -257,7 +257,13 @@ export class UserService {
 
     await this.userExistsWithinProvidedTenant(user, tenantId);
 
-    Object.assign(user, updateUserDto);
+    const { ...updateUserDtoFields } = updateUserDto;
+    Object.keys(updateUserDtoFields).forEach((key) => {
+      if (updateUserDtoFields[key] !== undefined) {
+        user[key] = updateUserDtoFields[key];
+      }
+    });
+
     const updatedUser = await this.userRepository.save(user);
 
     return userToUserDto({ user: updatedUser });

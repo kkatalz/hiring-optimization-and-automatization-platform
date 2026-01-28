@@ -96,16 +96,25 @@ export class VacancyService {
   }
 
   async update(
-    vacancy: Vacancy,
+    vacancyId: string,
     updateVacancyDto: UpdateVacancyDto,
   ): Promise<VacancyDto> {
-    Object.assign(vacancy, updateVacancyDto);
+    const vacancy = await this.findVacancyById(vacancyId);
+
+    const updatedFields = updateVacancyDto;
+    Object.keys(updatedFields).forEach((key) => {
+      if (updatedFields[key] !== undefined) {
+        vacancy[key] = updatedFields[key];
+      }
+    });
 
     const updatedVacancy = await this.vacancyRepository.save(vacancy);
     return vacancyToVacancyDto(updatedVacancy);
   }
 
-  async remove(vacancy: Vacancy): Promise<void> {
-    await this.vacancyRepository.delete(vacancy.id);
+  async remove(vacancyId: string): Promise<void> {
+    await this.findVacancyById(vacancyId);
+
+    await this.vacancyRepository.delete(vacancyId);
   }
 }
