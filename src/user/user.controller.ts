@@ -23,20 +23,10 @@ import { UserService } from './user.service';
 import { validateTenantAccess } from '../utils/validate';
 import { ChangeEmailDto } from './dto/changeEmail.dto';
 import { ChangePasswordDto } from './dto/changePassword.dto';
-import { CreateCandidateProfileDto } from './dto/createCandidateProfile.dto';
-import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
-import { CandidateProfileDto } from './dto/candidateProfile.dto';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  @Post('candidate')
-  createCandidate(
-    @Body() createCandidateDto: CreateCandidateProfileDto,
-  ): Promise<CandidateProfileDto> {
-    return this.userService.createCandidate(createCandidateDto);
-  }
 
   @UseInterceptors(TenantInterceptor)
   @Roles(UserRole.admin, UserRole.superAdmin)
@@ -100,28 +90,6 @@ export class UserController {
     );
 
     return this.userService.update(userId, tenantId, updateUserDto);
-  }
-
-  @Roles(UserRole.candidate)
-  @Patch('candidate/:userId')
-  async updateCandidate(
-    @AuthUser() requester: UserDto,
-    @Param('userId', new ParseUUIDPipe()) candidateId: string,
-    @Body() updateCandidateProfileDto: UpdateCandidateProfileDto,
-  ): Promise<CandidateProfileDto> {
-    const user = await this.userService.findById(requester.id);
-    const candidateProfileId = user.candidateProfile?.id;
-
-    if (candidateProfileId !== candidateId) {
-      throw new ForbiddenException(
-        'Candidates can update only their own profiles.',
-      );
-    }
-
-    return await this.userService.updateCandidate(
-      candidateId,
-      updateCandidateProfileDto,
-    );
   }
 
   @Roles(
