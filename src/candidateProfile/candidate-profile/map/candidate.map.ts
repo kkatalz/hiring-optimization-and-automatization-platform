@@ -1,7 +1,7 @@
-import { UserRole } from '../../entities/role.enum';
-import { CandidateProfile } from '../../entities/candidateProfile';
+import { UserRole } from '../../../entities/role.enum';
+import { CandidateProfile } from '../../../entities/candidateProfile';
 import { CandidateProfileDto } from '../dto/candidateProfile.dto';
-import { UserDto } from '../dto/user.dto';
+import { UserDto } from '../../../user/dto/user.dto';
 
 export const candidateToCandidateProfileDto = ({
   user,

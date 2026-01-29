@@ -4,8 +4,9 @@ import {
   IsNotEmpty,
   IsNumber,
   IsString,
+  Min,
 } from 'class-validator';
-import { LanguageProficiency } from '../../entities/hiring.enum';
+import { LanguageProficiency } from '../../../entities/hiring.enum';
 
 export class CreateCandidateProfileDto {
   @IsNotEmpty()
@@ -26,6 +27,7 @@ export class CreateCandidateProfileDto {
 
   @IsNotEmpty()
   @IsNumber()
+  @Min(0)
   yearsOfExperience: number;
 
   @IsNotEmpty()

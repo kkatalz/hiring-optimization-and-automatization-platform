@@ -1,5 +1,5 @@
-import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
-import { LanguageProficiency } from '../../entities/hiring.enum';
+import { IsArray, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { LanguageProficiency } from '../../../entities/hiring.enum';
 
 export class UpdateCandidateProfileDto {
   @IsOptional()
@@ -12,6 +12,7 @@ export class UpdateCandidateProfileDto {
 
   @IsOptional()
   @IsNumber()
+  @Min(0)
   yearsOfExperience?: number;
 
   @IsOptional()
