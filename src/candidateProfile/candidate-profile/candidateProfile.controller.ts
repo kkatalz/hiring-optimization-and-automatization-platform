@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   ForbiddenException,
+  Get,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -23,6 +24,11 @@ export class CandidateProfileController {
     private readonly userService: UserService,
     private readonly candidateProfileService: CandidateProfileService,
   ) {}
+
+  @Get()
+  findAllCandidates(): Promise<CandidateProfileDto[]> {
+    return this.candidateProfileService.findAllCandidates();
+  }
 
   @Post()
   createCandidate(

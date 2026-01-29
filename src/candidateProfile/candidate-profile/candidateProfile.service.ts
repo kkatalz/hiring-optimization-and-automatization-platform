@@ -5,7 +5,6 @@ import { AuthService } from '../../auth/auth.service';
 import { CandidateProfile } from '../../entities/candidateProfile';
 import { UserRole } from '../../entities/role.enum';
 import { User } from '../../entities/user';
-import { userToUserDto } from '../../user/map/user.map';
 import { CandidateProfileDto } from './dto/candidateProfile.dto';
 import { CreateCandidateProfileDto } from './dto/createCandidateProfile.dto';
 import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
@@ -24,6 +23,18 @@ export class CandidateProfileService {
     private readonly userService: UserService,
     private readonly authService: AuthService,
   ) {}
+
+  async findAllCandidates(): Promise<CandidateProfileDto[]> {
+    const candidates = await this.candidateProfileRepository.find({
+      relations: ['user'],
+    });
+
+    return candidates.map((candidate) =>
+      candidateToCandidateProfileDto({
+        candidateProfile: candidate,
+      }),
+    );
+  }
 
   async createCandidate(
     createCandidateDto: CreateCandidateProfileDto,
@@ -69,10 +80,7 @@ export class CandidateProfileService {
     await this.candidateProfileRepository.save(candidateProfile);
 
     return candidateToCandidateProfileDto({
-      user: {
-        ...userToUserDto({ user: savedCandidate }),
-        candidateProfile: candidateProfile,
-      },
+      candidateProfile: candidateProfile,
     });
   }
 
@@ -90,8 +98,10 @@ export class CandidateProfileService {
     }
 
     const candidateProfile = user.candidateProfile;
+
     const { ...candidateFields } = updateCandidateProfileDto;
 
+    // Populate candidateProfile entity
     Object.keys(candidateFields).forEach((key) => {
       if (candidateFields[key] !== undefined) {
         candidateProfile[key] = candidateFields[key];
@@ -101,19 +111,36 @@ export class CandidateProfileService {
     const updatedCandidateProfile =
       await this.candidateProfileRepository.save(candidateProfile);
 
+    // Populate user entity
     if (updateCandidateProfileDto.firstName)
       user.firstName = updateCandidateProfileDto.firstName;
 
     if (updateCandidateProfileDto.lastName)
       user.lastName = updateCandidateProfileDto.lastName;
 
-    const savedUser = await this.userRepository.save(user);
+    await this.userRepository.save(user);
+
+    const updatedWithUser = await this.findProfileById(
+      updatedCandidateProfile.id,
+    );
 
     return candidateToCandidateProfileDto({
-      user: {
-        ...userToUserDto({ user: savedUser }),
-        candidateProfile: updatedCandidateProfile,
-      },
+      candidateProfile: updatedWithUser,
     });
+  }
+
+  private async findProfileById(id: string) {
+    const candidateProfile = await this.candidateProfileRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+
+    if (!candidateProfile) {
+      throw new HttpException(
+        'Candidate profile with given ID not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return candidateProfile;
   }
 }
