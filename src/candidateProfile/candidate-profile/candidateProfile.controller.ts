@@ -24,10 +24,7 @@ export class CandidateProfileController {
     private readonly candidateProfileService: CandidateProfileService,
   ) {}
 
-  // @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
-  // @Get('candidates')
-
-  @Post('candidate')
+  @Post()
   createCandidate(
     @Body() createCandidateDto: CreateCandidateProfileDto,
   ): Promise<CandidateProfileDto> {
@@ -35,16 +32,13 @@ export class CandidateProfileController {
   }
 
   @Roles(UserRole.candidate)
-  @Patch('candidate/:userId')
+  @Patch(':userId')
   async updateCandidate(
     @AuthUser() requester: UserDto,
     @Param('userId', new ParseUUIDPipe()) candidateId: string,
     @Body() updateCandidateProfileDto: UpdateCandidateProfileDto,
   ): Promise<CandidateProfileDto> {
-    const user = await this.userService.findById(requester.id);
-    const candidateProfileId = user.candidateProfile?.id;
-
-    if (candidateProfileId !== candidateId) {
+    if (requester.id !== candidateId) {
       throw new ForbiddenException(
         'Candidates can update only their own profiles.',
       );

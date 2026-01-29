@@ -10,6 +10,7 @@ import { CandidateProfileDto } from './dto/candidateProfile.dto';
 import { CreateCandidateProfileDto } from './dto/createCandidateProfile.dto';
 import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
 import { candidateToCandidateProfileDto } from './map/candidate.map';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class CandidateProfileService {
@@ -20,6 +21,7 @@ export class CandidateProfileService {
     @InjectRepository(CandidateProfile)
     private readonly candidateProfileRepository: Repository<CandidateProfile>,
 
+    private readonly userService: UserService,
     private readonly authService: AuthService,
   ) {}
 
@@ -78,25 +80,16 @@ export class CandidateProfileService {
     candidateId: string,
     updateCandidateProfileDto: UpdateCandidateProfileDto,
   ): Promise<CandidateProfileDto> {
-    const candidateProfile = await this.candidateProfileRepository.findOne({
-      where: { id: candidateId },
-      relations: ['user'],
-    });
+    const user = await this.userService.findById(candidateId);
 
-    if (!candidateProfile) {
+    if (!user.candidateProfile) {
       throw new HttpException(
-        'Candidate profile with given id not found.',
+        'User associated with given candidate profile not found.',
         HttpStatus.NOT_FOUND,
       );
     }
 
-    if (!candidateProfile.user) {
-      throw new HttpException(
-        'User associated with candidate profile not found.',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
+    const candidateProfile = user.candidateProfile;
     const { ...candidateFields } = updateCandidateProfileDto;
 
     Object.keys(candidateFields).forEach((key) => {
@@ -109,12 +102,12 @@ export class CandidateProfileService {
       await this.candidateProfileRepository.save(candidateProfile);
 
     if (updateCandidateProfileDto.firstName)
-      candidateProfile.user.firstName = updateCandidateProfileDto.firstName;
+      user.firstName = updateCandidateProfileDto.firstName;
 
     if (updateCandidateProfileDto.lastName)
-      candidateProfile.user.lastName = updateCandidateProfileDto.lastName;
+      user.lastName = updateCandidateProfileDto.lastName;
 
-    const savedUser = await this.userRepository.save(candidateProfile.user);
+    const savedUser = await this.userRepository.save(user);
 
     return candidateToCandidateProfileDto({
       user: {
