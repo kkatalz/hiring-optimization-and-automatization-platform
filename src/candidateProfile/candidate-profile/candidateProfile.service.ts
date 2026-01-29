@@ -9,7 +9,8 @@ import { CandidateProfileDto } from './dto/candidateProfile.dto';
 import { CreateCandidateProfileDto } from './dto/createCandidateProfile.dto';
 import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
 import { candidateToCandidateProfileDto } from './map/candidate.map';
-import { UserService } from 'src/user/user.service';
+import { UserService } from '../../user/user.service';
+import { CandidateProfileFilterDto } from '../../candidateProfile/candidate-profile/dto/candidateProfileFilter.dto';
 
 @Injectable()
 export class CandidateProfileService {
@@ -24,11 +25,53 @@ export class CandidateProfileService {
     private readonly authService: AuthService,
   ) {}
 
-  async findAllCandidates(): Promise<CandidateProfileDto[]> {
-    const candidates = await this.candidateProfileRepository.find({
+  async findAllCandidatesWithFilters(
+    profileFilterDto?: CandidateProfileFilterDto,
+  ): Promise<CandidateProfileDto[]> {
+    let candidates = await this.candidateProfileRepository.find({
       relations: ['user'],
     });
 
+    if (profileFilterDto) {
+      const query = this.candidateProfileRepository
+        .createQueryBuilder('candidateProfile')
+        .leftJoinAndSelect('candidateProfile.user', 'user');
+
+      if (profileFilterDto?.minYearsOfExperience !== undefined) {
+        query.andWhere(
+          'candidateProfile.years_of_experience >= :minYearsOfExperience',
+          {
+            minYearsOfExperience: profileFilterDto.minYearsOfExperience,
+          },
+        );
+      }
+
+      if (profileFilterDto?.maxYearsOfExperience !== undefined) {
+        query.andWhere(
+          'candidateProfile.years_of_experience <= :maxYearsOfExperience',
+          {
+            maxYearsOfExperience: profileFilterDto.maxYearsOfExperience,
+          },
+        );
+      }
+
+      if (
+        profileFilterDto?.countries &&
+        profileFilterDto.countries.length > 0
+      ) {
+        query.andWhere('candidateProfile.country = ANY(:countries)', {
+          countries: profileFilterDto.countries,
+        });
+      }
+
+      if (profileFilterDto?.cities && profileFilterDto.cities.length > 0) {
+        query.andWhere('candidateProfile.city = ANY(:cities)', {
+          cities: profileFilterDto.cities,
+        });
+      }
+
+      candidates = await query.getMany();
+    }
     return candidates.map((candidate) =>
       candidateToCandidateProfileDto(candidate),
     );

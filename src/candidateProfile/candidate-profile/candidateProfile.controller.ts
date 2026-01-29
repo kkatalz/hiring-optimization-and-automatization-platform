@@ -7,27 +7,31 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { AuthUser } from '../../decorators/authUser.dto';
 import { Roles } from '../../decorators/roles.decorator';
 import { UserRole } from '../../entities/role.enum';
 import { UserDto } from '../../user/dto/user.dto';
-import { UserService } from '../../user/user.service';
 import { CandidateProfileService } from './candidateProfile.service';
 import { CandidateProfileDto } from './dto/candidateProfile.dto';
 import { CreateCandidateProfileDto } from './dto/createCandidateProfile.dto';
 import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
+import { CandidateProfileFilterDto } from './dto/candidateProfileFilter.dto';
 
 @Controller('candidatesProfiles')
 export class CandidateProfileController {
   constructor(
-    private readonly userService: UserService,
     private readonly candidateProfileService: CandidateProfileService,
   ) {}
 
   @Get()
-  findAllCandidates(): Promise<CandidateProfileDto[]> {
-    return this.candidateProfileService.findAllCandidates();
+  findAllCandidates(
+    @Query() profileFilterDto?: CandidateProfileFilterDto,
+  ): Promise<CandidateProfileDto[]> {
+    return this.candidateProfileService.findAllCandidatesWithFilters(
+      profileFilterDto,
+    );
   }
 
   @Post()
