@@ -30,9 +30,7 @@ export class CandidateProfileService {
     });
 
     return candidates.map((candidate) =>
-      candidateToCandidateProfileDto({
-        candidateProfile: candidate,
-      }),
+      candidateToCandidateProfileDto(candidate),
     );
   }
 
@@ -79,9 +77,7 @@ export class CandidateProfileService {
 
     await this.candidateProfileRepository.save(candidateProfile);
 
-    return candidateToCandidateProfileDto({
-      candidateProfile: candidateProfile,
-    });
+    return candidateToCandidateProfileDto(candidateProfile);
   }
 
   async updateCandidate(
@@ -124,9 +120,7 @@ export class CandidateProfileService {
       updatedCandidateProfile.id,
     );
 
-    return candidateToCandidateProfileDto({
-      candidateProfile: updatedWithUser,
-    });
+    return candidateToCandidateProfileDto(updatedWithUser);
   }
 
   private async findProfileById(id: string) {

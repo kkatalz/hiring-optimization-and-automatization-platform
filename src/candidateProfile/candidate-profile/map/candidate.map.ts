@@ -2,11 +2,9 @@ import { UserRole } from '../../../entities/role.enum';
 import { CandidateProfile } from '../../../entities/candidateProfile';
 import { CandidateProfileDto } from '../dto/candidateProfile.dto';
 
-export const candidateToCandidateProfileDto = ({
-  candidateProfile,
-}: {
-  candidateProfile: CandidateProfile;
-}): CandidateProfileDto => {
+export const candidateToCandidateProfileDto = (
+  candidateProfile: CandidateProfile,
+): CandidateProfileDto => {
   return {
     id: candidateProfile.user.id,
     email: candidateProfile.user.email,
