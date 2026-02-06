@@ -2,12 +2,10 @@ import {
   Body,
   Controller,
   ForbiddenException,
-  Get,
   Param,
   ParseUUIDPipe,
   Patch,
   Post,
-  Query,
 } from '@nestjs/common';
 import { AuthUser } from '../../decorators/authUser.dto';
 import { Roles } from '../../decorators/roles.decorator';
@@ -25,16 +23,17 @@ export class CandidateProfileController {
     private readonly candidateProfileService: CandidateProfileService,
   ) {}
 
-  @Post()
+  @Post('get')
   findAllCandidates(
     @Body() profileFilterDto?: CandidateProfileFilterDto,
   ): Promise<CandidateProfileDto[]> {
+    console.log('profileFilterDto', profileFilterDto);
     return this.candidateProfileService.findAllCandidatesWithFilters(
       profileFilterDto,
     );
   }
 
-  @Post()
+  @Post('new')
   createCandidate(
     @Body() createCandidateDto: CreateCandidateProfileDto,
   ): Promise<CandidateProfileDto> {
