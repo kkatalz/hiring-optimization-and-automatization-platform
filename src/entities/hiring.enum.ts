@@ -1,3 +1,5 @@
+import { IsEnum, IsString } from 'class-validator';
+
 export enum TimeCommitment {
   FULL_TIME = 'full_time',
   PART_TIME = 'part_time',
@@ -14,7 +16,10 @@ export enum LanguageLevel {
   NATIVE = 'native',
 }
 
-export type LanguageProficiency = {
+export class LanguageProficiency {
+  @IsString()
   code: string;
+
+  @IsEnum(LanguageLevel)
   level: LanguageLevel;
-};
+}
