@@ -61,6 +61,15 @@ export const testUsers: User[] = [
     deleted: false,
     role: UserRole.candidate,
   },
+  {
+    id: 'dd8e52b6-f1c9-46ef-afb3-f2d3bcfc70c8',
+    email: 'test6@dot.com',
+    password: '$2a$10$H.8EfUO/hniGXfFjgpT12enj/25DNHNLhFUANQC8EYtaLgIJk5oFi',
+    firstName: 'Candidate_6',
+    lastName: 'Candidate_6',
+    deleted: false,
+    role: UserRole.candidate,
+  },
 ];
 
 export const EXPECTED_ACTIVE_USERS = testUsers.filter((user) => !user.deleted);
