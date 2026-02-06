@@ -25,9 +25,9 @@ export class CandidateProfileController {
     private readonly candidateProfileService: CandidateProfileService,
   ) {}
 
-  @Get()
+  @Post()
   findAllCandidates(
-    @Query() profileFilterDto?: CandidateProfileFilterDto,
+    @Body() profileFilterDto?: CandidateProfileFilterDto,
   ): Promise<CandidateProfileDto[]> {
     return this.candidateProfileService.findAllCandidatesWithFilters(
       profileFilterDto,

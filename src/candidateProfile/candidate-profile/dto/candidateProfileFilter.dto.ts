@@ -1,14 +1,7 @@
-import {
-  IsArray,
-  IsEnum,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Min,
-} from 'class-validator';
-import { LanguageLevel } from '../../../entities/hiring.enum';
-import { Transform } from 'class-transformer';
-import { toStringArray } from '../../../utils/convertToStringArray';
+import { IsArray, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { LanguageProficiency } from '../../../entities/hiring.enum';
+import { Transform, Type } from 'class-transformer';
+import { stringToArray } from '../../../utils/convertStringToArray';
 
 export class CandidateProfileFilterDto {
   @IsNumber()
@@ -22,24 +15,18 @@ export class CandidateProfileFilterDto {
   maxYearsOfExperience?: number;
 
   @IsOptional()
-  @Transform(toStringArray)
-  @IsArray()
   @IsString({ each: true })
   countries?: string[];
 
   @IsOptional()
-  @Transform(toStringArray)
   @IsArray()
   @IsString({ each: true })
   cities?: string[];
 
   @IsOptional()
-  @Transform(toStringArray)
+  @Transform(stringToArray)
   @IsArray()
-  @IsString({ each: true })
-  languageCodes?: string[];
-
-  @IsOptional()
-  @IsEnum(LanguageLevel)
-  minLanguageLevel?: LanguageLevel;
+  // @ValidateNested({ each: true })
+  @Type(() => LanguageProficiency)
+  languages?: LanguageProficiency[];
 }
