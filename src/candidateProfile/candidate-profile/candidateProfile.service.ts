@@ -11,6 +11,11 @@ import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
 import { candidateToCandidateProfileDto } from './map/candidate.map';
 import { UserService } from '../../user/user.service';
 import { CandidateProfileFilterDto } from '../../candidateProfile/candidate-profile/dto/candidateProfileFilter.dto';
+import {
+  LanguageLevelRank,
+  LanguageProficiency,
+} from '../../entities/hiring.enum';
+import { String } from 'lodash';
 
 @Injectable()
 export class CandidateProfileService {
@@ -69,8 +74,21 @@ export class CandidateProfileService {
           cities: profileFilterDto.cities,
         });
       }
-
       candidates = await query.getMany();
+
+      /** three scenarios for language filtering:
+       *1) when code and level are provided, return candidates that have this specific code and level equal or higher than provided
+       *2) when only code is provided, return candidates that have this specific code at any level
+       *3) when only level is provided, return candidates that have any language at level equal or higher than provided
+       **/
+
+      if (profileFilterDto?.languages?.length) {
+        candidates = candidates.filter((c) =>
+          profileFilterDto?.languages?.some((requiredLang) =>
+            this.meetsLanguageRequirement(c.languages, requiredLang),
+          ),
+        );
+      }
     }
     return candidates.map((candidate) =>
       candidateToCandidateProfileDto(candidate),
@@ -179,5 +197,26 @@ export class CandidateProfileService {
       );
     }
     return candidateProfile;
+  }
+
+  private meetsLanguageRequirement(
+    candidateLangs: LanguageProficiency[],
+    required: LanguageProficiency,
+  ): boolean {
+    return candidateLangs.some((cl) => {
+      if (required.code && cl.code !== required.code) return false;
+
+      if (required.level) {
+        if (!cl.level) return false;
+
+        if (
+          LanguageLevelRank.indexOf(cl.level) <
+          LanguageLevelRank.indexOf(required.level)
+        )
+          return false;
+      }
+
+      return true;
+    });
   }
 }
