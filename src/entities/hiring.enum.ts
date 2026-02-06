@@ -1,9 +1,9 @@
-import { IsEnum, IsString } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export enum TimeCommitment {
-  FULL_TIME = 'full_time',
-  PART_TIME = 'part_time',
-  PROJECT_BASED = 'project_based',
+  FULL_TIME = 'FULL_TIME',
+  PART_TIME = 'PART_TIME',
+  PROJECT_BASED = 'PROJECT_BASED',
 }
 
 export enum LanguageLevel {
@@ -13,13 +13,25 @@ export enum LanguageLevel {
   B2 = 'B2',
   C1 = 'C1',
   C2 = 'C2',
-  NATIVE = 'native',
+  NATIVE = 'NATIVE',
 }
 
 export class LanguageProficiency {
+  @IsOptional()
   @IsString()
-  code: string;
+  code?: string;
 
+  @IsOptional()
   @IsEnum(LanguageLevel)
-  level: LanguageLevel;
+  level?: LanguageLevel;
 }
+
+export const LanguageLevelRank = [
+  LanguageLevel.A1,
+  LanguageLevel.A2,
+  LanguageLevel.B1,
+  LanguageLevel.B2,
+  LanguageLevel.C1,
+  LanguageLevel.C2,
+  LanguageLevel.NATIVE,
+];
