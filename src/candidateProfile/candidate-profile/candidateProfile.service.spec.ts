@@ -20,7 +20,7 @@ import {
 import { nonExistentUUIDId } from '../../../test/utils';
 import { AuthModule } from '../../auth/auth.module';
 import { CandidateProfile } from '../../entities/candidateProfile';
-import { LanguageLevel } from '../../entities/hiring.enum';
+import { LanguageLevel, LanguageLevelRank } from '../../entities/hiring.enum';
 import { UserRole } from '../../entities/role.enum';
 import { Tenant } from '../../entities/tenant';
 import { User } from '../../entities/user';
@@ -129,7 +129,7 @@ describe('CandidateProfileService', () => {
 
       const updateResult: CandidateProfileDto =
         await candidateProfileService.updateCandidate(
-          testCandidatesProfiles[0].id,
+          testUsers[5].id,
           updateCandidateProfileDto,
         );
 
@@ -154,10 +154,97 @@ describe('CandidateProfileService', () => {
 
         expect.fail('Should have thrown a NOT_FOUND error but did not');
       } catch (e) {
-        expect(e.response).to.deep.equal(
-          'Candidate profile with given id not found.',
-        );
+        expect(e.response).to.deep.equal('User with given id not found.');
       }
     });
+  });
+
+  describe('find all candidates with filters', () => {
+    it('should find all candidates profiles without filters', async () => {
+      const result =
+        await candidateProfileService.findAllCandidatesWithFilters();
+
+      expect(result.length).to.equal(TOTAL_CANDIDATES);
+    });
+
+    it('should find all candidates profiles with filter: at least with minYearsOfExperience and higher', async () => {
+      const minYearsOfExperience = testCandidatesProfiles[0].yearsOfExperience;
+
+      const result = await candidateProfileService.findAllCandidatesWithFilters(
+        {
+          minYearsOfExperience,
+        },
+      );
+
+      expect(result.length).to.equal(TOTAL_CANDIDATES);
+      expect(result[0].yearsOfExperience).to.be.greaterThanOrEqual(
+        minYearsOfExperience,
+      );
+      expect(result[1].yearsOfExperience).to.be.greaterThanOrEqual(
+        minYearsOfExperience,
+      );
+    });
+
+    it('should find all candidates profiles with filter: maxYearsOfExperience and lower and city', async () => {
+      const maxYearsOfExperience = testCandidatesProfiles[0].yearsOfExperience;
+
+      const result: CandidateProfileDto[] =
+        await candidateProfileService.findAllCandidatesWithFilters({
+          maxYearsOfExperience,
+          cities: ['New York'],
+        });
+
+      expect(result.length).to.equal(1);
+      expect(result[0].yearsOfExperience).to.be.lessThanOrEqual(
+        maxYearsOfExperience,
+      );
+    });
+
+    it('should find all candidates profiles for given two filters: languageCodes and level higher than minLanguageLevel', async () => {
+      const minLanguageLevel = LanguageLevel.C1;
+      const minLanguageLevelIndex = LanguageLevelRank.indexOf(minLanguageLevel);
+      // update first cnadidate to have language level that lower than minLanguageLevel (C1) and language code 'en'
+      await candidateProfileService.updateCandidate(testUsers[5].id, {
+        languages: [{ code: 'en', level: LanguageLevel.B2 }],
+      });
+      const result: CandidateProfileDto[] =
+        await candidateProfileService.findAllCandidatesWithFilters({
+          languages: [{ code: 'en', level: minLanguageLevel }],
+        });
+
+      expect(result.length).to.equal(1);
+
+      // returns candidate that has 'en' language code
+      expect(result[0].languages.some((lang) => lang.code === 'en')).to.equal(
+        true,
+      );
+
+      // returns candidate that has language level that is greater than or equal to minLanguageLevel (C1)
+      expect(
+        result[0].languages.some(
+          (lang) =>
+            lang.level &&
+            LanguageLevelRank.indexOf(lang.level) >= minLanguageLevelIndex,
+        ),
+      ).to.equal(true);
+    });
+  });
+
+  it('should find all candidates who know language for given languageCode at any level', async () => {
+    const result: CandidateProfileDto[] =
+      await candidateProfileService.findAllCandidatesWithFilters({
+        languages: [{ code: 'en' }],
+      });
+
+    expect(result.length).to.equal(2);
+  });
+
+  it('should find all candidates who know any language for given languageLevel', async () => {
+    const result: CandidateProfileDto[] =
+      await candidateProfileService.findAllCandidatesWithFilters({
+        languages: [{ level: LanguageLevel.C1 }],
+      });
+
+    expect(result.length).to.equal(2);
   });
 });
