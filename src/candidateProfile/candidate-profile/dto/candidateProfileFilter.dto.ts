@@ -1,7 +1,13 @@
-import { IsArray, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsArray,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 import { LanguageProficiency } from '../../../entities/hiring.enum';
-import { Transform, Type } from 'class-transformer';
-import { stringToArray } from '../../../utils/convertStringToArray';
+import { Type } from 'class-transformer';
 
 export class CandidateProfileFilterDto {
   @IsNumber()
@@ -24,9 +30,8 @@ export class CandidateProfileFilterDto {
   cities?: string[];
 
   @IsOptional()
-  @Transform(stringToArray)
   @IsArray()
-  // @ValidateNested({ each: true })
+  @ValidateNested({ each: true })
   @Type(() => LanguageProficiency)
   languages?: LanguageProficiency[];
 }
