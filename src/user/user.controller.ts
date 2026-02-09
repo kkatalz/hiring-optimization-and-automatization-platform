@@ -16,22 +16,17 @@ import { AuthUser } from '../decorators/authUser.dto';
 import { Roles } from '../decorators/roles.decorator';
 import { UserRole } from '../entities/role.enum';
 import { TenantInterceptor } from '../interceptors/tenantId.interceptor';
-import { CreateUserDto } from '../user/dto/createUser.dto';
-import { UpdateUserDto } from '../user/dto/updateUser.dto';
-import { UserDto } from '../user/dto/user.dto';
-import { UserService } from '../user/user.service';
+import { CreateUserDto } from './dto/createUser.dto';
+import { UpdateUserDto } from './dto/updateUser.dto';
+import { UserDto } from './dto/user.dto';
+import { UserService } from './user.service';
 import { validateTenantAccess } from '../utils/validate';
-import { ChangeEmailDto } from '../user/dto/changeEmail.dto';
-import { ChangePasswordDto } from '../user/dto/changePassword.dto';
+import { ChangeEmailDto } from './dto/changeEmail.dto';
+import { ChangePasswordDto } from './dto/changePassword.dto';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  @Post('candidate')
-  createCandidate(@Body() createCandidateDto: CreateUserDto): Promise<UserDto> {
-    return this.userService.create(createCandidateDto, UserRole.candidate);
-  }
 
   @UseInterceptors(TenantInterceptor)
   @Roles(UserRole.admin, UserRole.superAdmin)
@@ -80,7 +75,7 @@ export class UserController {
     return this.userService.findDtoById(id, requester);
   }
 
-  @Roles(UserRole.superAdmin, UserRole.admin)
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Patch(':userId/tenant/:tenantId')
   update(
     @AuthUser() requester: UserDto,
@@ -88,7 +83,11 @@ export class UserController {
     @Param('tenantId', new ParseUUIDPipe()) tenantId: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserDto> {
-    validateTenantAccess(requester, tenantId);
+    this.validateAdminRecruiterForCredentialsAccess(
+      requester,
+      tenantId,
+      userId,
+    );
 
     return this.userService.update(userId, tenantId, updateUserDto);
   }
@@ -108,12 +107,22 @@ export class UserController {
     const user = await this.userService.findById(userId);
 
     if (user.tenantId)
-      this.validateAdminRecruiterForCredentialsAccess(requester, user.tenantId);
+      this.validateAdminRecruiterForCredentialsAccess(
+        requester,
+        user.tenantId,
+        user.id,
+      );
     else this.validateCandidateSuperAdminForCredentialsAccess(requester, user);
 
     return await this.userService.changeEmail(userId, changeEmailDto);
   }
 
+  @Roles(
+    UserRole.candidate,
+    UserRole.recruiter,
+    UserRole.superAdmin,
+    UserRole.admin,
+  )
   @Patch('credentials/password/:userId')
   async changePassword(
     @AuthUser() requester: UserDto,
@@ -123,7 +132,11 @@ export class UserController {
     const user = await this.userService.findById(userId);
 
     if (user.tenantId)
-      this.validateAdminRecruiterForCredentialsAccess(requester, user.tenantId);
+      this.validateAdminRecruiterForCredentialsAccess(
+        requester,
+        user.tenantId,
+        user.id,
+      );
     else this.validateCandidateSuperAdminForCredentialsAccess(requester, user);
 
     return await this.userService.changePassword(userId, changePasswordDto);
@@ -166,21 +179,16 @@ export class UserController {
 
   private validateAdminRecruiterForCredentialsAccess(
     requester: UserDto,
-    userTenantId: string,
+    tenantId: string,
+    userId: string,
   ): void {
-    if (
-      requester.role === UserRole.admin &&
-      requester.tenantId !== userTenantId
-    ) {
+    if (requester.role === UserRole.admin && requester.tenantId !== tenantId) {
       throw new ForbiddenException(
         'You can access users only within your own tenant.',
       );
-    } else if (
-      requester.role === UserRole.recruiter &&
-      requester.tenantId !== userTenantId
-    )
+    } else if (requester.role === UserRole.recruiter && requester.id !== userId)
       throw new HttpException(
-        'Recruiter can change only their own credentials.',
+        'Recruiter can change only their own fields.',
         HttpStatus.FORBIDDEN,
       );
   }

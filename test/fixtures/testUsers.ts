@@ -1,4 +1,4 @@
-import { testTenants } from '../fixtures/testTenants';
+import { testTenants } from './testTenants';
 import { UserRole } from '../../src/entities/role.enum';
 import { User } from '../../src/entities/user';
 
@@ -58,6 +58,15 @@ export const testUsers: User[] = [
     password: '$2a$10$ETmVvqTIl84z/jw6bxiwe.S9Me.xcmYP861skUEUWA5prmHXHWy6e',
     firstName: 'Candidate_5',
     lastName: 'Candidate_5',
+    deleted: false,
+    role: UserRole.candidate,
+  },
+  {
+    id: 'dd8e52b6-f1c9-46ef-afb3-f2d3bcfc70c8',
+    email: 'test6@dot.com',
+    password: '$2a$10$H.8EfUO/hniGXfFjgpT12enj/25DNHNLhFUANQC8EYtaLgIJk5oFi',
+    firstName: 'Candidate_6',
+    lastName: 'Candidate_6',
     deleted: false,
     role: UserRole.candidate,
   },

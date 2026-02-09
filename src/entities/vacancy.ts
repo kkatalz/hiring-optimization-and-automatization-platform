@@ -9,6 +9,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { LanguageProficiency, TimeCommitment } from './hiring.enum';
 
 @Entity({ name: 'vacancies' })
 export class Vacancy {
@@ -29,6 +30,17 @@ export class Vacancy {
 
   @Column({ name: 'created_by_id', nullable: true, type: 'uuid' })
   createdById: string;
+
+  @Column({
+    type: 'enum',
+    enum: TimeCommitment,
+    name: 'time_commitment',
+    nullable: true,
+  })
+  timeCommitment?: TimeCommitment;
+
+  @Column({ type: 'jsonb', name: 'language_requirements', nullable: true })
+  languageRequirements?: LanguageProficiency[];
 
   @ManyToOne(() => User, (user) => user.createdVacancies, {
     onDelete: 'SET NULL',

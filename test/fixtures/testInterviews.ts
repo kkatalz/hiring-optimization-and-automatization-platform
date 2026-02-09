@@ -1,6 +1,6 @@
-import { InterviewStatus } from '../../src/entities/status.enum';
+import { InterviewStatus } from '../../src/entities/statuses.enum';
 import { Interview } from '../../src/entities/interview';
-import { testVacancySubmissions } from '../../test/fixtures/testVacancySubmissions';
+import { testVacancySubmissions } from './testVacancySubmissions';
 import { TENANT_ID } from '../utils';
 
 export const testInterviews: Interview[] = [

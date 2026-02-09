@@ -64,7 +64,14 @@ export class TenantService {
       );
     }
 
-    Object.assign(tenant, updateTenantDto);
+    const { ...updatedFields } = updateTenantDto;
+
+    Object.keys(updatedFields).forEach((key) => {
+      if (updatedFields[key] !== undefined) {
+        tenant[key] = updatedFields[key];
+      }
+    });
+
     const updatedTenant = await this.tenantRepository.save(tenant);
 
     return tenantToTenantDto(updatedTenant);

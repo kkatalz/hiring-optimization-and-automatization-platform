@@ -1,4 +1,4 @@
-import { InterviewStatus } from '../../entities/status.enum';
+import { InterviewStatus } from '../../entities/statuses.enum';
 
 export class UpdateInterviewDto {
   status: InterviewStatus;

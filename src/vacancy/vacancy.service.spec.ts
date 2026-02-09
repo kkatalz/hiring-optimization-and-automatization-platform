@@ -211,7 +211,7 @@ describe('VacancyService', () => {
       };
 
       const updateVacancyResult: VacancyDto = await service.update(
-        testVacancies[0],
+        testVacancies[0].id,
         updateVacancyDto,
       );
 
@@ -224,15 +224,15 @@ describe('VacancyService', () => {
   });
   describe('remove', () => {
     it('should remove vacancy', async () => {
-      const removeVacancy = testVacancies[0];
+      const removeVacancyId = testVacancies[0].id;
 
-      await service.remove(removeVacancy);
+      await service.remove(removeVacancyId);
 
       const totalVacancies = await service.findAll();
       expect(totalVacancies.length).to.equal(EXPECTED__VACANCIES_NUM - 1);
 
       const vacancyIsNotFound = await vacancyRepository.findOne({
-        where: { id: removeVacancy.id },
+        where: { id: removeVacancyId },
       });
       expect(vacancyIsNotFound).to.equal(null);
     });

@@ -1,31 +1,31 @@
-import { Test } from '@nestjs/testing';
-import { UserService } from './user.service';
 import { ConfigModule } from '@nestjs/config';
+import { Test } from '@nestjs/testing';
 import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
+import { expect } from 'chai';
+import * as sinon from 'sinon';
+import { Repository } from 'typeorm';
 import {
   cleanDatabase,
   loadDatabase,
   testDatabaseConfig,
 } from '../../test/database-setup';
-import { User } from '../entities/user';
-import { expect } from 'chai';
+import { testTenants } from '../../test/fixtures/testTenants';
 import {
   EXPECTED_ACTIVE_USERS,
   EXPECTED_ACTIVE_USERS_NUM,
   testUsers,
 } from '../../test/fixtures/testUsers';
-import { UserRole } from '../entities/role.enum';
-import { testTenants } from '../../test/fixtures/testTenants';
-import { Tenant } from '../entities/tenant';
-import { CreateUserDto } from './dto/createUser.dto';
+import { nonExistentUUIDId } from '../../test/utils';
 import { AuthModule } from '../auth/auth.module';
-import { UpdateUserDto } from '../user/dto/updateUser.dto';
 import { AuthService } from '../auth/auth.service';
-import * as sinon from 'sinon';
-import { Repository } from 'typeorm';
+import { UserRole } from '../entities/role.enum';
+import { Tenant } from '../entities/tenant';
+import { User } from '../entities/user';
 import { ChangeEmailDto } from '../user/dto/changeEmail.dto';
 import { ChangePasswordDto } from '../user/dto/changePassword.dto';
-import { nonExistentUUIDId } from '../../test/utils';
+import { UpdateUserDto } from '../user/dto/updateUser.dto';
+import { CreateUserDto } from './dto/createUser.dto';
+import { UserService } from './user.service';
 
 describe('UserService', () => {
   let service: UserService;
@@ -62,7 +62,7 @@ describe('UserService', () => {
     expect(!!service).to.deep.equal(true);
   });
 
-  describe('create', () => {
+  describe('create superadmin/admin/recruiter', () => {
     it('should create user superAdmin', async () => {
       const tenantId = testTenants[0].id;
 
@@ -212,7 +212,7 @@ describe('UserService', () => {
     });
   });
 
-  describe('update', () => {
+  describe('update superAdmin/admin/recruiter', () => {
     it('should update user by userId', async () => {
       const userRecruiterId = testUsers[1].id;
       const tenantId = testTenants[0].id;
