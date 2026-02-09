@@ -1,10 +1,15 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRole } from '../entities/role.enum';
 import { VacancySubmission } from '../entities/vacancySubmission';
 import { UserDto } from '../user/dto/user.dto';
 import { VacancyService } from '../vacancy/vacancy.service';
-import { CreateVacancySubmissionDto } from './dto/applyForVacancy.dto';
+import { CreateVacancySubmissionDto } from './dto/createVacancySubmission.dto';
 import { VacancySubmissionDto } from './dto/vacancySubmission.dto';
 import { vacancySubmToVacancySubmDto } from './map/vacancySubmission.map';
 import { Repository } from 'typeorm';
@@ -28,6 +33,21 @@ export class VacancySubmissionService {
     candidate: UserDto,
   ): Promise<VacancySubmissionDto> {
     const vacancy = await this.vacancyService.findVacancyById(vacancyId);
+
+    // Validate that Submission has only allowed tags in Vacancy
+    if (createVacancySubmissionDto.tags) {
+      const allowedTags = new Set(vacancy.tags);
+
+      const invalidTags = createVacancySubmissionDto.tags.filter(
+        (tag) => !allowedTags.has(tag),
+      );
+
+      if (invalidTags.length) {
+        throw new BadRequestException(
+          `Invalid tags: ${invalidTags.join(', ')}. Allowed tags are: ${vacancy.tags?.join(', ')}.`,
+        );
+      }
+    }
 
     const vacancySubmission = this.vacancySubmissionRepository.create({
       ...createVacancySubmissionDto,
