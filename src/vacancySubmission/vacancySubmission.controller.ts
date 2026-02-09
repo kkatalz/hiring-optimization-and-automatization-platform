@@ -10,7 +10,7 @@ import { AuthUser } from '../decorators/authUser.dto';
 import { Roles } from '../decorators/roles.decorator';
 import { UserRole } from '../entities/role.enum';
 import { UserDto } from '../user/dto/user.dto';
-import { CreateVacancySubmissionDto } from '../vacancySubmission/dto/applyForVacancy.dto';
+import { CreateVacancySubmissionDto } from './dto/createVacancySubmission.dto';
 import { VacancySubmissionDto } from '../vacancySubmission/dto/vacancySubmission.dto';
 import { VacancySubmissionService } from './vacancySubmission.service';
 import { validateTenantAccess } from '../utils/validate';
@@ -66,6 +66,7 @@ export class VacancySubmissionController {
     return await this.vacancySubmissionService.reject(submissionId);
   }
 
+  // Shows all submissions for superAdmin, and for admin/recruiter shows only submissions for vacancies within their tenant
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get()
   async findAll(@AuthUser() viewer: UserDto): Promise<VacancySubmissionDto[]> {

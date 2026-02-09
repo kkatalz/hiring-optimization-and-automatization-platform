@@ -16,7 +16,7 @@ import {
   EXPECTED_VACANCY_SUBMISSIONS_NUM,
   testVacancySubmissions,
 } from '../../test/fixtures/testVacancySubmissions';
-import { CreateVacancySubmissionDto } from './dto/applyForVacancy.dto';
+import { CreateVacancySubmissionDto } from './dto/createVacancySubmission.dto';
 import { expect } from 'chai';
 import { VacancySubmissionDto } from './dto/vacancySubmission.dto';
 import { nonExistentUUIDId } from '../../test/utils';
