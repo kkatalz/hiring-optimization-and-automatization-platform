@@ -27,7 +27,6 @@ export class CandidateProfileController {
   findAllCandidates(
     @Body() profileFilterDto?: CandidateProfileFilterDto,
   ): Promise<CandidateProfileDto[]> {
-    console.log('profileFilterDto', profileFilterDto);
     return this.candidateProfileService.findAllCandidatesWithFilters(
       profileFilterDto,
     );

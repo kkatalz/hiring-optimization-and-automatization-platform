@@ -42,7 +42,7 @@ export class CandidateProfileService {
         .createQueryBuilder('candidateProfile')
         .leftJoinAndSelect('candidateProfile.user', 'user');
 
-      if (profileFilterDto?.minYearsOfExperience !== undefined) {
+      if (profileFilterDto?.minYearsOfExperience) {
         query.andWhere(
           'candidateProfile.years_of_experience >= :minYearsOfExperience',
           {
@@ -51,7 +51,7 @@ export class CandidateProfileService {
         );
       }
 
-      if (profileFilterDto?.maxYearsOfExperience !== undefined) {
+      if (profileFilterDto?.maxYearsOfExperience) {
         query.andWhere(
           'candidateProfile.years_of_experience <= :maxYearsOfExperience',
           {
