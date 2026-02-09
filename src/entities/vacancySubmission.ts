@@ -34,6 +34,9 @@ export class VacancySubmission {
   })
   status: VacancySubmissionStatus;
 
+  @Column({ type: 'jsonb', default: [] })
+  tags?: string[];
+
   @ManyToOne(() => Vacancy, (vacancy) => vacancy.submissions, {
     nullable: false,
     onDelete: 'CASCADE',
