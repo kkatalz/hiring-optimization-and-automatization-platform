@@ -1,5 +1,13 @@
-import { IsArray, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsArray,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 import { LanguageProficiency } from '../../../entities/hiring.enum';
+import { Type } from 'class-transformer';
 
 export class UpdateCandidateProfileDto {
   @IsOptional()
@@ -25,5 +33,7 @@ export class UpdateCandidateProfileDto {
 
   @IsOptional()
   @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => LanguageProficiency)
   languages?: LanguageProficiency[];
 }

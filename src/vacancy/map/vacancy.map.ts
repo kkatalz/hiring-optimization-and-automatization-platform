@@ -8,6 +8,9 @@ export const vacancyToVacancyDto = ({
   salary,
   tenantId,
   createdById,
+  timeCommitment,
+  languageRequirements,
+  tags,
   submissions,
 }: Vacancy): VacancyDto => {
   return {
@@ -18,5 +21,8 @@ export const vacancyToVacancyDto = ({
     tenantId,
     createdById,
     submissions,
+    timeCommitment,
+    languageRequirements,
+    tags,
   };
 };
