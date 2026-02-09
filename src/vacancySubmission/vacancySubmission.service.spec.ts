@@ -1,5 +1,5 @@
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { VacancySubmission } from '../entities/vacancySubmission';
 import { VacancySubmissionService } from '../vacancySubmission/vacancySubmission.service';
@@ -29,9 +29,11 @@ import { AuthService } from '../auth/auth.service';
 import { VacancySubmissionStatus } from '../entities/statuses.enum';
 import { CandidateProfile } from '../entities/candidateProfile';
 import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfiles';
+import { Repository } from 'typeorm';
 
-describe('VacancySubmissionService', () => {
+describe.only('VacancySubmissionService', () => {
   let service: VacancySubmissionService;
+  let vacancyRepository: Repository<Vacancy>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -56,6 +58,9 @@ describe('VacancySubmissionService', () => {
     }).compile();
 
     service = module.get<VacancySubmissionService>(VacancySubmissionService);
+    vacancyRepository = module.get<Repository<Vacancy>>(
+      getRepositoryToken(Vacancy),
+    );
 
     await loadDatabase({
       Tenant: testTenants,
@@ -101,6 +106,62 @@ describe('VacancySubmissionService', () => {
         zooKeperVacancyID,
       );
     });
+  });
+
+  it('should add only those tags that exist on the applied vacancy', async () => {
+    const tags = ['zoo', 'animals'];
+    await vacancyRepository.update(testVacancies[1].id, { tags });
+
+    const vacancy = await vacancyRepository.findOneOrFail({
+      where: { id: testVacancies[1].id },
+    });
+
+    const CreateVacancySubmissionDto: CreateVacancySubmissionDto = {
+      comment: 'Looking forward to this opportunity!',
+      tags,
+    };
+
+    const candidate = testUsers[5];
+
+    const createSubmissionResult: VacancySubmissionDto = await service.create(
+      CreateVacancySubmissionDto,
+      vacancy.id,
+      candidate,
+    );
+
+    expect(createSubmissionResult.tags).to.deep.equal(tags);
+  });
+
+  it('should throw BadRequestException if submission contains tags that do not exist on the applied vacancy', async () => {
+    const vacancyTags = ['zoo', 'animals'];
+    await vacancyRepository.update(testVacancies[1].id, { tags: vacancyTags });
+
+    const vacancy = await vacancyRepository.findOneOrFail({
+      where: { id: testVacancies[1].id },
+    });
+
+    const submissionInvalidTags = ['zoo', 'invalidTag'];
+    const CreateVacancySubmissionDto: CreateVacancySubmissionDto = {
+      comment: 'Looking forward to this opportunity!',
+      tags: submissionInvalidTags,
+    };
+
+    const candidate = testUsers[5];
+
+    const invalidTags = submissionInvalidTags.filter(
+      (tag) => !vacancyTags.includes(tag),
+    );
+
+    try {
+      await service.create(CreateVacancySubmissionDto, vacancy.id, candidate);
+      expect.fail('Should have thrown a BadRequestException but did not');
+    } catch (e) {
+      expect(e.response).to.deep.equal({
+        statusCode: 400,
+        message: `Invalid tags: ${invalidTags.join(', ')}. Allowed tags are: ${vacancyTags.join(', ')}.`,
+        error: 'Bad Request',
+      });
+    }
   });
 
   it('should throw NOT_FOUND error if vacancy does not exist', async () => {
