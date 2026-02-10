@@ -1,9 +1,16 @@
-import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { VacancySubmission } from '../../entities/vacancySubmission';
 import {
   LanguageProficiency,
   TimeCommitment,
 } from '../../entities/hiring.enum';
+import { Type } from 'class-transformer';
 
 export class VacancyDto {
   id: string;
@@ -38,5 +45,12 @@ export class VacancyDto {
 
   @IsOptional()
   @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => LanguageProficiency)
   languageRequirements?: LanguageProficiency[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tags?: string[];
 }

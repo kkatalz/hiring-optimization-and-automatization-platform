@@ -1,11 +1,12 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsArray, IsEnum, IsOptional, IsString } from 'class-validator';
+import { VacancySubmissionStatus } from 'src/entities/statuses.enum';
 
 export class VacancySubmissionDto {
   id: string;
 
   @IsOptional()
   @IsString()
-  comment: string;
+  comment?: string;
 
   @IsOptional()
   @IsString()
@@ -19,6 +20,11 @@ export class VacancySubmissionDto {
   @IsString()
   candidateId: string;
 
-  @IsString()
-  status: string;
+  @IsEnum(VacancySubmissionStatus)
+  status: VacancySubmissionStatus;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tags?: string[];
 }

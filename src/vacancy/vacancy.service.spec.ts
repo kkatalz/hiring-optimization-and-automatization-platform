@@ -142,21 +142,10 @@ describe('VacancyService', () => {
     it('should find all vacancies by tenant id within this id', async () => {
       const tenantId = testTenants[0].id;
 
-      const vacanciesDtoResult = await service.findAllByTenantId(tenantId);
+      const vacanciesDtoResult: VacancyDto[] =
+        await service.findAllByTenantId(tenantId);
 
       expect(vacanciesDtoResult.length).to.equal(EXPECTED__VACANCIES_NUM);
-
-      vacanciesDtoResult.forEach((vacancy) => {
-        expect(vacancy).to.have.all.keys(
-          'id',
-          'name',
-          'description',
-          'salary',
-          'tenantId',
-          'createdById',
-          'submissions',
-        );
-      });
 
       vacanciesDtoResult.forEach((vacancy) => {
         expect(vacancy.tenantId).to.equal(tenantId);

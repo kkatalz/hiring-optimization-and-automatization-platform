@@ -42,6 +42,9 @@ export class Vacancy {
   @Column({ type: 'jsonb', name: 'language_requirements', nullable: true })
   languageRequirements?: LanguageProficiency[];
 
+  @Column({ type: 'jsonb', default: [] })
+  tags?: string[];
+
   @ManyToOne(() => User, (user) => user.createdVacancies, {
     onDelete: 'SET NULL',
     nullable: true,

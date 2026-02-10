@@ -8,6 +8,7 @@ export const vacancySubmToVacancySubmDto = ({
   tenantId,
   candidateId,
   status,
+  tags,
 }: VacancySubmission): VacancySubmissionDto => {
   return {
     id,
@@ -16,5 +17,6 @@ export const vacancySubmToVacancySubmDto = ({
     tenantId,
     candidateId,
     status,
+    tags,
   };
 };
