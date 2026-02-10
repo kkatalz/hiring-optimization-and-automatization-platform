@@ -17,7 +17,7 @@ export class VacancySubmission {
   id: string;
 
   @Column({ type: 'text', nullable: true })
-  comment: string;
+  comment?: string;
 
   @Column({ name: 'vacancy_id', type: 'uuid', nullable: false })
   vacancyId: string;

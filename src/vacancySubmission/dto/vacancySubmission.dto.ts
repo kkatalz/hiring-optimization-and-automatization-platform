@@ -6,7 +6,7 @@ export class VacancySubmissionDto {
 
   @IsOptional()
   @IsString()
-  comment: string;
+  comment?: string;
 
   @IsOptional()
   @IsString()
