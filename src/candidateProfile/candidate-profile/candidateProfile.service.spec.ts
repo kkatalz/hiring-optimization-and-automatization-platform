@@ -247,4 +247,25 @@ describe('CandidateProfileService', () => {
 
     expect(result.length).to.equal(2);
   });
+
+  describe('find candidate profile by user id', () => {
+    it('should find candidate profile by user id', async () => {
+      const candidateProfile =
+        await candidateProfileService.findCandidateByUserId(testUsers[5].id);
+
+      expect(candidateProfile).to.not.be.undefined;
+      expect(candidateProfile.user.id).to.equal(testUsers[5].id);
+    });
+
+    it('should throw error if candidate profile with given user id not found', async () => {
+      try {
+        await candidateProfileService.findCandidateByUserId(nonExistentUUIDId);
+      } catch (error) {
+        expect(error.message).to.equal(
+          'Candidate profile with given user ID not found.',
+        );
+        expect(error.status).to.equal(404);
+      }
+    });
+  });
 });

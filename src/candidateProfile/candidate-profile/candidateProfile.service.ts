@@ -15,7 +15,6 @@ import {
   LanguageLevelRank,
   LanguageProficiency,
 } from '../../entities/hiring.enum';
-import { String } from 'lodash';
 
 @Injectable()
 export class CandidateProfileService {
@@ -182,6 +181,24 @@ export class CandidateProfileService {
     );
 
     return candidateToCandidateProfileDto(updatedWithUser);
+  }
+
+  async findCandidateByUserId(userId: string): Promise<CandidateProfile> {
+    const candidateProfile = await this.userRepository
+      .findOne({
+        where: { id: userId },
+        relations: ['candidateProfile'],
+      })
+      .then((user) => user?.candidateProfile);
+
+    if (!candidateProfile) {
+      throw new HttpException(
+        'Candidate profile with given user ID not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return candidateProfile;
   }
 
   private async findProfileById(id: string) {
