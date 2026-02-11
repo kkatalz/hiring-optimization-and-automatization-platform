@@ -15,5 +15,6 @@ export const candidateToCandidateProfileDto = (
     country: candidateProfile?.country,
     city: candidateProfile?.city,
     languages: candidateProfile?.languages,
+    submissions: candidateProfile?.submissions,
   };
 };

@@ -1,3 +1,4 @@
+import { VacancySubmission } from 'src/entities/vacancySubmission';
 import { LanguageProficiency } from '../../../entities/hiring.enum';
 import { UserRole } from '../../../entities/role.enum';
 
@@ -12,4 +13,5 @@ export class CandidateProfileDto {
   country: string;
   city: string;
   languages: LanguageProficiency[];
+  submissions?: VacancySubmission[];
 }
