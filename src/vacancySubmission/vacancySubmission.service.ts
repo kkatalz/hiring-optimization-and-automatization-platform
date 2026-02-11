@@ -55,7 +55,7 @@ export class VacancySubmissionService {
       tenantId: vacancy.tenantId,
       candidateId: candidate.id,
       vacancy: vacancy,
-      candidate: candidate,
+      candidateProfile: candidate,
     });
 
     const savedVacancySubmission =

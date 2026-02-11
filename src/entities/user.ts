@@ -10,7 +10,6 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { VacancySubmission } from './vacancySubmission';
 import { CandidateProfile } from './candidateProfile';
 
 @Entity({ name: 'users' })
@@ -50,9 +49,6 @@ export class User {
 
   @OneToMany(() => Vacancy, (vacancy) => vacancy.createdBy)
   createdVacancies?: Vacancy[];
-
-  @OneToMany(() => VacancySubmission, (submission) => submission.candidate)
-  applications?: VacancySubmission[];
 
   @OneToOne(() => CandidateProfile, (profile) => profile.user, {
     nullable: true,
