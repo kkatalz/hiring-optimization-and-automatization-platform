@@ -1,4 +1,4 @@
-  import { Vacancy } from './vacancy';
+import { Vacancy } from './vacancy';
 import {
   Column,
   Entity,
@@ -42,14 +42,14 @@ export class VacancySubmission {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'vacancy_id' })
-  vacancy: Vacancy;
+  vacancy?: Vacancy;
 
   @ManyToOne(() => CandidateProfile, (profile) => profile.submissions, {
     nullable: false,
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'candidate_id' })
-  candidateProfile: CandidateProfile;
+  candidateProfile?: CandidateProfile;
 
   @OneToMany(() => Interview, (interview) => interview.submission)
   interviews?: Interview[];

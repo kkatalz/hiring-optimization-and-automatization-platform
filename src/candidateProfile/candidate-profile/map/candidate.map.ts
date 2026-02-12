@@ -6,7 +6,7 @@ export const candidateToCandidateProfileDto = (
   candidateProfile: CandidateProfile,
 ): CandidateProfileDto => {
   return {
-    id: candidateProfile?.user.id,
+    userId: candidateProfile?.user.id,
     email: candidateProfile?.user.email,
     firstName: candidateProfile?.user.firstName,
     lastName: candidateProfile?.user.lastName,
