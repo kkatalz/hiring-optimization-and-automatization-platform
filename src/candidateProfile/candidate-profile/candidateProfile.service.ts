@@ -29,6 +29,24 @@ export class CandidateProfileService {
     private readonly authService: AuthService,
   ) {}
 
+  async findAllCandidateSubmissionsByCandidateId(
+    candidateId: string,
+  ): Promise<CandidateProfileDto> {
+    const candidateProfile = await this.candidateProfileRepository.findOne({
+      where: { id: candidateId },
+      relations: ['user', 'submissions'],
+    });
+
+    if (!candidateProfile) {
+      throw new HttpException(
+        'Candidate profile with given ID not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return candidateToCandidateProfileDto(candidateProfile);
+  }
+
   async findAllCandidatesWithFilters(
     profileFilterDto?: CandidateProfileFilterDto,
   ): Promise<CandidateProfileDto[]> {

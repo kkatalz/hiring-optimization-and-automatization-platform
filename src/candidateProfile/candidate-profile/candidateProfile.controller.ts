@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   ForbiddenException,
+  Get,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -23,20 +24,43 @@ export class CandidateProfileController {
     private readonly candidateProfileService: CandidateProfileService,
   ) {}
 
+  @Roles(UserRole.candidate, UserRole.superAdmin)
+  @Get(':candidateId/submissions')
+  async findAllCandidateSubmissionsByCandidateId(
+    @Param('candidateId', new ParseUUIDPipe()) candidateId: string,
+    @AuthUser() requester: UserDto,
+  ): Promise<CandidateProfileDto> {
+    if (requester.role !== UserRole.superAdmin) {
+      const candidate =
+        await this.candidateProfileService.findCandidateByUserId(requester.id);
+
+      if (candidate.id !== candidateId) {
+        throw new ForbiddenException(
+          'Candidates can view only their own submissions.',
+        );
+      }
+    }
+    return await this.candidateProfileService.findAllCandidateSubmissionsByCandidateId(
+      candidateId,
+    );
+  }
+
   @Post('get')
-  findAllCandidates(
+  async findAllCandidates(
     @Body() profileFilterDto?: CandidateProfileFilterDto,
   ): Promise<CandidateProfileDto[]> {
-    return this.candidateProfileService.findAllCandidatesWithFilters(
+    return await this.candidateProfileService.findAllCandidatesWithFilters(
       profileFilterDto,
     );
   }
 
   @Post('new')
-  createCandidate(
+  async createCandidate(
     @Body() createCandidateDto: CreateCandidateProfileDto,
   ): Promise<CandidateProfileDto> {
-    return this.candidateProfileService.createCandidate(createCandidateDto);
+    return await this.candidateProfileService.createCandidate(
+      createCandidateDto,
+    );
   }
 
   @Roles(UserRole.candidate)
