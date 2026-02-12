@@ -202,12 +202,9 @@ export class CandidateProfileService {
   }
 
   async findCandidateByUserId(userId: string): Promise<CandidateProfile> {
-    const candidateProfile = await this.userRepository
-      .findOne({
-        where: { id: userId },
-        relations: ['candidateProfile'],
-      })
-      .then((user) => user?.candidateProfile);
+    const candidateProfile = await this.candidateProfileRepository.findOne({
+      where: { userId },
+    });
 
     if (!candidateProfile) {
       throw new HttpException(
