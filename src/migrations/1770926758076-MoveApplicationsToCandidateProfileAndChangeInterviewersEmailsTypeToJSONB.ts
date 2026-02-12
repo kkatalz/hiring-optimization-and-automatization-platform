@@ -1,9 +1,9 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class MoveApplicationsToCandidateProfile1770825573937
+export class MoveApplicationsToCandidateProfile1770926758076
   implements MigrationInterface
 {
-  name = 'MoveApplicationsToCandidateProfile1770825573937';
+  name = 'MoveApplicationsToCandidateProfile1770926758076';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(

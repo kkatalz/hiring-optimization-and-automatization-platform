@@ -27,6 +27,9 @@ export class CandidateProfile {
   @Column({ type: 'jsonb', nullable: false })
   languages: LanguageProficiency[];
 
+  @Column({ name: 'user_id', type: 'uuid', nullable: false })
+  userId?: string;
+
   @OneToOne(() => User, (user) => user.candidateProfile)
   @JoinColumn({ name: 'user_id' })
   user: User;
