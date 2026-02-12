@@ -31,7 +31,7 @@ export class Interview {
   tenantId: string;
 
   @Column({
-    type: 'text',
+    type: 'jsonb',
     default: [],
     nullable: true,
   })
