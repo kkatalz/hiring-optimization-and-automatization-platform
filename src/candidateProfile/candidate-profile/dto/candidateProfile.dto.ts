@@ -1,4 +1,4 @@
-import { VacancySubmission } from 'src/entities/vacancySubmission';
+import { VacancySubmission } from '../../../entities/vacancySubmission';
 import { LanguageProficiency } from '../../../entities/hiring.enum';
 import { UserRole } from '../../../entities/role.enum';
 
