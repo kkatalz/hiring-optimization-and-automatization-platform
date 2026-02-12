@@ -30,8 +30,9 @@ import { VacancySubmissionStatus } from '../entities/statuses.enum';
 import { CandidateProfile } from '../entities/candidateProfile';
 import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfiles';
 import { Repository } from 'typeorm';
+import { CandidateProfileService } from '../candidateProfile/candidate-profile/candidateProfile.service';
 
-describe.only('VacancySubmissionService', () => {
+describe('VacancySubmissionService', () => {
   let service: VacancySubmissionService;
   let vacancyRepository: Repository<Vacancy>;
 
@@ -52,6 +53,7 @@ describe.only('VacancySubmissionService', () => {
         VacancySubmissionService,
         VacancyService,
         UserService,
+        CandidateProfileService,
         TenantService,
         AuthService,
       ],
@@ -101,7 +103,9 @@ describe.only('VacancySubmissionService', () => {
         EXPECTED_VACANCY_SUBMISSIONS_NUM + 1,
       );
 
-      expect(vacancySubmissionResult.candidateId).to.equal(candidate.id);
+      expect(vacancySubmissionResult.candidateId).to.equal(
+        '11111111-1111-1111-1111-111111111111',
+      );
       expect(vacancySubmissionResult.vacancyId).to.deep.equal(
         zooKeperVacancyID,
       );

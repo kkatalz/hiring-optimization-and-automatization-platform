@@ -16,6 +16,7 @@ import { testTenants } from '../../test/fixtures/testTenants';
 import { testUsers } from '../../test/fixtures/testUsers';
 import { testVacancies } from '../../test/fixtures/testVacancies';
 import { testVacancySubmissions } from '../../test/fixtures/testVacancySubmissions';
+import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfiles';
 
 describe('InterviewService', () => {
   let service: InterviewService;
@@ -35,6 +36,7 @@ describe('InterviewService', () => {
     await loadDatabase({
       Tenant: testTenants,
       User: testUsers,
+      CandidateProfile: testCandidatesProfiles,
       Vacancy: testVacancies,
       VacancySubmission: testVacancySubmissions,
       Interview: testInterviews,
