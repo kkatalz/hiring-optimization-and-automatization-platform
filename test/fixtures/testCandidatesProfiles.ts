@@ -1,6 +1,7 @@
 import { testUsers } from './testUsers';
 import { LanguageLevel } from '../../src/entities/hiring.enum';
-import { CandidateProfile } from 'src/entities/candidateProfile';
+import { CandidateProfile } from '../../src/entities/candidateProfile';
+import { submissionSeeds } from './shared/submissionSeeds';
 
 export const testCandidatesProfiles: CandidateProfile[] = [
   {
@@ -10,6 +11,7 @@ export const testCandidatesProfiles: CandidateProfile[] = [
     city: 'New York',
     languages: [{ code: 'en', level: LanguageLevel.NATIVE }],
     user: testUsers[5],
+    submissions: [],
   },
   {
     id: '22222222-2222-2222-2222-222222222222',
@@ -22,6 +24,7 @@ export const testCandidatesProfiles: CandidateProfile[] = [
       { code: 'de', level: LanguageLevel.B1 },
     ],
     user: testUsers[6],
+    submissions: [submissionSeeds[0]],
   },
 ];
 
