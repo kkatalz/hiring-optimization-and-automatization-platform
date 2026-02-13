@@ -1,5 +1,6 @@
 import { VacancySubmission } from '../../entities/vacancySubmission';
 import { VacancySubmissionDto } from '../../vacancySubmission/dto/vacancySubmission.dto';
+import { candidateToCandidateProfileDto } from '../../candidateProfile/candidate-profile/map/candidate.map';
 
 export const vacancySubmToVacancySubmDto = ({
   id,
@@ -9,6 +10,7 @@ export const vacancySubmToVacancySubmDto = ({
   candidateId,
   status,
   tags,
+  candidateProfile,
 }: VacancySubmission): VacancySubmissionDto => {
   return {
     id,
@@ -18,5 +20,8 @@ export const vacancySubmToVacancySubmDto = ({
     candidateId,
     status,
     tags,
+    candidateProfile: candidateProfile
+      ? candidateToCandidateProfileDto(candidateProfile)
+      : undefined,
   };
 };
