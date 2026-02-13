@@ -165,6 +165,7 @@ export class CandidateProfileService {
   async findCandidateByUserId(userId: string): Promise<CandidateProfile> {
     const candidateProfile = await this.candidateProfileRepository.findOne({
       where: { userId },
+      relations: ['user'],
     });
 
     if (!candidateProfile) {
