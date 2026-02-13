@@ -16,7 +16,7 @@ import { CandidateProfileService } from './candidateProfile.service';
 import { CandidateProfileDto } from './dto/candidateProfile.dto';
 import { CreateCandidateProfileDto } from './dto/createCandidateProfile.dto';
 import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
-import { CandidateProfileFilterDto } from './dto/candidateProfileFilter.dto';
+import { RecruitingFilterDto } from '../../recruiting/recruitingFilter.dto';
 
 @Controller('candidatesProfiles')
 export class CandidateProfileController {
@@ -47,7 +47,7 @@ export class CandidateProfileController {
 
   @Post('get')
   async findAllCandidates(
-    @Body() profileFilterDto?: CandidateProfileFilterDto,
+    @Body() profileFilterDto?: RecruitingFilterDto,
   ): Promise<CandidateProfileDto[]> {
     return await this.candidateProfileService.findAllCandidatesWithFilters(
       profileFilterDto,

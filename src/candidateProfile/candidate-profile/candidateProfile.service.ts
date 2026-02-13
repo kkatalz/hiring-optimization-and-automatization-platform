@@ -10,11 +10,11 @@ import { CreateCandidateProfileDto } from './dto/createCandidateProfile.dto';
 import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
 import { candidateToCandidateProfileDto } from './map/candidate.map';
 import { UserService } from '../../user/user.service';
-import { CandidateProfileFilterDto } from '../../candidateProfile/candidate-profile/dto/candidateProfileFilter.dto';
+import { RecruitingFilterDto } from '../../recruiting/recruitingFilter.dto';
 import {
-  LanguageLevelRank,
-  LanguageProficiency,
-} from '../../entities/hiring.enum';
+  filterByExperienceountriesCities,
+  filterByLanguages,
+} from '../../utils/filterSubmissionsAndCandidateProfiles';
 
 @Injectable()
 export class CandidateProfileService {
@@ -48,7 +48,7 @@ export class CandidateProfileService {
   }
 
   async findAllCandidatesWithFilters(
-    profileFilterDto?: CandidateProfileFilterDto,
+    profileFilterDto?: RecruitingFilterDto,
   ): Promise<CandidateProfileDto[]> {
     let candidates = await this.candidateProfileRepository.find({
       relations: ['user'],
@@ -59,54 +59,15 @@ export class CandidateProfileService {
         .createQueryBuilder('candidateProfile')
         .leftJoinAndSelect('candidateProfile.user', 'user');
 
-      if (profileFilterDto?.minYearsOfExperience) {
-        query.andWhere(
-          'candidateProfile.years_of_experience >= :minYearsOfExperience',
-          {
-            minYearsOfExperience: profileFilterDto.minYearsOfExperience,
-          },
-        );
-      }
+      const filteredQuery =
+        filterByExperienceountriesCities(query, profileFilterDto) ?? query;
 
-      if (profileFilterDto?.maxYearsOfExperience) {
-        query.andWhere(
-          'candidateProfile.years_of_experience <= :maxYearsOfExperience',
-          {
-            maxYearsOfExperience: profileFilterDto.maxYearsOfExperience,
-          },
-        );
-      }
+      candidates = await filteredQuery.getMany();
 
-      if (
-        profileFilterDto?.countries &&
-        profileFilterDto.countries.length > 0
-      ) {
-        query.andWhere('candidateProfile.country = ANY(:countries)', {
-          countries: profileFilterDto.countries,
-        });
-      }
-
-      if (profileFilterDto?.cities && profileFilterDto.cities.length > 0) {
-        query.andWhere('candidateProfile.city = ANY(:cities)', {
-          cities: profileFilterDto.cities,
-        });
-      }
-      candidates = await query.getMany();
-
-      /** three scenarios for language filtering:
-       *1) when code and level are provided, return candidates that have this specific code and level equal or higher than provided
-       *2) when only code is provided, return candidates that have this specific code at any level
-       *3) when only level is provided, return candidates that have any language at level equal or higher than provided
-       **/
-
-      if (profileFilterDto?.languages?.length) {
-        candidates = candidates.filter((c) =>
-          profileFilterDto?.languages?.some((requiredLang) =>
-            this.meetsLanguageRequirement(c.languages, requiredLang),
-          ),
-        );
-      }
+      candidates =
+        filterByLanguages(candidates, profileFilterDto) ?? candidates;
     }
+
     return candidates.map((candidate) =>
       candidateToCandidateProfileDto(candidate),
     );
@@ -229,26 +190,5 @@ export class CandidateProfileService {
       );
     }
     return candidateProfile;
-  }
-
-  private meetsLanguageRequirement(
-    candidateLangs: LanguageProficiency[],
-    required: LanguageProficiency,
-  ): boolean {
-    return candidateLangs.some((cl) => {
-      if (required.code && cl.code !== required.code) return false;
-
-      if (required.level) {
-        if (!cl.level) return false;
-
-        if (
-          LanguageLevelRank.indexOf(cl.level) <
-          LanguageLevelRank.indexOf(required.level)
-        )
-          return false;
-      }
-
-      return true;
-    });
   }
 }
