@@ -15,6 +15,7 @@ import { vacancySubmToVacancySubmDto } from './map/vacancySubmission.map';
 import { Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { VacancySubmissionStatus } from '../entities/statuses.enum';
+import { CandidateProfileService } from '../candidateProfile/candidate-profile/candidateProfile.service';
 
 @Injectable()
 export class VacancySubmissionService {
@@ -25,13 +26,17 @@ export class VacancySubmissionService {
     private readonly vacancyService: VacancyService,
 
     private readonly userService: UserService,
+
+    private readonly profileService: CandidateProfileService,
   ) {}
 
   async create(
     createVacancySubmissionDto: CreateVacancySubmissionDto,
     vacancyId: string,
-    candidate: UserDto,
+    user: UserDto,
   ): Promise<VacancySubmissionDto> {
+    const candidate = await this.profileService.findCandidateByUserId(user.id);
+
     const vacancy = await this.vacancyService.findVacancyById(vacancyId);
 
     // Validate that Submission has only allowed tags in Vacancy
@@ -55,7 +60,7 @@ export class VacancySubmissionService {
       tenantId: vacancy.tenantId,
       candidateId: candidate.id,
       vacancy: vacancy,
-      candidate: candidate,
+      candidateProfile: candidate,
     });
 
     const savedVacancySubmission =

@@ -1,4 +1,3 @@
-import { User } from './user';
 import { Vacancy } from './vacancy';
 import {
   Column,
@@ -10,6 +9,7 @@ import {
 } from 'typeorm';
 import { VacancySubmissionStatus } from './statuses.enum';
 import { Interview } from './interview';
+import { CandidateProfile } from './candidateProfile';
 
 @Entity({ name: 'vacancy_submissions' })
 export class VacancySubmission {
@@ -42,14 +42,14 @@ export class VacancySubmission {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'vacancy_id' })
-  vacancy: Vacancy;
+  vacancy?: Vacancy;
 
-  @ManyToOne(() => User, (candidate) => candidate.applications, {
+  @ManyToOne(() => CandidateProfile, (profile) => profile.submissions, {
     nullable: false,
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'candidate_id' })
-  candidate: User;
+  candidateProfile?: CandidateProfile;
 
   @OneToMany(() => Interview, (interview) => interview.submission)
   interviews?: Interview[];

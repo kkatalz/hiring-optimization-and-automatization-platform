@@ -23,6 +23,7 @@ import { Repository } from 'typeorm';
 import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
 import { nonExistentUUIDId } from '../../test/utils';
 import { UserModule } from '../user/user.module';
+import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfiles';
 
 describe('VacancyService', () => {
   let service: VacancyService;
@@ -47,6 +48,7 @@ describe('VacancyService', () => {
     await loadDatabase({
       Tenant: testTenants,
       User: testUsers,
+      CandidateProfile: testCandidatesProfiles,
       Vacancy: testVacancies,
       VacancySubmission: testVacancySubmissions,
     });
@@ -69,7 +71,7 @@ describe('VacancyService', () => {
     it('should find all vacancies with submissions for SuperAdmin', async () => {
       const superAdmin = testUsers[4];
 
-      const vacanciesWithSubmissionsResult =
+      const vacanciesWithSubmissionsResult: VacancyDto[] =
         await service.findVacanciesWithSubmissions(superAdmin.id);
 
       expect(vacanciesWithSubmissionsResult.length).to.equal(
@@ -79,7 +81,7 @@ describe('VacancyService', () => {
     it('should find all vacancies with submissions for recruiter only within their tenant', async () => {
       const recruiter = testUsers[1];
 
-      const vacanciesWithSubmissionsResult =
+      const vacanciesWithSubmissionsResult: VacancyDto[] =
         await service.findVacanciesWithSubmissions(recruiter.id);
 
       expect(vacanciesWithSubmissionsResult.length).to.equal(
@@ -93,7 +95,7 @@ describe('VacancyService', () => {
     it('should find all vacancies with submissions for admin only within their tenant', async () => {
       const admin = testUsers[0];
 
-      const vacanciesWithSubmissionsResult =
+      const vacanciesWithSubmissionsResult: VacancyDto[] =
         await service.findVacanciesWithSubmissions(admin.id);
 
       expect(vacanciesWithSubmissionsResult.length).to.equal(

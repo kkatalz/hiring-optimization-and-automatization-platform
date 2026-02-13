@@ -22,13 +22,15 @@ import { AuthModule } from '../../auth/auth.module';
 import { CandidateProfile } from '../../entities/candidateProfile';
 import { LanguageLevel, LanguageLevelRank } from '../../entities/hiring.enum';
 import { UserRole } from '../../entities/role.enum';
-import { Tenant } from '../../entities/tenant';
 import { User } from '../../entities/user';
 import { UserService } from '../../user/user.service';
 import { CandidateProfileService } from './candidateProfile.service';
 import { CandidateProfileDto } from './dto/candidateProfile.dto';
 import { CreateCandidateProfileDto } from './dto/createCandidateProfile.dto';
 import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
+import { testVacancies } from '../../../test/fixtures/testVacancies';
+import { testVacancySubmissions } from '../../../test/fixtures/testVacancySubmissions';
+import { Tenant } from '../../entities/tenant';
 
 describe('CandidateProfileService', () => {
   let candidateProfileService: CandidateProfileService;
@@ -55,6 +57,8 @@ describe('CandidateProfileService', () => {
       Tenant: testTenants,
       User: testUsers,
       CandidateProfile: testCandidatesProfiles,
+      Vacancy: testVacancies,
+      VacancySubmission: testVacancySubmissions,
     });
 
     afterEach(async () => {
@@ -65,6 +69,31 @@ describe('CandidateProfileService', () => {
 
   it('should be defined', () => {
     expect(!!candidateProfileService).to.deep.equal(true);
+  });
+
+  describe('find all candidate submissions by candidate id', () => {
+    it('should find all candidate submissions by candidate id', async () => {
+      const candidateSubmissions: CandidateProfileDto =
+        await candidateProfileService.findAllCandidateSubmissionsByCandidateId(
+          testCandidatesProfiles[1].id,
+        );
+
+      expect(candidateSubmissions).to.not.be.undefined;
+      expect(candidateSubmissions?.submissions?.length).to.equal(1);
+    });
+
+    it('should throw error if candidate profile with given id not found', async () => {
+      try {
+        await candidateProfileService.findAllCandidateSubmissionsByCandidateId(
+          nonExistentUUIDId,
+        );
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal(
+          'Candidate profile with given ID not found.',
+        );
+      }
+    });
   });
 
   describe('create candidate', () => {
@@ -246,5 +275,26 @@ describe('CandidateProfileService', () => {
       });
 
     expect(result.length).to.equal(2);
+  });
+
+  describe('find candidate profile by user id', () => {
+    it('should find candidate profile by user id', async () => {
+      const candidateProfile: CandidateProfile =
+        await candidateProfileService.findCandidateByUserId(testUsers[5].id);
+
+      expect(candidateProfile).to.not.be.undefined;
+      expect(candidateProfile.id).to.equal(testCandidatesProfiles[0].id);
+    });
+
+    it('should throw error if candidate profile with given user id not found', async () => {
+      try {
+        await candidateProfileService.findCandidateByUserId(nonExistentUUIDId);
+      } catch (error) {
+        expect(error.message).to.equal(
+          'Candidate profile with given user ID not found.',
+        );
+        expect(error.status).to.equal(404);
+      }
+    });
   });
 });

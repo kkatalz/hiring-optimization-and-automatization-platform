@@ -26,12 +26,12 @@ export class VacancySubmissionController {
   async create(
     @Body() createVacancySubmissionDto: CreateVacancySubmissionDto,
     @Param('vacancyId') vacancyId: string,
-    @AuthUser() candidate: UserDto,
+    @AuthUser() user: UserDto,
   ): Promise<VacancySubmissionDto> {
     return await this.vacancySubmissionService.create(
       createVacancySubmissionDto,
       vacancyId,
-      candidate,
+      user,
     );
   }
 
