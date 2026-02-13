@@ -1,42 +1,42 @@
-import { CandidateProfile } from 'src/entities/candidateProfile';
+import { CandidateProfile } from '../entities/candidateProfile';
 import {
   LanguageLevelRank,
   LanguageProficiency,
-} from 'src/entities/hiring.enum';
-import { RecruitingFilterDto } from 'src/recruiting/recruitingFilter.dto';
+} from '../entities/hiring.enum';
+import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
 import { SelectQueryBuilder } from 'typeorm';
 
 export const filterByExperienceountriesCities = (
   query: SelectQueryBuilder<any>,
-  profileFilterDto: RecruitingFilterDto,
+  filterDto: RecruitingFilterDto,
 ) => {
-  if (profileFilterDto?.minYearsOfExperience) {
+  if (filterDto?.minYearsOfExperience) {
     query.andWhere(
       'candidateProfile.years_of_experience >= :minYearsOfExperience',
       {
-        minYearsOfExperience: profileFilterDto.minYearsOfExperience,
+        minYearsOfExperience: filterDto.minYearsOfExperience,
       },
     );
   }
 
-  if (profileFilterDto?.maxYearsOfExperience) {
+  if (filterDto?.maxYearsOfExperience) {
     query.andWhere(
       'candidateProfile.years_of_experience <= :maxYearsOfExperience',
       {
-        maxYearsOfExperience: profileFilterDto.maxYearsOfExperience,
+        maxYearsOfExperience: filterDto.maxYearsOfExperience,
       },
     );
   }
 
-  if (profileFilterDto?.countries && profileFilterDto.countries.length > 0) {
+  if (filterDto?.countries && filterDto.countries.length > 0) {
     query.andWhere('candidateProfile.country = ANY(:countries)', {
-      countries: profileFilterDto.countries,
+      countries: filterDto.countries,
     });
   }
 
-  if (profileFilterDto?.cities && profileFilterDto.cities.length > 0) {
+  if (filterDto?.cities && filterDto.cities.length > 0) {
     query.andWhere('candidateProfile.city = ANY(:cities)', {
-      cities: profileFilterDto.cities,
+      cities: filterDto.cities,
     });
   }
 
@@ -45,18 +45,18 @@ export const filterByExperienceountriesCities = (
 
 export const filterByLanguages = (
   candidates: CandidateProfile[],
-  profileFilterDto: RecruitingFilterDto,
+  filterDto: RecruitingFilterDto,
 ) => {
-  if (profileFilterDto?.languages?.length) {
+  if (filterDto?.languages?.length) {
     return candidates.filter((c) =>
-      profileFilterDto?.languages?.some((requiredLang) =>
+      filterDto?.languages?.some((requiredLang) =>
         meetsLanguageRequirement(c.languages, requiredLang),
       ),
     );
   }
 };
 
-const meetsLanguageRequirement = (
+export const meetsLanguageRequirement = (
   candidateLangs: LanguageProficiency[],
   required: LanguageProficiency,
 ): boolean => {
