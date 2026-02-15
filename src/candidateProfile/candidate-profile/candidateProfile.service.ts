@@ -49,23 +49,26 @@ export class CandidateProfileService {
 
   async findAllCandidatesWithFilters(
     profileFilterDto?: RecruitingFilterDto,
+    tenantId?: string,
   ): Promise<CandidateProfileDto[]> {
-    let candidates = await this.candidateProfileRepository.find({
-      relations: ['user'],
-    });
+    const query = this.candidateProfileRepository
+      .createQueryBuilder('candidateProfile')
+      .leftJoinAndSelect('candidateProfile.user', 'user');
+
+    if (tenantId) {
+      query
+        .innerJoin('candidateProfile.submissions', 'submission')
+        .andWhere('submission.tenant_id = :tenantId', { tenantId });
+    }
 
     if (profileFilterDto) {
-      const query = this.candidateProfileRepository
-        .createQueryBuilder('candidateProfile')
-        .leftJoinAndSelect('candidateProfile.user', 'user');
+      filterByExperienceCountriesCities(query, profileFilterDto);
+    }
 
-      const filteredQuery =
-        filterByExperienceCountriesCities(query, profileFilterDto) ?? query;
+    let candidates = await query.getMany();
 
-      candidates = await filteredQuery.getMany();
-
-      candidates =
-        filterByLanguages(candidates, profileFilterDto) ?? candidates;
+    if (profileFilterDto) {
+      candidates = filterByLanguages(candidates, profileFilterDto);
     }
 
     return candidates.map((candidate) =>

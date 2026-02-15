@@ -188,8 +188,8 @@ describe('CandidateProfileService', () => {
     });
   });
 
-  describe('find all candidates with filters', () => {
-    it('should find all candidates profiles without filters', async () => {
+  describe('find all candidates with filters within tenantId (if provided)', () => {
+    it('should find all candidates profiles without filters and without tenantId', async () => {
       const result =
         await candidateProfileService.findAllCandidatesWithFilters();
 
@@ -232,7 +232,7 @@ describe('CandidateProfileService', () => {
     it('should find all candidates profiles for given two filters: languageCodes and level higher than minLanguageLevel', async () => {
       const minLanguageLevel = LanguageLevel.C1;
       const minLanguageLevelIndex = LanguageLevelRank.indexOf(minLanguageLevel);
-      // update first cnadidate to have language level that lower than minLanguageLevel (C1) and language code 'en'
+      // update first candidate to have language level that lower than minLanguageLevel (C1) and language code 'en'
       await candidateProfileService.updateCandidate(testUsers[5].id, {
         languages: [{ code: 'en', level: LanguageLevel.B2 }],
       });
@@ -275,6 +275,21 @@ describe('CandidateProfileService', () => {
       });
 
     expect(result.length).to.equal(2);
+  });
+
+  it('should find all candidates profiles with filter: country and language code (knows language with given code at any level) WITHIN tenantId', async () => {
+    const tenantId = testTenants[0].id;
+
+    const result: CandidateProfileDto[] =
+      await candidateProfileService.findAllCandidatesWithFilters(
+        {
+          countries: ['Ukraine'],
+          languages: [{ code: 'en' }],
+        },
+        tenantId,
+      );
+
+    expect(result.length).to.equal(1);
   });
 
   describe('find candidate profile by user id', () => {
