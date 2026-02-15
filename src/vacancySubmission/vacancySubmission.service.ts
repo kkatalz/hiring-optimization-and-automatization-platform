@@ -44,13 +44,13 @@ export class VacancySubmissionService {
 
     // Allow to create submission only if candidate hasn't already applied
     const candidateAlreadyApplied =
-      await this.vacancySubmissionRepository.findOne({
+      await this.vacancySubmissionRepository.count({
         where: {
           vacancyId,
           candidateId: candidate.id,
         },
       });
-    if (candidateAlreadyApplied) {
+    if (candidateAlreadyApplied > 0) {
       throw new BadRequestException(
         'You have already applied to this vacancy.',
       );
@@ -105,36 +105,37 @@ export class VacancySubmissionService {
     vacancyId: string,
     filterSubmissionsDto?: RecruitingFilterDto,
   ): Promise<VacancySubmissionDto[]> {
-    let submissions = await this.vacancySubmissionRepository.find({
-      where: { vacancyId },
-      relations: ['candidateProfile', 'candidateProfile.user'],
-    });
+    if (!filterSubmissionsDto) {
+      const submissions = await this.vacancySubmissionRepository.find({
+        where: { vacancyId },
+        relations: ['candidateProfile', 'candidateProfile.user'],
+      });
+      return submissions.map(vacancySubmToVacancySubmDto);
+    }
 
-    if (filterSubmissionsDto) {
-      const query = this.vacancySubmissionRepository
-        .createQueryBuilder('submission')
-        .leftJoinAndSelect('submission.vacancy', 'vacancy')
-        .leftJoinAndSelect('submission.candidateProfile', 'candidateProfile')
-        .leftJoinAndSelect('candidateProfile.user', 'user')
-        .where('submission.vacancy_id = :vacancyId', { vacancyId });
+    const query = this.vacancySubmissionRepository
+      .createQueryBuilder('submission')
+      .leftJoinAndSelect('submission.vacancy', 'vacancy')
+      .leftJoinAndSelect('submission.candidateProfile', 'candidateProfile')
+      .leftJoinAndSelect('candidateProfile.user', 'user')
+      .where('submission.vacancy_id = :vacancyId', { vacancyId });
 
-      const filteredQuery = filterByExperienceCountriesCities(
-        query,
-        filterSubmissionsDto,
-      );
+    const filteredQuery = filterByExperienceCountriesCities(
+      query,
+      filterSubmissionsDto,
+    );
 
-      submissions = await filteredQuery.getMany();
+    let submissions = await filteredQuery.getMany();
 
-      // Filter by languages — filter submissions based on their candidate's languages
-      if (filterSubmissionsDto.languages?.length) {
-        submissions = submissions.filter((s) => {
-          if (!s.candidateProfile) return false;
-          const { languages } = s.candidateProfile;
-          return filterSubmissionsDto.languages!.some((requiredLang) =>
-            meetsLanguageRequirement(languages, requiredLang),
-          );
-        });
-      }
+    // Filter by languages — filter submissions based on their candidate's languages
+    if (filterSubmissionsDto.languages?.length) {
+      submissions = submissions.filter((s) => {
+        if (!s.candidateProfile) return false;
+        const { languages } = s.candidateProfile;
+        return filterSubmissionsDto.languages!.some((requiredLang) =>
+          meetsLanguageRequirement(languages, requiredLang),
+        );
+      });
     }
 
     return submissions.map(vacancySubmToVacancySubmDto);

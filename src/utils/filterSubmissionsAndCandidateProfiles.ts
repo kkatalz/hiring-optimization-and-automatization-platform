@@ -47,13 +47,13 @@ export const filterByLanguages = (
   candidates: CandidateProfile[],
   filterDto: RecruitingFilterDto,
 ) => {
-  if (filterDto?.languages?.length) {
-    return candidates.filter((c) =>
-      filterDto?.languages?.some((requiredLang) =>
-        meetsLanguageRequirement(c.languages, requiredLang),
-      ),
-    );
-  }
+  if (!filterDto?.languages?.length) return candidates;
+
+  return candidates.filter((c) =>
+    filterDto?.languages?.some((requiredLang) =>
+      meetsLanguageRequirement(c.languages, requiredLang),
+    ),
+  );
 };
 
 export const meetsLanguageRequirement = (
