@@ -6,7 +6,7 @@ import {
 import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
 import { SelectQueryBuilder } from 'typeorm';
 
-export const filterByExperienceountriesCities = (
+export const filterByExperienceCountriesCities = (
   query: SelectQueryBuilder<any>,
   filterDto: RecruitingFilterDto,
 ) => {

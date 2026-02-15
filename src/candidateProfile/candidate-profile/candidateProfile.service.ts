@@ -12,7 +12,7 @@ import { candidateToCandidateProfileDto } from './map/candidate.map';
 import { UserService } from '../../user/user.service';
 import { RecruitingFilterDto } from '../../recruiting/recruitingFilter.dto';
 import {
-  filterByExperienceountriesCities,
+  filterByExperienceCountriesCities,
   filterByLanguages,
 } from '../../utils/filterSubmissionsAndCandidateProfiles';
 
@@ -60,7 +60,7 @@ export class CandidateProfileService {
         .leftJoinAndSelect('candidateProfile.user', 'user');
 
       const filteredQuery =
-        filterByExperienceountriesCities(query, profileFilterDto) ?? query;
+        filterByExperienceCountriesCities(query, profileFilterDto) ?? query;
 
       candidates = await filteredQuery.getMany();
 

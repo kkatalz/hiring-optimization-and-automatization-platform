@@ -16,7 +16,7 @@ import { VacancySubmissionStatus } from '../entities/statuses.enum';
 import { CandidateProfileService } from '../candidateProfile/candidate-profile/candidateProfile.service';
 import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
 import {
-  filterByExperienceountriesCities,
+  filterByExperienceCountriesCities,
   meetsLanguageRequirement,
 } from '../utils/filterSubmissionsAndCandidateProfiles';
 
@@ -118,7 +118,7 @@ export class VacancySubmissionService {
         .leftJoinAndSelect('candidateProfile.user', 'user')
         .where('submission.vacancy_id = :vacancyId', { vacancyId });
 
-      const filteredQuery = filterByExperienceountriesCities(
+      const filteredQuery = filterByExperienceCountriesCities(
         query,
         filterSubmissionsDto,
       );
