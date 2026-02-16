@@ -6,10 +6,10 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import { LanguageProficiency } from '../../../entities/hiring.enum';
+import { LanguageProficiency } from '../entities/hiring.enum';
 import { Type } from 'class-transformer';
 
-export class CandidateProfileFilterDto {
+export class RecruitingFilterDto {
   @IsNumber()
   @IsOptional()
   @Min(0)

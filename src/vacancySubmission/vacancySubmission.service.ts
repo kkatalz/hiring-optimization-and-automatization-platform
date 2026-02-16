@@ -5,9 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserRole } from '../entities/role.enum';
 import { VacancySubmission } from '../entities/vacancySubmission';
-import { UserDto } from '../user/dto/user.dto';
 import { VacancyService } from '../vacancy/vacancy.service';
 import { CreateVacancySubmissionDto } from './dto/createVacancySubmission.dto';
 import { VacancySubmissionDto } from './dto/vacancySubmission.dto';
@@ -16,6 +14,11 @@ import { Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { VacancySubmissionStatus } from '../entities/statuses.enum';
 import { CandidateProfileService } from '../candidateProfile/candidate-profile/candidateProfile.service';
+import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
+import {
+  filterByExperienceCountriesCities,
+  meetsLanguageRequirement,
+} from '../utils/filterSubmissionsAndCandidateProfiles';
 
 @Injectable()
 export class VacancySubmissionService {
@@ -33,11 +36,25 @@ export class VacancySubmissionService {
   async create(
     createVacancySubmissionDto: CreateVacancySubmissionDto,
     vacancyId: string,
-    user: UserDto,
+    userId: string,
   ): Promise<VacancySubmissionDto> {
-    const candidate = await this.profileService.findCandidateByUserId(user.id);
+    const candidate = await this.profileService.findCandidateByUserId(userId);
 
     const vacancy = await this.vacancyService.findVacancyById(vacancyId);
+
+    // Allow to create submission only if candidate hasn't already applied
+    const candidateAlreadyApplied =
+      await this.vacancySubmissionRepository.count({
+        where: {
+          vacancyId,
+          candidateId: candidate.id,
+        },
+      });
+    if (candidateAlreadyApplied > 0) {
+      throw new BadRequestException(
+        'You have already applied to this vacancy.',
+      );
+    }
 
     // Validate that Submission has only allowed tags in Vacancy
     if (createVacancySubmissionDto.tags) {
@@ -84,32 +101,49 @@ export class VacancySubmissionService {
     return submission.tenantId;
   }
 
-  async findAll(viewerId: string): Promise<VacancySubmissionDto[]> {
-    const viewer = await this.userService.findById(viewerId);
-
-    if (viewer.role === UserRole.superAdmin) {
-      const vacancySubmissions = await this.vacancySubmissionRepository.find();
-
-      return vacancySubmissions.map(vacancySubmToVacancySubmDto);
-    } else if (
-      viewer.role === UserRole.admin ||
-      viewer.role === UserRole.recruiter
-    ) {
-      const vacancySubmissions = await this.vacancySubmissionRepository.find({
-        where: {
-          vacancy: {
-            tenantId: viewer.tenantId,
-          },
-        },
+  async findAllSubmissionsWithinVacancyWithFilters(
+    vacancyId: string,
+    filterSubmissionsDto?: RecruitingFilterDto,
+  ): Promise<VacancySubmissionDto[]> {
+    if (!filterSubmissionsDto) {
+      const submissions = await this.vacancySubmissionRepository.find({
+        where: { vacancyId },
+        relations: ['candidateProfile', 'candidateProfile.user'],
       });
-      return vacancySubmissions.map(vacancySubmToVacancySubmDto);
+      return submissions.map(vacancySubmToVacancySubmDto);
     }
-    return [];
+
+    const query = this.vacancySubmissionRepository
+      .createQueryBuilder('submission')
+      .leftJoinAndSelect('submission.vacancy', 'vacancy')
+      .leftJoinAndSelect('submission.candidateProfile', 'candidateProfile')
+      .leftJoinAndSelect('candidateProfile.user', 'user')
+      .where('submission.vacancy_id = :vacancyId', { vacancyId });
+
+    const filteredQuery = filterByExperienceCountriesCities(
+      query,
+      filterSubmissionsDto,
+    );
+
+    let submissions = await filteredQuery.getMany();
+
+    // Filter by languages — filter submissions based on their candidate's languages
+    if (filterSubmissionsDto.languages?.length) {
+      submissions = submissions.filter((s) => {
+        if (!s.candidateProfile) return false;
+        const { languages } = s.candidateProfile;
+        return filterSubmissionsDto.languages!.some((requiredLang) =>
+          meetsLanguageRequirement(languages, requiredLang),
+        );
+      });
+    }
+
+    return submissions.map(vacancySubmToVacancySubmDto);
   }
 
   async findAllByTenantId(tenantId: string): Promise<VacancySubmissionDto[]> {
     const vacancySubmissions = await this.vacancySubmissionRepository.find({
-      where: { vacancy: { tenantId } },
+      where: { tenantId },
     });
     return vacancySubmissions.map(vacancySubmToVacancySubmDto);
   }

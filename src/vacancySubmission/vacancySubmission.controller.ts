@@ -14,11 +14,14 @@ import { CreateVacancySubmissionDto } from './dto/createVacancySubmission.dto';
 import { VacancySubmissionDto } from '../vacancySubmission/dto/vacancySubmission.dto';
 import { VacancySubmissionService } from './vacancySubmission.service';
 import { validateTenantAccess } from '../utils/validate';
+import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
+import { VacancyService } from '../vacancy/vacancy.service';
 
 @Controller('vacanciesSubmissions')
 export class VacancySubmissionController {
   constructor(
     private readonly vacancySubmissionService: VacancySubmissionService,
+    private readonly vacancyService: VacancyService,
   ) {}
 
   @Roles(UserRole.candidate)
@@ -31,7 +34,7 @@ export class VacancySubmissionController {
     return await this.vacancySubmissionService.create(
       createVacancySubmissionDto,
       vacancyId,
-      user,
+      user.id,
     );
   }
 
@@ -66,11 +69,23 @@ export class VacancySubmissionController {
     return await this.vacancySubmissionService.reject(submissionId);
   }
 
-  // Shows all submissions for superAdmin, and for admin/recruiter shows only submissions for vacancies within their tenant
+  // Shows all submissions for superAdmin, and for admin/recruiter within given vacancy
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
-  @Get()
-  async findAll(@AuthUser() viewer: UserDto): Promise<VacancySubmissionDto[]> {
-    return await this.vacancySubmissionService.findAll(viewer.id);
+  @Post('get/vacancy/:vacancyId')
+  async findAllSubmissionsWithinVacancy(
+    @AuthUser() viewer: UserDto,
+    @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
+    @Body() filterSubmissionsDto?: RecruitingFilterDto,
+  ): Promise<VacancySubmissionDto[]> {
+    const vacancyTenantId =
+      await this.vacancyService.getTenantIdByVacancyId(vacancyId);
+
+    validateTenantAccess(viewer, vacancyTenantId);
+
+    return await this.vacancySubmissionService.findAllSubmissionsWithinVacancyWithFilters(
+      vacancyId,
+      filterSubmissionsDto,
+    );
   }
 
   @Roles(UserRole.superAdmin)

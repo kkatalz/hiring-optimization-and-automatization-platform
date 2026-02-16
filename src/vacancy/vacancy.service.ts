@@ -117,4 +117,17 @@ export class VacancyService {
 
     await this.vacancyRepository.delete(vacancyId);
   }
+
+  async getTenantIdByVacancyId(vacancyId: string): Promise<string> {
+    const vacancy = await this.vacancyRepository.findOne({
+      where: { id: vacancyId },
+      select: ['tenantId'],
+    });
+
+    if (!vacancy) {
+      throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
+    }
+
+    return vacancy.tenantId;
+  }
 }

@@ -1,5 +1,6 @@
 import { IsArray, IsEnum, IsOptional, IsString } from 'class-validator';
-import { VacancySubmissionStatus } from 'src/entities/statuses.enum';
+import { CandidateProfileDto } from '../../candidateProfile/candidate-profile/dto/candidateProfile.dto';
+import { VacancySubmissionStatus } from '../../entities/statuses.enum';
 
 export class VacancySubmissionDto {
   id: string;
@@ -27,4 +28,6 @@ export class VacancySubmissionDto {
   @IsArray()
   @IsString({ each: true })
   tags?: string[];
+
+  candidateProfile?: CandidateProfileDto;
 }

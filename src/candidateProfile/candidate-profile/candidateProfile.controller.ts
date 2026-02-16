@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { AuthUser } from '../../decorators/authUser.dto';
 import { Roles } from '../../decorators/roles.decorator';
@@ -16,7 +17,8 @@ import { CandidateProfileService } from './candidateProfile.service';
 import { CandidateProfileDto } from './dto/candidateProfile.dto';
 import { CreateCandidateProfileDto } from './dto/createCandidateProfile.dto';
 import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
-import { CandidateProfileFilterDto } from './dto/candidateProfileFilter.dto';
+import { RecruitingFilterDto } from '../../recruiting/recruitingFilter.dto';
+import { validateTenantAccess } from '../../utils/validate';
 
 @Controller('candidatesProfiles')
 export class CandidateProfileController {
@@ -45,12 +47,18 @@ export class CandidateProfileController {
     );
   }
 
-  @Post('get')
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
+  @Post('get/within-tenant')
   async findAllCandidates(
-    @Body() profileFilterDto?: CandidateProfileFilterDto,
+    @AuthUser() requester: UserDto,
+    @Body() profileFilterDto?: RecruitingFilterDto,
+    @Query('tenantId') tenantId?: string,
   ): Promise<CandidateProfileDto[]> {
+    if (tenantId) validateTenantAccess(requester, tenantId);
+
     return await this.candidateProfileService.findAllCandidatesWithFilters(
       profileFilterDto,
+      tenantId,
     );
   }
 
