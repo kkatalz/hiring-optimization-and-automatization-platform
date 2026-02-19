@@ -1,6 +1,6 @@
 import { VacancySubmission } from '../../entities/vacancySubmission';
 import { VacancySubmissionDto } from '../../vacancySubmission/dto/vacancySubmission.dto';
-import { candidateToCandidateProfileDto } from '../../candidateProfile/candidate-profile/map/candidate.map';
+import { candidateToCandidateProfileDto } from '../../candidateProfile/map/candidate.map';
 
 export const vacancySubmToVacancySubmDto = ({
   id,

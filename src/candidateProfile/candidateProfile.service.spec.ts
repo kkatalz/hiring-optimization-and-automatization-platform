@@ -7,30 +7,30 @@ import {
   cleanDatabase,
   loadDatabase,
   testDatabaseConfig,
-} from '../../../test/database-setup';
+} from '../../test/database-setup';
 import {
   testCandidatesProfiles,
   TOTAL_CANDIDATES,
-} from '../../../test/fixtures/testCandidatesProfiles';
-import { testTenants } from '../../../test/fixtures/testTenants';
+} from '../../test/fixtures/testCandidatesProfiles';
+import { testTenants } from '../../test/fixtures/testTenants';
 import {
   EXPECTED_ACTIVE_USERS_NUM,
   testUsers,
-} from '../../../test/fixtures/testUsers';
-import { nonExistentUUIDId } from '../../../test/utils';
-import { AuthModule } from '../../auth/auth.module';
-import { CandidateProfile } from '../../entities/candidateProfile';
-import { LanguageLevel, LanguageLevelRank } from '../../entities/hiring.enum';
-import { UserRole } from '../../entities/role.enum';
-import { User } from '../../entities/user';
-import { UserService } from '../../user/user.service';
+} from '../../test/fixtures/testUsers';
+import { nonExistentUUIDId } from '../../test/utils';
+import { AuthModule } from '../auth/auth.module';
+import { CandidateProfile } from '../entities/candidateProfile';
+import { LanguageLevel, LanguageLevelRank } from '../entities/hiring.enum';
+import { UserRole } from '../entities/role.enum';
+import { User } from '../entities/user';
+import { UserService } from '../user/user.service';
 import { CandidateProfileService } from './candidateProfile.service';
 import { CandidateProfileDto } from './dto/candidateProfile.dto';
 import { CreateCandidateProfileDto } from './dto/createCandidateProfile.dto';
 import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
-import { testVacancies } from '../../../test/fixtures/testVacancies';
-import { testVacancySubmissions } from '../../../test/fixtures/testVacancySubmissions';
-import { Tenant } from '../../entities/tenant';
+import { testVacancies } from '../../test/fixtures/testVacancies';
+import { testVacancySubmissions } from '../../test/fixtures/testVacancySubmissions';
+import { Tenant } from '../entities/tenant';
 
 describe('CandidateProfileService', () => {
   let candidateProfileService: CandidateProfileService;

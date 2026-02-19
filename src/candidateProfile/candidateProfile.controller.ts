@@ -9,16 +9,16 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { AuthUser } from '../../decorators/authUser.dto';
-import { Roles } from '../../decorators/roles.decorator';
-import { UserRole } from '../../entities/role.enum';
-import { UserDto } from '../../user/dto/user.dto';
+import { AuthUser } from '../decorators/authUser.dto';
+import { Roles } from '../decorators/roles.decorator';
+import { UserRole } from '../entities/role.enum';
+import { UserDto } from '../user/dto/user.dto';
 import { CandidateProfileService } from './candidateProfile.service';
 import { CandidateProfileDto } from './dto/candidateProfile.dto';
 import { CreateCandidateProfileDto } from './dto/createCandidateProfile.dto';
 import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
-import { RecruitingFilterDto } from '../../recruiting/recruitingFilter.dto';
-import { validateTenantAccess } from '../../utils/validate';
+import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
+import { validateTenantAccess } from '../utils/validate';
 
 @Controller('candidatesProfiles')
 export class CandidateProfileController {

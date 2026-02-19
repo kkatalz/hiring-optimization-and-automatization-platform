@@ -5,7 +5,7 @@ import { VacancyModule } from '../vacancy/vacancy.module';
 import { VacancySubmissionController } from '../vacancySubmission/vacancySubmission.controller';
 import { VacancySubmissionService } from './vacancySubmission.service';
 import { UserModule } from '../user/user.module';
-import { CandidateProfileModule } from '../candidateProfile/candidate-profile/candidateProfile.module';
+import { CandidateProfileModule } from '../candidateProfile/candidateProfile.module';
 
 @Module({
   imports: [

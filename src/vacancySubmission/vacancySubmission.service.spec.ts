@@ -30,7 +30,7 @@ import { VacancySubmissionStatus } from '../entities/statuses.enum';
 import { CandidateProfile } from '../entities/candidateProfile';
 import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfiles';
 import { Repository } from 'typeorm';
-import { CandidateProfileService } from '../candidateProfile/candidate-profile/candidateProfile.service';
+import { CandidateProfileService } from '../candidateProfile/candidateProfile.service';
 import { LanguageLevel } from '../entities/hiring.enum';
 import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
 

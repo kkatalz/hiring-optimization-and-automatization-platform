@@ -18,7 +18,7 @@ import { RolesGuard } from 'src/guards/roles.guard';
 import { VacancyModule } from 'src/vacancy/vacancy.module';
 import { VacancySubmissionModule } from './vacancySubmission/vacancySubmission.module';
 import { InterviewModule } from 'src/interview/interview.module';
-import { CandidateProfileModule } from 'src/candidateProfile/candidate-profile/candidateProfile.module';
+import { CandidateProfileModule } from 'src/candidateProfile/candidateProfile.module';
 
 @Module({
   imports: [

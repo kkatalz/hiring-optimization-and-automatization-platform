@@ -1,5 +1,5 @@
 import { IsArray, IsEnum, IsOptional, IsString } from 'class-validator';
-import { CandidateProfileDto } from '../../candidateProfile/candidate-profile/dto/candidateProfile.dto';
+import { CandidateProfileDto } from '../../candidateProfile/dto/candidateProfile.dto';
 import { VacancySubmissionStatus } from '../../entities/statuses.enum';
 
 export class VacancySubmissionDto {

@@ -1,20 +1,20 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AuthService } from '../../auth/auth.service';
-import { CandidateProfile } from '../../entities/candidateProfile';
-import { UserRole } from '../../entities/role.enum';
-import { User } from '../../entities/user';
+import { AuthService } from '../auth/auth.service';
+import { CandidateProfile } from '../entities/candidateProfile';
+import { UserRole } from '../entities/role.enum';
+import { User } from '../entities/user';
 import { CandidateProfileDto } from './dto/candidateProfile.dto';
 import { CreateCandidateProfileDto } from './dto/createCandidateProfile.dto';
 import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
 import { candidateToCandidateProfileDto } from './map/candidate.map';
-import { UserService } from '../../user/user.service';
-import { RecruitingFilterDto } from '../../recruiting/recruitingFilter.dto';
+import { UserService } from '../user/user.service';
+import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
 import {
   filterByExperienceCountriesCities,
   filterByLanguages,
-} from '../../utils/filterSubmissionsAndCandidateProfiles';
+} from '../utils/filterSubmissionsAndCandidateProfiles';
 
 @Injectable()
 export class CandidateProfileService {

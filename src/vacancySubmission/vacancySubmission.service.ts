@@ -13,7 +13,7 @@ import { vacancySubmToVacancySubmDto } from './map/vacancySubmission.map';
 import { Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { VacancySubmissionStatus } from '../entities/statuses.enum';
-import { CandidateProfileService } from '../candidateProfile/candidate-profile/candidateProfile.service';
+import { CandidateProfileService } from '../candidateProfile/candidateProfile.service';
 import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
 import {
   filterByExperienceCountriesCities,
