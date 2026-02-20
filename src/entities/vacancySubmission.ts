@@ -1,4 +1,3 @@
-import { Vacancy } from './vacancy';
 import {
   Column,
   Entity,
@@ -7,9 +6,11 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { VacancySubmissionStatus } from './statuses.enum';
-import { Interview } from './interview';
 import { CandidateProfile } from './candidateProfile';
+import { Interview } from './interview';
+import { VacancySubmissionStatus } from './statuses.enum';
+import { SubmissionAnswer } from './submissionAnswers';
+import { Vacancy } from './vacancy';
 
 @Entity({ name: 'vacancy_submissions' })
 export class VacancySubmission {
@@ -53,4 +54,7 @@ export class VacancySubmission {
 
   @OneToMany(() => Interview, (interview) => interview.submission)
   interviews?: Interview[];
+
+  @OneToMany(() => SubmissionAnswer, (sa) => sa.submission)
+  answers?: SubmissionAnswer[];
 }

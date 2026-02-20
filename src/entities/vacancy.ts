@@ -1,6 +1,3 @@
-import { User } from './user';
-import { VacancySubmission } from './vacancySubmission';
-import { UserDto } from '../user/dto/user.dto';
 import {
   Column,
   Entity,
@@ -9,7 +6,11 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { UserDto } from '../user/dto/user.dto';
 import { LanguageProficiency, TimeCommitment } from './hiring.enum';
+import { User } from './user';
+import { VacancyQuestion } from './vacancyQuestion';
+import { VacancySubmission } from './vacancySubmission';
 
 @Entity({ name: 'vacancies' })
 export class Vacancy {
@@ -54,4 +55,7 @@ export class Vacancy {
 
   @OneToMany(() => VacancySubmission, (submission) => submission.vacancy)
   submissions?: VacancySubmission[];
+
+  @OneToMany(() => VacancyQuestion, (vq) => vq.vacancy)
+  vacancyQuestions?: VacancyQuestion[];
 }
