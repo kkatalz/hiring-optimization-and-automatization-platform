@@ -71,7 +71,7 @@ export class VacancySubmissionController {
 
   // Shows all submissions for superAdmin, and for admin/recruiter within given vacancy
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
-  @Post('get/vacancy/:vacancyId')
+  @Post('get/within/vacancy/:vacancyId/filter')
   async findAllSubmissionsWithinVacancy(
     @AuthUser() viewer: UserDto,
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
