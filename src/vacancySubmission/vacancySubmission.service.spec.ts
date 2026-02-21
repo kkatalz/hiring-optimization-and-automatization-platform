@@ -21,10 +21,13 @@ import { expect } from 'chai';
 import { VacancySubmissionDto } from './dto/vacancySubmission.dto';
 import { nonExistentUUIDId } from '../../test/utils';
 import { Vacancy } from '../entities/vacancy';
+import { VacancyQuestion } from '../entities/vacancyQuestion';
+import { Question } from '../entities/question';
 import { UserService } from '../user/user.service';
 import { User } from '../entities/user';
 import { Tenant } from '../entities/tenant';
 import { TenantService } from '../tenant/tenant.service';
+import { QuestionService } from '../question/question.service';
 import { AuthService } from '../auth/auth.service';
 import { VacancySubmissionStatus } from '../entities/statuses.enum';
 import { CandidateProfile } from '../entities/candidateProfile';
@@ -46,6 +49,8 @@ describe('VacancySubmissionService', () => {
         TypeOrmModule.forFeature([
           VacancySubmission,
           Vacancy,
+          VacancyQuestion,
+          Question,
           User,
           CandidateProfile,
           Tenant,
@@ -54,6 +59,7 @@ describe('VacancySubmissionService', () => {
       providers: [
         VacancySubmissionService,
         VacancyService,
+        QuestionService,
         UserService,
         CandidateProfileService,
         TenantService,

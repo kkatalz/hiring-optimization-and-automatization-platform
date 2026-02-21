@@ -11,7 +11,6 @@ import { CreateVacancySubmissionDto } from './dto/createVacancySubmission.dto';
 import { VacancySubmissionDto } from './dto/vacancySubmission.dto';
 import { vacancySubmToVacancySubmDto } from './map/vacancySubmission.map';
 import { Repository } from 'typeorm';
-import { UserService } from '../user/user.service';
 import { VacancySubmissionStatus } from '../entities/statuses.enum';
 import { CandidateProfileService } from '../candidateProfile/candidateProfile.service';
 import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
@@ -27,8 +26,6 @@ export class VacancySubmissionService {
     private readonly vacancySubmissionRepository: Repository<VacancySubmission>,
 
     private readonly vacancyService: VacancyService,
-
-    private readonly userService: UserService,
 
     private readonly profileService: CandidateProfileService,
   ) {}
