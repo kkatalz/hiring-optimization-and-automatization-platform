@@ -6,19 +6,24 @@ import { CreateQuestionDto } from './dto/createQuestion.dto';
 import { QuestionDto } from './dto/question.dto';
 import { UpdateQuestionDto } from './dto/updateQuestion.dto';
 import { questionToQuestionDto } from './map/question.map';
-import { QuestionType } from 'src/entities/question.enum';
+import { QuestionType } from '../entities/question.enum';
+import { TenantService } from '../tenant/tenant.service';
 
 @Injectable()
 export class QuestionService {
   constructor(
     @InjectRepository(Question)
     private readonly questionRepository: Repository<Question>,
+
+    private readonly tenantService: TenantService,
   ) {}
 
   async create(
     createQuestionDto: CreateQuestionDto,
     tenantId: string,
   ): Promise<QuestionDto> {
+    if (tenantId) await this.tenantService.findDtoById(tenantId);
+
     const newQuestion = this.questionRepository.create({
       tenantId,
       ...createQuestionDto,
@@ -30,6 +35,8 @@ export class QuestionService {
   }
 
   async findAll(tenantId?: string): Promise<QuestionDto[]> {
+    if (tenantId) await this.tenantService.findDtoById(tenantId);
+
     const questions = await this.questionRepository.find({
       where: tenantId ? { tenantId } : {},
     });
@@ -65,9 +72,11 @@ export class QuestionService {
   async remove(id: string): Promise<QuestionDto> {
     const question = await this.findById(id);
 
+    const dto = questionToQuestionDto(question);
+
     await this.questionRepository.remove(question);
 
-    return questionToQuestionDto(question);
+    return dto;
   }
 
   private async findById(id: string): Promise<Question> {
