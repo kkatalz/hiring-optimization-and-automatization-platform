@@ -34,7 +34,7 @@ export class QuestionController {
     @AuthUser() user: UserDto,
     @Query('tenantId') tenantId?: string,
   ) {
-    tenantId = this.getTenantIdForCreate(user, tenantId);
+    tenantId = this.getUsersTenantIdForCreate(user, tenantId);
 
     validateTenantAccess(user, tenantId);
 
@@ -103,7 +103,7 @@ export class QuestionController {
     return this.questionService.remove(id);
   }
 
-  private getTenantIdForCreate(
+  private getUsersTenantIdForCreate(
     user: UserDto,
     tenantId: string | undefined,
   ): string {
