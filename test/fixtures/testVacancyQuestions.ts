@@ -37,3 +37,7 @@ export const testVacancyQuestions: VacancyQuestion[] = [
     question: testQuestions[1],
   },
 ];
+
+export const EXPECTED_NUMBER_OF_VACANCIES_WITH_QUESTIONS = new Set(
+  testVacancyQuestions.map((vq) => vq.vacancyId),
+).size;
