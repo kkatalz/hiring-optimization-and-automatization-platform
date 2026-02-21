@@ -2,6 +2,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Vacancy } from '../entities/vacancy';
+import { VacancyQuestion } from '../entities/vacancyQuestion';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { VacancyDto } from '../vacancy/dto/vacancy.dto';
 import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
@@ -9,7 +10,11 @@ import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
 import { UserDto } from '../user/dto/user.dto';
 import { UserRole } from '../entities/role.enum';
 import { vacancyToVacancyDto } from '../vacancy/map/vacancy.map';
+import { VacancyQuestionDto } from '../vacancy/dto/vacancyQuestion.dto';
+import { vacancyQuestionToDto } from '../vacancy/map/vacancyQuestion.map';
 import { UserService } from '../user/user.service';
+import { QuestionService } from '../question/question.service';
+import { CreateVacancyQuestionDto } from './dto/createVacancyQuesion.dto';
 
 @Injectable()
 export class VacancyService {
@@ -17,7 +22,11 @@ export class VacancyService {
     @InjectRepository(Vacancy)
     private readonly vacancyRepository: Repository<Vacancy>,
 
+    @InjectRepository(VacancyQuestion)
+    private readonly vacancyQuestionRepository: Repository<VacancyQuestion>,
+
     private readonly userService: UserService,
+    private readonly questionService: QuestionService,
   ) {}
 
   async findAll(): Promise<VacancyDto[]> {
@@ -129,5 +138,71 @@ export class VacancyService {
     }
 
     return vacancy.tenantId;
+  }
+
+  async addQuestionToVacancy(
+    vacancyId: string,
+    questionId: string,
+    body: CreateVacancyQuestionDto,
+  ): Promise<VacancyQuestionDto> {
+    await this.findVacancyById(vacancyId);
+    await this.questionService.findDtoById(questionId);
+
+    const existing = await this.vacancyQuestionRepository.findOne({
+      where: { vacancyId, questionId },
+    });
+
+    if (existing) {
+      throw new HttpException(
+        'Question is already linked to this vacancy.',
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    const vacancyQuestion = this.vacancyQuestionRepository.create({
+      vacancyId,
+      questionId,
+      isRequired: body.isRequired,
+    });
+
+    const saved = await this.vacancyQuestionRepository.save(vacancyQuestion);
+    return vacancyQuestionToDto(saved);
+  }
+
+  async removeQuestionFromVacancy(
+    vacancyId: string,
+    questionId: string,
+  ): Promise<VacancyQuestionDto> {
+    await this.findVacancyById(vacancyId);
+    await this.questionService.findDtoById(questionId);
+
+    const existing = await this.vacancyQuestionRepository.findOne({
+      where: { vacancyId, questionId },
+    });
+
+    if (!existing) {
+      throw new HttpException(
+        'Question is not linked to this vacancy.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const dto = vacancyQuestionToDto(existing);
+    await this.vacancyQuestionRepository.remove(existing);
+
+    return dto;
+  }
+
+  async findAllVacanciesThatHaveQuestions(
+    tenantId?: string,
+  ): Promise<VacancyDto[]> {
+    const vacancies = await this.vacancyRepository
+      .createQueryBuilder('vacancy')
+      .innerJoin('vacancy.vacancyQuestions', 'vq')
+      .where(tenantId ? 'vacancy.tenantId = :tenantId' : '1=1')
+      .setParameter('tenantId', tenantId)
+      .getMany();
+
+    return vacancies.map(vacancyToVacancyDto);
   }
 }

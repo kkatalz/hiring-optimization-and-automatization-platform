@@ -1,6 +1,7 @@
 import { ConfigModule } from '@nestjs/config';
 import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
 import { Vacancy } from '../entities/vacancy';
+import { VacancyQuestion } from '../entities/vacancyQuestion';
 import { VacancyService } from '../vacancy/vacancy.service';
 import {
   cleanDatabase,
@@ -17,12 +18,18 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { testUsers } from '../../test/fixtures/testUsers';
 import { testTenants } from '../../test/fixtures/testTenants';
 import { testVacancySubmissions } from '../../test/fixtures/testVacancySubmissions';
+import { testQuestions } from '../../test/fixtures/testQuestions';
+import {
+  EXPECTED_NUMBER_OF_VACANCIES_WITH_QUESTIONS,
+  testVacancyQuestions,
+} from '../../test/fixtures/testVacancyQuestions';
 import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
 import { VacancyDto } from '../vacancy/dto/vacancy.dto';
 import { Repository } from 'typeorm';
 import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
 import { nonExistentUUIDId } from '../../test/utils';
 import { UserModule } from '../user/user.module';
+import { QuestionModule } from '../question/question.module';
 import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfiles';
 
 describe('VacancyService', () => {
@@ -34,8 +41,9 @@ describe('VacancyService', () => {
       imports: [
         ConfigModule.forRoot(),
         TypeOrmModule.forRoot(testDatabaseConfig),
-        TypeOrmModule.forFeature([Vacancy]),
+        TypeOrmModule.forFeature([Vacancy, VacancyQuestion]),
         UserModule,
+        QuestionModule,
       ],
       providers: [VacancyService],
     }).compile();
@@ -51,6 +59,8 @@ describe('VacancyService', () => {
       CandidateProfile: testCandidatesProfiles,
       Vacancy: testVacancies,
       VacancySubmission: testVacancySubmissions,
+      Question: testQuestions,
+      VacancyQuestion: testVacancyQuestions,
     });
   });
 
@@ -226,6 +236,138 @@ describe('VacancyService', () => {
         where: { id: removeVacancyId },
       });
       expect(vacancyIsNotFound).to.equal(null);
+    });
+  });
+
+  describe('addQuestionToVacancy', () => {
+    it('should link a question to a vacancy', async () => {
+      const vacancyId = testVacancies[0].id;
+      const questionId = testQuestions[1].id;
+
+      const result = await service.addQuestionToVacancy(vacancyId, questionId, {
+        isRequired: true,
+      });
+
+      expect(result.vacancyId).to.equal(vacancyId);
+      expect(result.questionId).to.equal(questionId);
+      expect(result.isRequired).to.equal(true);
+
+      const allVacanciesWithQuestions =
+        await service.findAllVacanciesThatHaveQuestions();
+
+      expect(allVacanciesWithQuestions.length).to.equal(
+        EXPECTED_NUMBER_OF_VACANCIES_WITH_QUESTIONS,
+      );
+    });
+
+    it('should throw 404 when vacancy not found', async () => {
+      try {
+        await service.addQuestionToVacancy(
+          nonExistentUUIDId,
+          testQuestions[0].id,
+          { isRequired: false },
+        );
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e: any) {
+        expect(e.response).to.equal('Vacancy is not found.');
+        expect(e.status).to.equal(404);
+      }
+    });
+
+    it('should throw 404 when question not found', async () => {
+      try {
+        await service.addQuestionToVacancy(
+          testVacancies[0].id,
+          nonExistentUUIDId,
+          { isRequired: false },
+        );
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e: any) {
+        expect(e.response).to.equal('Question not found.');
+        expect(e.status).to.equal(404);
+      }
+    });
+
+    it('should throw 409 when question is already linked', async () => {
+      const vacancyId = testVacancyQuestions[0].vacancyId;
+      const questionId = testVacancyQuestions[0].questionId;
+
+      try {
+        await service.addQuestionToVacancy(vacancyId, questionId, {
+          isRequired: true,
+        });
+        expect.fail('Should have thrown a CONFLICT error but did not');
+      } catch (e: any) {
+        expect(e.response).to.equal(
+          'Question is already linked to this vacancy.',
+        );
+        expect(e.status).to.equal(409);
+      }
+    });
+  });
+
+  describe('removeQuestionFromVacancy', () => {
+    it('should remove an existing link', async () => {
+      const vacancyId = testVacancyQuestions[0].vacancyId;
+      const questionId = testVacancyQuestions[0].questionId;
+
+      await service.removeQuestionFromVacancy(vacancyId, questionId);
+
+      const allVacanciesWithQuestions =
+        await service.findAllVacanciesThatHaveQuestions();
+
+      expect(allVacanciesWithQuestions.length).to.equal(
+        EXPECTED_NUMBER_OF_VACANCIES_WITH_QUESTIONS,
+      );
+    });
+
+    it('should throw 404 when vacancy not found', async () => {
+      try {
+        await service.removeQuestionFromVacancy(
+          nonExistentUUIDId,
+          testQuestions[0].id,
+        );
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e: any) {
+        expect(e.response).to.equal('Vacancy is not found.');
+        expect(e.status).to.equal(404);
+      }
+    });
+
+    it('should throw 404 when question not found', async () => {
+      try {
+        await service.removeQuestionFromVacancy(
+          testVacancies[0].id,
+          nonExistentUUIDId,
+        );
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e: any) {
+        expect(e.response).to.equal('Question not found.');
+        expect(e.status).to.equal(404);
+      }
+    });
+
+    it('should throw 404 when link does not exist', async () => {
+      const vacancyId = testVacancies[0].id;
+      const questionId = testQuestions[3].id;
+
+      try {
+        await service.removeQuestionFromVacancy(vacancyId, questionId);
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e: any) {
+        expect(e.response).to.equal('Question is not linked to this vacancy.');
+        expect(e.status).to.equal(404);
+      }
+    });
+  });
+
+  describe('findAllVacanciesThatHaveQuestions', () => {
+    it('should find all vacancies that have questions linked', async () => {
+      const result = await service.findAllVacanciesThatHaveQuestions();
+
+      expect(result.length).to.equal(
+        EXPECTED_NUMBER_OF_VACANCIES_WITH_QUESTIONS,
+      );
     });
   });
 });
