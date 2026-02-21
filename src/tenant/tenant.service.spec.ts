@@ -8,7 +8,10 @@ import {
   loadDatabase,
   testDatabaseConfig,
 } from '../../test/database-setup';
-import { testTenants } from '../../test/fixtures/testTenants';
+import {
+  EXPECTED_ACTIVE_TENANTS_NUM,
+  testTenants,
+} from '../../test/fixtures/testTenants';
 import { expect } from 'chai';
 import { Repository } from 'typeorm';
 import { nonExistentUUIDId } from '../../test/utils';
@@ -52,7 +55,7 @@ describe('TenantService', () => {
       expect(tenant.slug).to.deep.equal('createTenant');
 
       const allTenants = await service.findAll();
-      expect(allTenants.length).to.deep.equal(3);
+      expect(allTenants.length).to.deep.equal(EXPECTED_ACTIVE_TENANTS_NUM + 1);
     });
 
     it('should throw error if tenant with provided slug already exists (deleted = false)', async () => {
@@ -75,7 +78,7 @@ describe('TenantService', () => {
     const allTenants = await service.findAll();
 
     expect(allTenants).to.be.an('array');
-    expect(allTenants.length).to.equal(2);
+    expect(allTenants.length).to.equal(EXPECTED_ACTIVE_TENANTS_NUM);
 
     // Check the structure of the first item (TenantDto validation)
     const firstTenant = allTenants[0];
@@ -151,7 +154,9 @@ describe('TenantService', () => {
       await service.remove(testTenants[0].id);
 
       const allActiveTenants = await service.findAll();
-      expect(allActiveTenants.length).to.deep.equal(1);
+      expect(allActiveTenants.length).to.deep.equal(
+        EXPECTED_ACTIVE_TENANTS_NUM - 1,
+      );
 
       const deletedTenantRecordInDb = await repository.findOne({
         where: { id: testTenants[0].id },
