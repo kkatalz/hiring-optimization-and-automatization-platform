@@ -79,6 +79,12 @@ export class QuestionService {
     return dto;
   }
 
+  async getQuestionDetailsById(id: string): Promise<QuestionDto> {
+    const question = await this.findById(id);
+
+    return questionToQuestionDto(question);
+  }
+
   private async findById(id: string): Promise<Question> {
     const question = await this.questionRepository.findOne({
       where: { id },
