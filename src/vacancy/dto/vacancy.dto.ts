@@ -11,6 +11,7 @@ import {
   TimeCommitment,
 } from '../../entities/hiring.enum';
 import { Type } from 'class-transformer';
+import { VacancyQuestionDto } from 'src/vacancy/dto/vacancyQuestion.dto';
 
 export class VacancyDto {
   id: string;
@@ -53,4 +54,10 @@ export class VacancyDto {
   @IsArray()
   @IsString({ each: true })
   tags?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => VacancyQuestionDto)
+  vacancyQuestions?: VacancyQuestionDto[];
 }

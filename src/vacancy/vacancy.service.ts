@@ -15,6 +15,8 @@ import { vacancyQuestionToDto } from '../vacancy/map/vacancyQuestion.map';
 import { UserService } from '../user/user.service';
 import { QuestionService } from '../question/question.service';
 import { CreateVacancyQuestionDto } from './dto/createVacancyQuesion.dto';
+import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
+import { vacancyQuestionToDetailedDto } from './map/vacancyQuestionDetailed.map';
 
 @Injectable()
 export class VacancyService {
@@ -30,7 +32,10 @@ export class VacancyService {
   ) {}
 
   async findAll(): Promise<VacancyDto[]> {
-    const vacancies = await this.vacancyRepository.find();
+    const vacancies = await this.vacancyRepository.find({
+      relations: ['vacancyQuestions'],
+    });
+
     return vacancies.map(vacancyToVacancyDto);
   }
 
@@ -41,7 +46,8 @@ export class VacancyService {
 
     const vacancyQuery = this.vacancyRepository
       .createQueryBuilder('vacancy')
-      .innerJoinAndSelect('vacancy.submissions', 'submission');
+      .innerJoinAndSelect('vacancy.submissions', 'submission')
+      .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq');
 
     if (requester.role !== UserRole.superAdmin) {
       if (
@@ -66,6 +72,7 @@ export class VacancyService {
   async findVacancyById(vacancyId: string): Promise<VacancyDto> {
     const vacancy = await this.vacancyRepository.findOne({
       where: { id: vacancyId },
+      relations: ['vacancyQuestions'],
     });
 
     if (!vacancy) {
@@ -78,6 +85,7 @@ export class VacancyService {
   async findAllByTenantId(tenantId: string): Promise<VacancyDto[]> {
     const vacanciesWithGivenTenant = await this.vacancyRepository.find({
       where: { tenantId },
+      relations: ['vacancyQuestions'],
     });
 
     if (!vacanciesWithGivenTenant?.length) {
@@ -121,10 +129,11 @@ export class VacancyService {
     return vacancyToVacancyDto(updatedVacancy);
   }
 
-  async remove(vacancyId: string): Promise<void> {
-    await this.findVacancyById(vacancyId);
+  async remove(vacancyId: string): Promise<VacancyDto> {
+    const vacancy = await this.findVacancyById(vacancyId);
 
     await this.vacancyRepository.delete(vacancyId);
+    return vacancy;
   }
 
   async getTenantIdByVacancyId(vacancyId: string): Promise<string> {
@@ -140,6 +149,7 @@ export class VacancyService {
     return vacancy.tenantId;
   }
 
+  //  METHODS RELATED TO MANAGING VACANCY QUESTIONS
   async addQuestionToVacancy(
     vacancyId: string,
     questionId: string,
@@ -193,12 +203,25 @@ export class VacancyService {
     return dto;
   }
 
+  async findAllQuestionsByVacancyId(
+    vacancyId: string,
+  ): Promise<VacancyQuestionDetailedDto[]> {
+    const vacancyQuestions: VacancyQuestion[] =
+      await this.vacancyQuestionRepository
+        .createQueryBuilder('vq')
+        .innerJoinAndSelect('vq.question', 'question')
+        .where('vq.vacancyId = :vacancyId', { vacancyId })
+        .getMany();
+
+    return vacancyQuestions.map(vacancyQuestionToDetailedDto);
+  }
+
   async findAllVacanciesThatHaveQuestions(
     tenantId?: string,
   ): Promise<VacancyDto[]> {
     const vacancies = await this.vacancyRepository
       .createQueryBuilder('vacancy')
-      .innerJoin('vacancy.vacancyQuestions', 'vq')
+      .innerJoinAndSelect('vacancy.vacancyQuestions', 'vq')
       .where(tenantId ? 'vacancy.tenantId = :tenantId' : '1=1')
       .setParameter('tenantId', tenantId)
       .getMany();

@@ -20,6 +20,7 @@ import { VacancyDto } from '../vacancy/dto/vacancy.dto';
 import { VacancyQuestionDto } from '../vacancy/dto/vacancyQuestion.dto';
 import { VacancyService } from '../vacancy/vacancy.service';
 import { CreateVacancyQuestionDto } from './dto/createVacancyQuesion.dto';
+import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
 
 @Controller('vacancies')
 export class VacancyController {
@@ -74,6 +75,18 @@ export class VacancyController {
     return this.vacancyService.findAllByTenantId(tenantId);
   }
 
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
+  @Get('all-questions/:vacancyId')
+  async findAllQuestionsByVacancyId(
+    @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
+    @AuthUser() requester: UserDto,
+  ): Promise<VacancyQuestionDetailedDto[]> {
+    const vacancy = await this.vacancyService.findVacancyById(vacancyId);
+    validateTenantAccess(requester, vacancy.tenantId);
+
+    return await this.vacancyService.findAllQuestionsByVacancyId(vacancyId);
+  }
+
   @Get(':vacancyId')
   findByVacancyId(
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
@@ -99,11 +112,11 @@ export class VacancyController {
   async delete(
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
     @AuthUser() deletedBy: UserDto,
-  ): Promise<void> {
+  ): Promise<VacancyDto> {
     const vacancy = await this.vacancyService.findVacancyById(vacancyId);
     validateTenantAccess(deletedBy, vacancy.tenantId);
 
-    await this.vacancyService.remove(vacancyId);
+    return await this.vacancyService.remove(vacancyId);
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
