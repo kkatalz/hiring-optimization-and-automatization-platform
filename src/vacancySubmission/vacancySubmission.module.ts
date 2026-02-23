@@ -6,13 +6,16 @@ import { VacancySubmissionController } from '../vacancySubmission/vacancySubmiss
 import { VacancySubmissionService } from './vacancySubmission.service';
 import { UserModule } from '../user/user.module';
 import { CandidateProfileModule } from '../candidateProfile/candidateProfile.module';
+import { QuestionModule } from '../question/question.module';
+import { SubmissionAnswer } from '../entities/submissionAnswers';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([VacancySubmission]),
+    TypeOrmModule.forFeature([VacancySubmission, SubmissionAnswer]),
     VacancyModule,
     UserModule,
     CandidateProfileModule,
+    QuestionModule,
   ],
   controllers: [VacancySubmissionController],
   providers: [VacancySubmissionService],

@@ -3,7 +3,11 @@ import {
   LanguageLevelRank,
   LanguageProficiency,
 } from '../entities/hiring.enum';
-import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
+import {
+  QuestionAnswerFilterEntry,
+  RecruitingFilterDto,
+} from '../recruiting/recruitingFilter.dto';
+import { VacancySubmission } from '../entities/vacancySubmission';
 import { SelectQueryBuilder } from 'typeorm';
 
 export const filterByExperience = (
@@ -61,6 +65,24 @@ export const filterByLanguages = (
       meetsLanguageRequirement(c.languages, requiredLang),
     ),
   );
+};
+
+export const filterByAnswers = (
+  submissions: VacancySubmission[],
+  questionAnswerPair: QuestionAnswerFilterEntry[],
+): VacancySubmission[] => {
+  return submissions.filter((submission) => {
+    const submissionAnswers = submission.answers ?? [];
+
+    return questionAnswerPair.every((pair) => {
+      if (pair.value) {
+        return submissionAnswers.some(
+          (a) => a.questionId === pair.questionId && a.value === pair.value,
+        );
+      }
+      return submissionAnswers.some((a) => a.questionId === pair.questionId);
+    });
+  });
 };
 
 export const meetsLanguageRequirement = (
