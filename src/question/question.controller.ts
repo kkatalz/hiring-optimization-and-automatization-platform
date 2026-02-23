@@ -3,8 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
-  HttpStatus,
   Param,
   Patch,
   Post,
@@ -18,6 +16,7 @@ import { validateTenantAccess } from '../utils/validate';
 import { CreateQuestionDto } from './dto/createQuestion.dto';
 import { UpdateQuestionDto } from './dto/updateQuestion.dto';
 import { QuestionService } from './question.service';
+import { extractUserTenantId } from '../utils/extractUserTenantId';
 
 @Controller('questions')
 export class QuestionController {
@@ -34,7 +33,7 @@ export class QuestionController {
     @AuthUser() user: UserDto,
     @Query('tenantId') tenantId?: string,
   ) {
-    tenantId = this.getUsersTenantIdForCreate(user, tenantId);
+    tenantId = extractUserTenantId(user, tenantId);
 
     validateTenantAccess(user, tenantId);
 
@@ -101,28 +100,5 @@ export class QuestionController {
     validateTenantAccess(user, question.tenantId);
 
     return this.questionService.remove(id);
-  }
-
-  private getUsersTenantIdForCreate(
-    user: UserDto,
-    tenantId: string | undefined,
-  ): string {
-    if (user.role === UserRole.superAdmin && !tenantId) {
-      throw new HttpException(
-        'Tenant ID is required for super admin.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    tenantId = tenantId ?? user.tenantId;
-
-    if (!tenantId) {
-      throw new HttpException(
-        'Tenant ID is required to create a question.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    return tenantId;
   }
 }

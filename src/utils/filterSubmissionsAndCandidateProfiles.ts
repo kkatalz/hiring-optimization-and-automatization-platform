@@ -6,7 +6,7 @@ import {
 import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
 import { SelectQueryBuilder } from 'typeorm';
 
-export const filterByExperienceCountriesCities = (
+export const filterByExperience = (
   query: SelectQueryBuilder<any>,
   filterDto: RecruitingFilterDto,
 ) => {
@@ -28,6 +28,13 @@ export const filterByExperienceCountriesCities = (
     );
   }
 
+  return query;
+};
+
+export const filterByCountriesCities = (
+  query: SelectQueryBuilder<any>,
+  filterDto: RecruitingFilterDto,
+) => {
   if (filterDto?.countries && filterDto.countries.length > 0) {
     query.andWhere('candidateProfile.country = ANY(:countries)', {
       countries: filterDto.countries,
