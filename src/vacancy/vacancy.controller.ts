@@ -57,8 +57,10 @@ export class VacancyController {
       validateTenantAccess(requester, tenantId);
     }
 
+    const extractedTenantId = tenantId ?? requester.tenantId;
+
     return await this.vacancyService.findAllVacanciesThatHaveQuestions(
-      tenantId,
+      extractedTenantId,
     );
   }
 
