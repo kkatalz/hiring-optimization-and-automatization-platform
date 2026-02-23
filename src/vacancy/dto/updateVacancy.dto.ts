@@ -1,9 +1,16 @@
-import { IsArray, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import {
   LanguageProficiency,
   TimeCommitment,
 } from '../../entities/hiring.enum';
 import { Type } from 'class-transformer';
+import { CreateVacancyQuestionInlineDto } from './createVacancyWithQuestions.dto';
 
 export class UpdateVacancyDto {
   @IsOptional()
@@ -19,7 +26,7 @@ export class UpdateVacancyDto {
   salary?: string;
 
   @IsOptional()
-  @IsString()
+  @IsEnum(TimeCommitment)
   timeCommitment?: TimeCommitment;
 
   @IsOptional()
@@ -32,4 +39,10 @@ export class UpdateVacancyDto {
   @IsArray()
   @IsString({ each: true })
   tags?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateVacancyQuestionInlineDto)
+  questions?: CreateVacancyQuestionInlineDto[];
 }

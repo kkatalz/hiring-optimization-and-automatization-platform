@@ -17,6 +17,7 @@ import { QuestionService } from '../question/question.service';
 import { CreateVacancyQuestionDto } from './dto/createVacancyQuesion.dto';
 import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
 import { vacancyQuestionToDetailedDto } from './map/vacancyQuestionDetailed.map';
+import { CreateVacancyQuestionInlineDto } from './dto/createVacancyWithQuestions.dto';
 
 @Injectable()
 export class VacancyService {
@@ -102,31 +103,41 @@ export class VacancyService {
     createVacancyDto: CreateVacancyDto,
     creator: UserDto,
   ): Promise<VacancyDto> {
-    const vacancy = this.vacancyRepository.create(createVacancyDto);
+    const { questions, ...vacancyFields } = createVacancyDto;
 
-    if (creator.tenantId) vacancy.tenantId = creator.tenantId;
-    vacancy.createdById = creator.id;
-    vacancy.createdBy = creator;
+    const savedVacancy = await this.saveBaseVacancy(vacancyFields, creator);
 
-    const savedVacancy = await this.vacancyRepository.save(vacancy);
-    return vacancyToVacancyDto(savedVacancy);
+    if (questions?.length) {
+      await this.handleVacancyQuestions(
+        savedVacancy.id,
+        savedVacancy.tenantId,
+        questions,
+      );
+    }
+
+    return this.getPopulatedVacancy(savedVacancy.id);
   }
 
   async update(
     vacancyId: string,
     updateVacancyDto: UpdateVacancyDto,
   ): Promise<VacancyDto> {
-    const vacancy = await this.findVacancyById(vacancyId);
+    const { questions, ...updatedFields } = updateVacancyDto;
 
-    const updatedFields = updateVacancyDto;
-    Object.keys(updatedFields).forEach((key) => {
-      if (updatedFields[key] !== undefined) {
-        vacancy[key] = updatedFields[key];
-      }
-    });
+    const vacancy: VacancyDto = await this.findVacancyById(vacancyId);
 
-    const updatedVacancy = await this.vacancyRepository.save(vacancy);
-    return vacancyToVacancyDto(updatedVacancy);
+    Object.assign(vacancy, updatedFields);
+    await this.vacancyRepository.save(vacancy);
+
+    if (questions?.length) {
+      await this.handleVacancyQuestions(
+        vacancy.id,
+        vacancy.tenantId,
+        questions,
+      );
+    }
+
+    return this.getPopulatedVacancy(vacancyId);
   }
 
   async remove(vacancyId: string): Promise<VacancyDto> {
@@ -227,5 +238,61 @@ export class VacancyService {
       .getMany();
 
     return vacancies.map(vacancyToVacancyDto);
+  }
+
+  private async saveBaseVacancy(
+    fields: Partial<CreateVacancyDto>,
+    creator: UserDto,
+  ): Promise<Vacancy> {
+    const vacancy = this.vacancyRepository.create({
+      ...fields,
+      tenantId: creator.tenantId,
+      createdById: creator.id,
+      createdBy: creator,
+    });
+
+    return this.vacancyRepository.save(vacancy);
+  }
+
+  /**
+   * Creates questions via QuestionService and links them to the Vacancy
+   */
+  private async handleVacancyQuestions(
+    vacancyId: string,
+    tenantId: string,
+    questions: CreateVacancyQuestionInlineDto[],
+  ): Promise<void> {
+    const linkPromises = questions.map(async (q) => {
+      const savedQuestion = await this.questionService.create(
+        { label: q.label, type: q.type, answerOptions: q.answerOptions },
+        tenantId,
+      );
+
+      return this.vacancyQuestionRepository.create({
+        vacancyId,
+        questionId: savedQuestion.id,
+        isRequired: q.isRequired,
+      });
+    });
+
+    const vacancyQuestions = await Promise.all(linkPromises);
+
+    await this.vacancyQuestionRepository.save(vacancyQuestions);
+  }
+
+  private async getPopulatedVacancy(id: string): Promise<VacancyDto> {
+    const vacancy = await this.vacancyRepository.findOne({
+      where: { id },
+      relations: ['vacancyQuestions', 'vacancyQuestions.question'],
+    });
+
+    if (!vacancy) {
+      throw new HttpException(
+        'Vacancy not found after creation.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return vacancyToVacancyDto(vacancy);
   }
 }

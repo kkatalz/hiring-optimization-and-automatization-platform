@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -11,7 +12,7 @@ import {
   TimeCommitment,
 } from '../../entities/hiring.enum';
 import { Type } from 'class-transformer';
-import { VacancyQuestionDto } from 'src/vacancy/dto/vacancyQuestion.dto';
+import { VacancyQuestionDto } from './vacancyQuestion.dto';
 
 export class VacancyDto {
   id: string;
@@ -41,7 +42,7 @@ export class VacancyDto {
   submissions?: VacancySubmission[];
 
   @IsOptional()
-  @IsString()
+  @IsEnum(TimeCommitment)
   timeCommitment?: TimeCommitment;
 
   @IsOptional()
