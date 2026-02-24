@@ -7,7 +7,7 @@ import {
 } from 'class-validator';
 import { CandidateProfileDto } from '../../candidateProfile/dto/candidateProfile.dto';
 import { VacancySubmissionStatus } from '../../entities/statuses.enum';
-import { QuestionAnswerFilterEntry } from 'src/recruiting/recruitingFilter.dto';
+import { QuestionAnswerFilterEntry } from '../../recruiting/recruitingFilter.dto';
 import { Type } from 'class-transformer';
 
 export class VacancySubmissionDto {

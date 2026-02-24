@@ -278,7 +278,7 @@ export class VacancySubmissionService {
     }
 
     for (const answer of createVacancySubmissionDto.answers) {
-      const questionDetails = await this.questionService.getQuestionDetailsById(
+      const questionDetails = await this.questionService.findDtoById(
         answer.questionId,
       );
 
@@ -312,9 +312,7 @@ export class VacancySubmissionService {
         const missingDetails: QuestionDto[] = [];
         for (const question of missingRequiredQuestions) {
           const questionDetails: QuestionDto =
-            await this.questionService.getQuestionDetailsById(
-              question.questionId,
-            );
+            await this.questionService.findDtoById(question.questionId);
           missingDetails.push(questionDetails);
         }
 

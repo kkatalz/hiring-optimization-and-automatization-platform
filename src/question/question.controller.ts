@@ -76,6 +76,7 @@ export class QuestionController {
    * 1. Super admin can update any question by ID.
    * 2. Admin and recruiter can only update a question within their own tenant.
    */
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Patch(':id')
   async updateQuestion(
     @Param('id') id: string,
@@ -93,6 +94,7 @@ export class QuestionController {
    * 1. Super admin can delete any question by ID.
    * 2. Admin and recruiter can only delete a question within their own tenant.
    */
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Delete(':id')
   async removeQuestion(@Param('id') id: string, @AuthUser() user: UserDto) {
     const question = await this.questionService.findDtoById(id);

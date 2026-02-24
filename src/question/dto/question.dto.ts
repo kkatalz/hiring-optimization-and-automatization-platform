@@ -1,4 +1,4 @@
-import { QuestionType } from 'src/entities/question.enum';
+import { QuestionType } from '../../entities/question.enum';
 
 export class QuestionDto {
   id: string;
