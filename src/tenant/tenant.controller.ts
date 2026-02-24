@@ -21,34 +21,38 @@ export class TenantController {
 
   @Post()
   @Roles(UserRole.superAdmin)
-  create(@Body() createTenantDto: CreateTenantDto): Promise<TenantDto> {
-    return this.tenantService.create(createTenantDto);
+  async create(@Body() createTenantDto: CreateTenantDto): Promise<TenantDto> {
+    return await this.tenantService.create(createTenantDto);
   }
 
   @Get()
   @Roles(UserRole.superAdmin)
-  findAll(): Promise<TenantDto[]> {
-    return this.tenantService.findAll();
+  async findAll(): Promise<TenantDto[]> {
+    return await this.tenantService.findAll();
   }
 
   @Get(':id')
   @Roles(UserRole.superAdmin)
-  findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<TenantDto> {
-    return this.tenantService.findDtoById(id);
+  async findById(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<TenantDto> {
+    return await this.tenantService.findDtoById(id);
   }
 
   @Patch(':id')
   @Roles(UserRole.superAdmin)
-  update(
+  async update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateTenantDto: UpdateTenantDto,
   ): Promise<TenantDto> {
-    return this.tenantService.update(id, updateTenantDto);
+    return await this.tenantService.update(id, updateTenantDto);
   }
 
   @Delete(':id')
   @Roles(UserRole.superAdmin)
-  async remove(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
-    await this.tenantService.remove(id);
+  async remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<TenantDto> {
+    return await this.tenantService.remove(id);
   }
 }
