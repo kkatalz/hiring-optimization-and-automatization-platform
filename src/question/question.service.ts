@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Question } from '../entities/question';
 import { CreateQuestionDto } from './dto/createQuestion.dto';
 import { QuestionDto } from './dto/question.dto';
@@ -23,6 +23,18 @@ export class QuestionService {
     tenantId: string,
   ): Promise<QuestionDto> {
     if (tenantId) await this.tenantService.findDtoById(tenantId);
+
+    const existingQuestion = await this.findExistingQuestion(
+      createQuestionDto,
+      tenantId,
+    );
+
+    if (existingQuestion) {
+      throw new HttpException(
+        'Question with the same label and type already exists.',
+        HttpStatus.CONFLICT,
+      );
+    }
 
     const newQuestion = this.questionRepository.create({
       tenantId,
@@ -79,10 +91,22 @@ export class QuestionService {
     return dto;
   }
 
-  async getQuestionDetailsById(id: string): Promise<QuestionDto> {
-    const question = await this.findById(id);
+  async findExistingQuestion(
+    question: CreateQuestionDto,
+    tenantId: string,
+  ): Promise<QuestionDto | null> {
+    const foundQuestion = await this.questionRepository.findOne({
+      where: {
+        tenantId,
+        label: question.label,
+        type: question.type,
+        answerOptions: question.answerOptions
+          ? JSON.stringify(question.answerOptions)
+          : IsNull(),
+      },
+    });
 
-    return questionToQuestionDto(question);
+    return foundQuestion ? questionToQuestionDto(foundQuestion) : null;
   }
 
   private async findById(id: string): Promise<Question> {

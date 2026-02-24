@@ -101,6 +101,26 @@ describe('QuestionService', () => {
         expect(e.response).to.equal('Tenant with given id not found.');
       }
     });
+
+    it('should throw a CONFLICT error when trying to create a question with the same label and type in the same tenant', async () => {
+      const tenantId = testTenants[0].id;
+      const existing = testQuestions[0];
+
+      const createDto: CreateQuestionDto = {
+        label: existing.label,
+        type: existing.type,
+      };
+
+      try {
+        await service.create(createDto, tenantId);
+        expect.fail('Should have thrown a CONFLICT error but did not');
+      } catch (e: any) {
+        expect(e).to.have.property('status', 409);
+        expect(e.response).to.equal(
+          'Question with the same label and type already exists.',
+        );
+      }
+    });
   });
 
   describe('findAll', () => {
@@ -220,35 +240,92 @@ describe('QuestionService', () => {
     });
   });
 
-  describe('getQuestionDetailsById', () => {
-    it('should return question details as QuestionDto', async () => {
-      const question = testQuestions[0];
+  describe('findExistingQuestion', () => {
+    it('should find an existing boolean question by label and type within tenant', async () => {
+      const existing = testQuestions[0]; // boolean "Do you have a car?" in tenant[0]
 
-      const result = await service.getQuestionDetailsById(question.id);
+      const result = await service.findExistingQuestion(
+        { label: existing.label, type: existing.type },
+        testTenants[0].id,
+      );
 
-      expect(result.id).to.equal(question.id);
-      expect(result.label).to.equal(question.label);
-      expect(result.type).to.equal(question.type);
-      expect(result.tenantId).to.equal(question.tenantId);
+      expect(result).to.not.be.null;
+      expect(result!.id).to.equal(existing.id);
+      expect(result!.label).to.equal(existing.label);
+      expect(result!.type).to.equal(existing.type);
     });
 
-    it('should return dropdown question details with answerOptions', async () => {
-      const question = testQuestions[2]; // dropdown
+    it('should find an existing dropdown question matching label, type and answerOptions', async () => {
+      const existing = testQuestions[2]; // dropdown "What is your education level?" in tenant[0]
 
-      const result = await service.getQuestionDetailsById(question.id);
+      const result = await service.findExistingQuestion(
+        {
+          label: existing.label,
+          type: existing.type,
+          answerOptions: existing.answerOptions as string[],
+        },
+        testTenants[0].id,
+      );
 
-      expect(result.type).to.equal(QuestionType.dropdown);
-      expect(result.answerOptions).to.deep.equal(question.answerOptions);
+      expect(result).to.not.be.null;
+      expect(result!.id).to.equal(existing.id);
+      expect(result!.answerOptions).to.deep.equal(existing.answerOptions);
     });
 
-    it('should throw 404 when question is not found', async () => {
-      try {
-        await service.getQuestionDetailsById(nonExistentUUIDId);
-        expect.fail('Should have thrown a NOT_FOUND error but did not');
-      } catch (e: any) {
-        expect(e).to.have.property('status', 404);
-        expect(e.response).to.equal('Question not found.');
-      }
+    it('should return null when no matching question exists in the tenant', async () => {
+      const result = await service.findExistingQuestion(
+        {
+          label: 'Non-existent question',
+          type: QuestionType.boolean,
+        },
+        testTenants[0].id,
+      );
+
+      expect(result).to.be.null;
+    });
+
+    it('should return null when question exists in a different tenant', async () => {
+      // testQuestions[3] is in tenant[1]
+      const otherTenantQuestion = testQuestions[3];
+
+      const result = await service.findExistingQuestion(
+        {
+          label: otherTenantQuestion.label,
+          type: otherTenantQuestion.type,
+        },
+        testTenants[0].id, // searching in tenant[0]
+      );
+
+      expect(result).to.be.null;
+    });
+
+    it('should not match when label matches but type differs', async () => {
+      const existing = testQuestions[0]; // boolean question
+
+      const result = await service.findExistingQuestion(
+        {
+          label: existing.label,
+          type: QuestionType.text, // different type
+        },
+        testTenants[0].id,
+      );
+
+      expect(result).to.be.null;
+    });
+
+    it('should not match dropdown question when answerOptions differ', async () => {
+      const existing = testQuestions[2]; // dropdown with ['High School', 'Bachelor', 'Master', 'PhD']
+
+      const result = await service.findExistingQuestion(
+        {
+          label: existing.label,
+          type: existing.type,
+          answerOptions: ['Option A', 'Option B'], // different options
+        },
+        testTenants[0].id,
+      );
+
+      expect(result).to.be.null;
     });
   });
 
