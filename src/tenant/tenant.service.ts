@@ -101,7 +101,7 @@ export class TenantService {
   ): Promise<void> {
     const tenantWithGivenSlug = await this.tenantRepository.findOne({
       where: {
-        slug: slug,
+        slug,
         deleted: false,
         id: Not(id),
       },
