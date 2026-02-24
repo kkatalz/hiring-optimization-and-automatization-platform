@@ -32,10 +32,12 @@ import { UserModule } from '../user/user.module';
 import { QuestionModule } from '../question/question.module';
 import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfiles';
 import { QuestionType } from '../entities/question.enum';
+import { Question } from '../entities/question';
 
 describe('VacancyService', () => {
   let service: VacancyService;
   let vacancyRepository: Repository<Vacancy>;
+  let questionRepository: Repository<Question>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -52,6 +54,9 @@ describe('VacancyService', () => {
     service = module.get<VacancyService>(VacancyService);
     vacancyRepository = module.get<Repository<Vacancy>>(
       getRepositoryToken(Vacancy),
+    );
+    questionRepository = module.get<Repository<Question>>(
+      getRepositoryToken(Question),
     );
 
     await loadDatabase({
@@ -226,7 +231,7 @@ describe('VacancyService', () => {
       expect(totalVacancies.length).to.equal(EXPECTED__VACANCIES_NUM + 1);
     });
 
-    it('should create vacancy with inline questions', async () => {
+    it('should create vacancy with inline questions that do not yet exist', async () => {
       const createVacancyDto: CreateVacancyDto = {
         name: 'Developer',
         description: 'Full-stack developer position',
@@ -246,6 +251,11 @@ describe('VacancyService', () => {
       };
 
       const admin = testUsers[0];
+      // const questionsBefore = await service.findAll();
+      // const totalQuestionsBefore = questionsBefore.reduce(
+      //   (acc, v) => acc + (v.vacancyQuestions?.length ?? 0),
+      //   0,
+      // );
 
       const result: VacancyDto = await service.create(createVacancyDto, admin);
 
@@ -277,6 +287,73 @@ describe('VacancyService', () => {
       ]);
       expect(dropdownQ!.isRequired).to.equal(false);
     });
+
+    it('should reuse existing question within tenant instead of creating a duplicate', async () => {
+      // testQuestions[0] already exists: { label: 'Do you have a car?', type: boolean, tenant: tenant[0] }
+      const existingQuestion = testQuestions[0];
+      const admin = testUsers[0]; // belongs to tenant[0]
+
+      const questionsCountBefore = (await questionRepository.find()).length;
+
+      const createVacancyDto: CreateVacancyDto = {
+        name: 'Driver position',
+        description: 'Needs a car',
+        questions: [
+          {
+            label: existingQuestion.label,
+            type: existingQuestion.type,
+            isRequired: true,
+          },
+        ],
+      };
+
+      const result: VacancyDto = await service.create(createVacancyDto, admin);
+
+      // The vacancy should be linked to the existing question, not a new one
+      const questionDetails = await service.findAllQuestionsByVacancyId(
+        result.id,
+      );
+      expect(questionDetails.length).to.equal(1);
+      expect(questionDetails[0].questionId).to.equal(existingQuestion.id);
+
+      // No new question should have been created
+      const questionsCountAfter = (await questionRepository.find()).length;
+      expect(questionsCountAfter).to.equal(questionsCountBefore);
+    });
+
+    it('should create new question when same label exists in a different tenant', async () => {
+      // testQuestions[3] exists in tenant[1]: { label: 'Are you available for remote work?', type: boolean }
+      const otherTenantQuestion = testQuestions[3];
+      const admin = testUsers[0]; // belongs to tenant[0]
+
+      const questionsCountBefore = (await questionRepository.find()).length;
+
+      const createVacancyDto: CreateVacancyDto = {
+        name: 'Remote position',
+        description: 'Remote work available',
+        questions: [
+          {
+            label: otherTenantQuestion.label,
+            type: otherTenantQuestion.type,
+            isRequired: false,
+          },
+        ],
+      };
+
+      const result: VacancyDto = await service.create(createVacancyDto, admin);
+
+      const questionDetails = await service.findAllQuestionsByVacancyId(
+        result.id,
+      );
+      expect(questionDetails.length).to.equal(1);
+      // Should be a NEW question, not the one from tenant[1]
+      expect(questionDetails[0].questionId).to.not.equal(
+        otherTenantQuestion.id,
+      );
+
+      const questionsCountAfter = (await questionRepository.find()).length;
+      expect(questionsCountAfter).to.equal(questionsCountBefore + 1);
+    });
   });
 
   describe('update', () => {
@@ -298,17 +375,10 @@ describe('VacancyService', () => {
       );
     });
 
-    it('should update vacancy and add inline questions', async () => {
+    it('should only update defined fields and keep others unchanged', async () => {
       const updateVacancyDto: UpdateVacancyDto = {
-        name: 'Zoo keeper Updated',
-        description: 'Updated description',
-        questions: [
-          {
-            label: 'Are you available on weekends?',
-            type: QuestionType.boolean,
-            isRequired: true,
-          },
-        ],
+        name: 'Only name updated',
+        description: undefined as any,
       };
 
       const result: VacancyDto = await service.update(
@@ -316,17 +386,38 @@ describe('VacancyService', () => {
         updateVacancyDto,
       );
 
-      expect(result.name).to.equal(updateVacancyDto.name);
+      expect(result.name).to.equal('Only name updated');
+      expect(result.salary).to.equal(testVacancies[0].salary);
+    });
 
-      const questionDetails = await service.findAllQuestionsByVacancyId(
-        testVacancies[0].id,
-      );
+    it('should throw NOT_FOUND when updating non-existent vacancy', async () => {
+      try {
+        await service.update(nonExistentUUIDId, {
+          name: 'x',
+          description: 'y',
+        });
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e: any) {
+        expect(e.response).to.equal('Vacancy is not found.');
+        expect(e.status).to.equal(404);
+      }
+    });
 
-      const newQuestion = questionDetails.find(
-        (q) => q.label === 'Are you available on weekends?',
-      );
-      expect(newQuestion).to.not.be.undefined;
-      expect(newQuestion!.isRequired).to.equal(true);
+    it('should not modify existing vacancy questions when updating basic fields', async () => {
+      const vacancyId = testVacancies[0].id;
+
+      const questionsBefore =
+        await service.findAllQuestionsByVacancyId(vacancyId);
+
+      await service.update(vacancyId, {
+        name: 'Updated name',
+        description: 'Updated desc',
+      });
+
+      const questionsAfter =
+        await service.findAllQuestionsByVacancyId(vacancyId);
+
+      expect(questionsAfter.length).to.equal(questionsBefore.length);
     });
   });
   describe('remove', () => {

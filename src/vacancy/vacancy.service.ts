@@ -122,20 +122,15 @@ export class VacancyService {
     vacancyId: string,
     updateVacancyDto: UpdateVacancyDto,
   ): Promise<VacancyDto> {
-    const { questions, ...updatedFields } = updateVacancyDto;
-
     const vacancy: VacancyDto = await this.findVacancyById(vacancyId);
 
-    Object.assign(vacancy, updatedFields);
-    await this.vacancyRepository.save(vacancy);
+    Object.keys(updateVacancyDto).forEach((key) => {
+      if (updateVacancyDto[key] !== undefined) {
+        vacancy[key] = updateVacancyDto[key];
+      }
+    });
 
-    if (questions?.length) {
-      await this.handleVacancyQuestions(
-        vacancy.id,
-        vacancy.tenantId,
-        questions,
-      );
-    }
+    await this.vacancyRepository.save(vacancy);
 
     return this.getPopulatedVacancy(vacancyId);
   }
@@ -255,7 +250,8 @@ export class VacancyService {
   }
 
   /**
-   * Creates questions via QuestionService and links them to the Vacancy
+   * Creates questions via QuestionService and links them to the Vacancy if this question doesn't exist yet.
+   *  If the question already exists, just links it to the Vacancy.
    */
   private async handleVacancyQuestions(
     vacancyId: string,
@@ -263,14 +259,21 @@ export class VacancyService {
     questions: CreateVacancyQuestionInlineDto[],
   ): Promise<void> {
     const linkPromises = questions.map(async (q) => {
-      const savedQuestion = await this.questionService.create(
-        { label: q.label, type: q.type, answerOptions: q.answerOptions },
+      let question = await this.questionService.findExistingQuestion(
+        q,
         tenantId,
       );
 
+      if (!question) {
+        question = await this.questionService.create(
+          { label: q.label, type: q.type, answerOptions: q.answerOptions },
+          tenantId,
+        );
+      }
+
       return this.vacancyQuestionRepository.create({
         vacancyId,
-        questionId: savedQuestion.id,
+        questionId: question.id,
         isRequired: q.isRequired,
       });
     });
