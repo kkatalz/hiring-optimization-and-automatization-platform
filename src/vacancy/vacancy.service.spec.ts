@@ -31,6 +31,7 @@ import { nonExistentUUIDId } from '../../test/utils';
 import { UserModule } from '../user/user.module';
 import { QuestionModule } from '../question/question.module';
 import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfiles';
+import { QuestionType } from '../entities/question.enum';
 
 describe('VacancyService', () => {
   let service: VacancyService;
@@ -75,6 +76,17 @@ describe('VacancyService', () => {
 
     expect(allVacaniesResult.length).to.equal(EXPECTED__VACANCIES_NUM);
     expect(allVacaniesResult[0]).to.not.have.property('createdBy');
+  });
+
+  it('should load vacancyQuestions relation in findAll', async () => {
+    const allVacancies = await service.findAll();
+
+    const vacancyWithQuestions = allVacancies.find(
+      (v) => v.id === testVacancies[0].id,
+    );
+    expect(vacancyWithQuestions).to.not.be.undefined;
+    expect(vacancyWithQuestions!.vacancyQuestions).to.be.an('array');
+    expect(vacancyWithQuestions!.vacancyQuestions!.length).to.be.greaterThan(0);
   });
 
   describe('findVacanciesWithSubmissions', () => {
@@ -127,6 +139,17 @@ describe('VacancyService', () => {
           'Candidates are not allowed to see if vacancies have submissions.',
         );
       }
+    });
+
+    it('should return empty array for recruiter from a tenant with no submissions', async () => {
+      // testUsers[3] is a recruiter in tenant[1] which has no vacancy submissions
+      const recruiterTenant1 = testUsers[3];
+
+      const result: VacancyDto[] = await service.findVacanciesWithSubmissions(
+        recruiterTenant1.id,
+      );
+
+      expect(result).to.deep.equal([]);
     });
   });
 
@@ -202,6 +225,58 @@ describe('VacancyService', () => {
       const totalVacancies = await service.findAll();
       expect(totalVacancies.length).to.equal(EXPECTED__VACANCIES_NUM + 1);
     });
+
+    it('should create vacancy with inline questions', async () => {
+      const createVacancyDto: CreateVacancyDto = {
+        name: 'Developer',
+        description: 'Full-stack developer position',
+        questions: [
+          {
+            label: 'Do you know TypeScript?',
+            type: QuestionType.boolean,
+            isRequired: true,
+          },
+          {
+            label: 'Seniority level',
+            type: QuestionType.dropdown,
+            answerOptions: ['Junior', 'Mid', 'Senior'],
+            isRequired: false,
+          },
+        ],
+      };
+
+      const admin = testUsers[0];
+
+      const result: VacancyDto = await service.create(createVacancyDto, admin);
+
+      expect(result.name).to.equal(createVacancyDto.name);
+      expect(result.vacancyQuestions).to.be.an('array');
+      expect(result.vacancyQuestions!.length).to.equal(2);
+
+      const questionDetails = await service.findAllQuestionsByVacancyId(
+        result.id,
+      );
+      expect(questionDetails.length).to.equal(2);
+
+      const booleanQ = questionDetails.find(
+        (q) => q.label === 'Do you know TypeScript?',
+      );
+      expect(booleanQ).to.not.be.undefined;
+      expect(booleanQ!.type).to.equal(QuestionType.boolean);
+      expect(booleanQ!.isRequired).to.equal(true);
+
+      const dropdownQ = questionDetails.find(
+        (q) => q.label === 'Seniority level',
+      );
+      expect(dropdownQ).to.not.be.undefined;
+      expect(dropdownQ!.type).to.equal(QuestionType.dropdown);
+      expect(dropdownQ!.answerOptions).to.deep.equal([
+        'Junior',
+        'Mid',
+        'Senior',
+      ]);
+      expect(dropdownQ!.isRequired).to.equal(false);
+    });
   });
 
   describe('update', () => {
@@ -221,6 +296,37 @@ describe('VacancyService', () => {
       expect(updateVacancyResult.description).to.equal(
         updateVacancyDto.description,
       );
+    });
+
+    it('should update vacancy and add inline questions', async () => {
+      const updateVacancyDto: UpdateVacancyDto = {
+        name: 'Zoo keeper Updated',
+        description: 'Updated description',
+        questions: [
+          {
+            label: 'Are you available on weekends?',
+            type: QuestionType.boolean,
+            isRequired: true,
+          },
+        ],
+      };
+
+      const result: VacancyDto = await service.update(
+        testVacancies[0].id,
+        updateVacancyDto,
+      );
+
+      expect(result.name).to.equal(updateVacancyDto.name);
+
+      const questionDetails = await service.findAllQuestionsByVacancyId(
+        testVacancies[0].id,
+      );
+
+      const newQuestion = questionDetails.find(
+        (q) => q.label === 'Are you available on weekends?',
+      );
+      expect(newQuestion).to.not.be.undefined;
+      expect(newQuestion!.isRequired).to.equal(true);
     });
   });
   describe('remove', () => {
@@ -361,6 +467,35 @@ describe('VacancyService', () => {
     });
   });
 
+  describe('findAllQuestionsByVacancyId', () => {
+    it('should return detailed question DTOs for a vacancy', async () => {
+      const vacancyId = testVacancies[0].id;
+
+      const result = await service.findAllQuestionsByVacancyId(vacancyId);
+
+      // vacancy[0] is linked to testQuestions[0] and testQuestions[2]
+      expect(result.length).to.equal(2);
+      expect(result[0]).to.have.property('label');
+      expect(result[0]).to.have.property('type');
+      expect(result[0]).to.have.property('isRequired');
+      expect(result[0]).to.have.property('vacancyId');
+      expect(result[0]).to.have.property('questionId');
+    });
+
+    it('should return empty array for a vacancy with no questions', async () => {
+      // Create a vacancy without questions
+      const admin = testUsers[0];
+      const newVacancy = await service.create(
+        { name: 'No questions', description: 'desc' },
+        admin,
+      );
+
+      const result = await service.findAllQuestionsByVacancyId(newVacancy.id);
+
+      expect(result).to.deep.equal([]);
+    });
+  });
+
   describe('findAllVacanciesThatHaveQuestions', () => {
     it('should find all vacancies that have questions linked', async () => {
       const result = await service.findAllVacanciesThatHaveQuestions();
@@ -368,6 +503,43 @@ describe('VacancyService', () => {
       expect(result.length).to.equal(
         EXPECTED_NUMBER_OF_VACANCIES_WITH_QUESTIONS,
       );
+    });
+
+    it('should filter vacancies with questions by tenantId', async () => {
+      const tenantId = testTenants[0].id;
+
+      const result = await service.findAllVacanciesThatHaveQuestions(tenantId);
+
+      expect(result.length).to.equal(
+        EXPECTED_NUMBER_OF_VACANCIES_WITH_QUESTIONS,
+      );
+      result.forEach((v) => expect(v.tenantId).to.equal(tenantId));
+    });
+
+    it('should return empty when no vacancies with questions exist for given tenant', async () => {
+      const tenantId = testTenants[1].id;
+
+      const result = await service.findAllVacanciesThatHaveQuestions(tenantId);
+
+      expect(result).to.deep.equal([]);
+    });
+  });
+
+  describe('getTenantIdByVacancyId', () => {
+    it('should return tenantId for a given vacancy', async () => {
+      const result = await service.getTenantIdByVacancyId(testVacancies[0].id);
+
+      expect(result).to.equal(testVacancies[0].tenantId);
+    });
+
+    it('should throw NOT_FOUND when vacancy does not exist', async () => {
+      try {
+        await service.getTenantIdByVacancyId(nonExistentUUIDId);
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e: any) {
+        expect(e.response).to.equal('Vacancy is not found.');
+        expect(e.status).to.equal(404);
+      }
     });
   });
 });

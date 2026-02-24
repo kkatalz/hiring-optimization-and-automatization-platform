@@ -220,6 +220,38 @@ describe('QuestionService', () => {
     });
   });
 
+  describe('getQuestionDetailsById', () => {
+    it('should return question details as QuestionDto', async () => {
+      const question = testQuestions[0];
+
+      const result = await service.getQuestionDetailsById(question.id);
+
+      expect(result.id).to.equal(question.id);
+      expect(result.label).to.equal(question.label);
+      expect(result.type).to.equal(question.type);
+      expect(result.tenantId).to.equal(question.tenantId);
+    });
+
+    it('should return dropdown question details with answerOptions', async () => {
+      const question = testQuestions[2]; // dropdown
+
+      const result = await service.getQuestionDetailsById(question.id);
+
+      expect(result.type).to.equal(QuestionType.dropdown);
+      expect(result.answerOptions).to.deep.equal(question.answerOptions);
+    });
+
+    it('should throw 404 when question is not found', async () => {
+      try {
+        await service.getQuestionDetailsById(nonExistentUUIDId);
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e: any) {
+        expect(e).to.have.property('status', 404);
+        expect(e.response).to.equal('Question not found.');
+      }
+    });
+  });
+
   describe('remove', () => {
     it('should remove the question and return its QuestionDto', async () => {
       const question = testQuestions[0];

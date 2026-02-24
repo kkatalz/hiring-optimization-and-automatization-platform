@@ -315,8 +315,6 @@ export class VacancySubmissionService {
             await this.questionService.getQuestionDetailsById(
               question.questionId,
             );
-          console.log('Missing required question details:', questionDetails);
-
           missingDetails.push(questionDetails);
         }
 

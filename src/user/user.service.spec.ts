@@ -132,12 +132,8 @@ describe('UserService', () => {
   describe('findDtoById', () => {
     it('should return dto by user id', async () => {
       const findUserRecruiter = testUsers[1];
-      const requesterAdmin = testUsers[0];
 
-      const userDtoResult = await service.findDtoById(
-        findUserRecruiter.id,
-        requesterAdmin,
-      );
+      const userDtoResult = await service.findDtoById(findUserRecruiter.id);
 
       expect(userDtoResult.id).to.be.equal(findUserRecruiter.id);
       expect(userDtoResult.role).to.be.equal(findUserRecruiter.role);
@@ -148,34 +144,12 @@ describe('UserService', () => {
     });
 
     it('should throw if user with given id not found', async () => {
-      const requesterAdmin = testUsers[0];
-
       try {
-        await service.findDtoById(nonExistentUUIDId, requesterAdmin);
+        await service.findDtoById(nonExistentUUIDId);
 
         expect.fail('Should have thrown a NOT_FOUND error but did not');
       } catch (e) {
         expect(e.response).to.deep.equal('User with given id not found.');
-      }
-    });
-
-    it('should throw access forbidden if requesters (admins) tenantId differs from searched users tenantId', async () => {
-      const findUserRecruiterWithDifferentTenant = testUsers[3].id;
-      const requesterAdmin = testUsers[0];
-
-      try {
-        await service.findDtoById(
-          findUserRecruiterWithDifferentTenant,
-          requesterAdmin,
-        );
-
-        expect.fail(
-          'Should have thrown a ForbiddenException exception but did not',
-        );
-      } catch (e) {
-        expect(e.response.message).to.deep.equal(
-          'You can access users only within your own tenant.',
-        );
       }
     });
   });
