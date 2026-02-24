@@ -26,6 +26,7 @@ import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
 export class VacancyController {
   constructor(private readonly vacancyService: VacancyService) {}
 
+  // When creating a vacancy, tenantId is derived from the creator's tenantId.
   @Roles(UserRole.admin, UserRole.recruiter)
   @Post()
   create(
@@ -40,6 +41,10 @@ export class VacancyController {
     return this.vacancyService.findAll();
   }
 
+  /**
+   * When fetching vacancies with submissions, we only return those that belong to the requester's tenant,
+   *  unless the requester is a superAdmin who can see all vacancies across tenants.
+   */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get('with-submissions')
   findVacanciesWithSubmissions(
@@ -47,6 +52,14 @@ export class VacancyController {
   ): Promise<VacancyDto[]> {
     return this.vacancyService.findVacanciesWithSubmissions(requester.id);
   }
+
+  /**
+   * Super admins can optionally filter by tenantId to see vacancies with questions for a specific tenant.
+   * If super admin does not provide tenantId, they will see all vacancies with questions across all tenants.
+   
+   * Admins and recruiters will only see vacancies with questions for their own tenant. 
+   * If they provide a tenantId that does not match their own, they will receive an access error.
+   */
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get('with-questions')

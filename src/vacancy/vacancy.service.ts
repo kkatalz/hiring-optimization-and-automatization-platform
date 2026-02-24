@@ -288,7 +288,7 @@ export class VacancyService {
 
     if (!vacancy) {
       throw new HttpException(
-        'Vacancy not found after creation.',
+        'Vacancy not found after creation/update.',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
