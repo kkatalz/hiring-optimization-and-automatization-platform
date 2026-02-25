@@ -35,11 +35,11 @@ import { CandidateProfile } from '../entities/candidateProfile';
 import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfiles';
 import { testQuestions } from '../../test/fixtures/testQuestions';
 import { testVacancyQuestions } from '../../test/fixtures/testVacancyQuestions';
-import { testAnswers } from '../../test/fixtures/testAnswers';
 import { Repository } from 'typeorm';
 import { CandidateProfileService } from '../candidateProfile/candidateProfile.service';
 import { LanguageLevel } from '../entities/hiring.enum';
 import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
+import { testSubmissionAnswers } from '../../test/fixtures/testAnswers';
 
 describe('VacancySubmissionService', () => {
   let service: VacancySubmissionService;
@@ -61,6 +61,7 @@ describe('VacancySubmissionService', () => {
           Tenant,
         ]),
       ],
+
       providers: [
         VacancySubmissionService,
         VacancyService,
@@ -85,7 +86,7 @@ describe('VacancySubmissionService', () => {
       VacancySubmission: testVacancySubmissions,
       Question: testQuestions,
       VacancyQuestion: testVacancyQuestions,
-      SubmissionAnswer: testAnswers,
+      SubmissionAnswer: testSubmissionAnswers,
     });
   });
 

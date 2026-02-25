@@ -7,7 +7,7 @@ import { testVacancySubmissions } from './testVacancySubmissions';
  * vacancy[1] is linked to testQuestions[0] (boolean) and testQuestions[1] (text)
  * via testVacancyQuestions, so only those two questions are answered here.
  */
-export const testAnswers: SubmissionAnswer[] = [
+export const testSubmissionAnswers: SubmissionAnswer[] = [
   {
     id: 'b0000000-bbbb-bbbb-bbbb-000000000001',
     submissionId: testVacancySubmissions[0].id,

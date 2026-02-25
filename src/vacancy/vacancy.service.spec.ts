@@ -251,11 +251,6 @@ describe('VacancyService', () => {
       };
 
       const admin = testUsers[0];
-      // const questionsBefore = await service.findAll();
-      // const totalQuestionsBefore = questionsBefore.reduce(
-      //   (acc, v) => acc + (v.vacancyQuestions?.length ?? 0),
-      //   0,
-      // );
 
       const result: VacancyDto = await service.create(createVacancyDto, admin);
 

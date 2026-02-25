@@ -29,7 +29,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   /**
-   * Recruite can be added by admin when admin's tenant is the same as recruiter's tenant.
+   * Recruiter can be added by admin when admin's tenant is the same as recruiter's tenant.
    *  SuperAdmin can add admin and recruiter without tenant restriction.
    */
   @UseInterceptors(TenantInterceptor)

@@ -60,7 +60,6 @@ export const testUsers: User[] = [
     lastName: 'Candidate_5',
     deleted: false,
     role: UserRole.candidate,
-    tenantId: testTenants[0].id,
   },
   {
     id: 'dd8e52b6-f1c9-46ef-afb3-f2d3bcfc70c8',
@@ -70,7 +69,6 @@ export const testUsers: User[] = [
     lastName: 'Candidate_6',
     deleted: false,
     role: UserRole.candidate,
-    tenantId: testTenants[0].id,
   },
 ];
 
