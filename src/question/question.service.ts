@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Question } from '../entities/question';
 import { CreateQuestionDto } from './dto/createQuestion.dto';
 import { QuestionDto } from './dto/question.dto';
@@ -31,7 +31,7 @@ export class QuestionService {
 
     if (existingQuestion) {
       throw new HttpException(
-        'Question with the same label and type already exists.',
+        'Question with the same label and type already exists within this tenant.',
         HttpStatus.CONFLICT,
       );
     }
@@ -74,7 +74,7 @@ export class QuestionService {
       updateQuestionDto.type === QuestionType.text ||
       updateQuestionDto.type === QuestionType.boolean
     )
-      question.answerOptions = null;
+      question.answerOptions = [];
 
     const updatedQuestion = await this.questionRepository.save(question);
 
@@ -100,13 +100,23 @@ export class QuestionService {
         tenantId,
         label: question.label,
         type: question.type,
-        answerOptions: question.answerOptions
-          ? JSON.stringify(question.answerOptions)
-          : IsNull(),
       },
     });
 
-    return foundQuestion ? questionToQuestionDto(foundQuestion) : null;
+    if (!foundQuestion) return null;
+
+    // If it's not a dropdown, we don't need to check answerOptions.
+    if (question.type !== QuestionType.dropdown)
+      return questionToQuestionDto(foundQuestion);
+
+    // For dropdowns, handle potential undefined/null by defaulting to empty array
+    const existingOptions = JSON.stringify(foundQuestion.answerOptions || []);
+    const incomingOptions = JSON.stringify(question.answerOptions || []);
+
+    if (existingOptions === incomingOptions)
+      return questionToQuestionDto(foundQuestion);
+
+    return null;
   }
 
   private async findById(id: string): Promise<Question> {

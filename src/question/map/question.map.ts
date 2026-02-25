@@ -7,6 +7,6 @@ export const questionToQuestionDto = (question: Question): QuestionDto => {
     tenantId: question.tenantId,
     label: question.label,
     type: question.type,
-    answerOptions: question.answerOptions ?? undefined,
+    answerOptions: question.answerOptions,
   };
 };

@@ -67,7 +67,7 @@ describe('QuestionService', () => {
       expect(result.label).to.equal(createDto.label);
       expect(result.type).to.equal(QuestionType.boolean);
       expect(result.tenantId).to.equal(tenantId);
-      expect(result.answerOptions).to.be.undefined;
+      expect(result.answerOptions).to.be.empty;
 
       const allQuestions = await service.findAll();
       expect(allQuestions.length).to.equal(EXPECTED_QUESTIONS_NUM + 1);
@@ -113,11 +113,34 @@ describe('QuestionService', () => {
 
       try {
         await service.create(createDto, tenantId);
+
         expect.fail('Should have thrown a CONFLICT error but did not');
       } catch (e: any) {
         expect(e).to.have.property('status', 409);
         expect(e.response).to.equal(
-          'Question with the same label and type already exists.',
+          'Question with the same label and type already exists within this tenant.',
+        );
+      }
+    });
+
+    it('should throw a CONFLICT error when trying to create a dropdown question with the same label, type and answerOptions in the same tenant', async () => {
+      const tenantId = testTenants[0].id;
+      const existing = testQuestions[2];
+
+      const createDto: CreateQuestionDto = {
+        label: existing.label,
+        type: existing.type,
+        answerOptions: existing.answerOptions as string[],
+      };
+
+      try {
+        await service.create(createDto, tenantId);
+
+        expect.fail('Should have thrown a CONFLICT error but did not');
+      } catch (e: any) {
+        expect(e).to.have.property('status', 409);
+        expect(e.response).to.equal(
+          'Question with the same label and type already exists within this tenant.',
         );
       }
     });
@@ -203,7 +226,7 @@ describe('QuestionService', () => {
 
       expect(result.label).to.equal(question.label);
       expect(result.type).to.equal(QuestionType.boolean);
-      expect(result.answerOptions).to.be.undefined;
+      expect(result.answerOptions).to.be.empty;
     });
 
     it('should clear answerOptions when type changes from dropdown to text', async () => {
@@ -214,7 +237,7 @@ describe('QuestionService', () => {
 
       expect(result.label).to.equal(question.label);
       expect(result.type).to.equal(QuestionType.text);
-      expect(result.answerOptions).to.be.undefined;
+      expect(result.answerOptions).to.be.empty;
     });
 
     it('should preserve answerOptions when updating only the label of a dropdown question', async () => {

@@ -17,8 +17,8 @@ export class Question {
   @Column({ type: 'enum', enum: QuestionType, nullable: false })
   type: QuestionType;
 
-  @Column({ type: 'jsonb', nullable: true, default: null })
-  answerOptions?: string[] | null;
+  @Column({ type: 'jsonb', nullable: true, default: [] })
+  answerOptions?: string[];
 
   @OneToMany(() => VacancyQuestion, (vq) => vq.question)
   vacancyQuestions: VacancyQuestion[];
