@@ -1,10 +1,10 @@
 import {
   Body,
   Controller,
-  Get,
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
 } from '@nestjs/common';
 import { AuthUser } from '../decorators/authUser.dto';
 import { Roles } from '../decorators/roles.decorator';
@@ -16,6 +16,7 @@ import { VacancySubmissionService } from './vacancySubmission.service';
 import { validateTenantAccess } from '../utils/validate';
 import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
 import { VacancyService } from '../vacancy/vacancy.service';
+import { extractUserTenantId } from '../utils/extractUserTenantId';
 
 @Controller('vacanciesSubmissions')
 export class VacancySubmissionController {
@@ -69,9 +70,28 @@ export class VacancySubmissionController {
     return await this.vacancySubmissionService.reject(submissionId);
   }
 
-  // Shows all submissions for superAdmin, and for admin/recruiter within given vacancy
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
-  @Post('get/vacancy/:vacancyId')
+  @Post('get/filter/within/tenant')
+  async findAllSubmissionsWithinTenant(
+    @AuthUser() viewer: UserDto,
+    @Body() filterSubmissionsDto?: RecruitingFilterDto,
+    @Query('tenantId') tenantId?: string,
+  ): Promise<VacancySubmissionDto[]> {
+    const resolvedTenantId = extractUserTenantId(viewer, tenantId);
+
+    return await this.vacancySubmissionService.findAllSubmissionsWithinTenantWithFilters(
+      resolvedTenantId,
+      filterSubmissionsDto,
+    );
+  }
+
+  /** Shows all submissions for superAdmin, and for admin/recruiter within given vacancy
+   * Super admin can view all submissions across all tenants.
+   * Admin and recruiter can only view submissions within their own tenant.
+   * Filter submissions by Candidate fields: minYearsOfExperience, maxYearsOfExperience, countries, cities, languages
+   */
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
+  @Post('get/filter/within/vacancy/:vacancyId')
   async findAllSubmissionsWithinVacancy(
     @AuthUser() viewer: UserDto,
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
@@ -86,13 +106,5 @@ export class VacancySubmissionController {
       vacancyId,
       filterSubmissionsDto,
     );
-  }
-
-  @Roles(UserRole.superAdmin)
-  @Get(':tenantId')
-  async findAllByTenantId(
-    @Param('tenantId') tenantId: string,
-  ): Promise<VacancySubmissionDto[]> {
-    return await this.vacancySubmissionService.findAllByTenantId(tenantId);
   }
 }

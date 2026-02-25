@@ -19,6 +19,7 @@ import { VacancyModule } from 'src/vacancy/vacancy.module';
 import { VacancySubmissionModule } from './vacancySubmission/vacancySubmission.module';
 import { InterviewModule } from 'src/interview/interview.module';
 import { CandidateProfileModule } from 'src/candidateProfile/candidateProfile.module';
+import { QuestionModule } from 'src/question/question.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { CandidateProfileModule } from 'src/candidateProfile/candidateProfile.mo
     VacancyModule,
     VacancySubmissionModule,
     InterviewModule,
+    QuestionModule,
   ],
   controllers: [AppController],
   providers: [

@@ -49,20 +49,8 @@ export class TenantService {
   ): Promise<TenantDto> {
     const tenant = await this.findById(id);
 
-    const tenantWithGivenSlug = await this.tenantRepository.findOne({
-      where: {
-        slug: updateTenantDto.slug,
-        deleted: false,
-        id: Not(id),
-      },
-    });
-
-    if (tenantWithGivenSlug) {
-      throw new HttpException(
-        'Tenant with given slug already exists.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    if (updateTenantDto.slug)
+      await this.validateSlugUniqueness(updateTenantDto.slug, id);
 
     const { ...updatedFields } = updateTenantDto;
 
@@ -77,12 +65,14 @@ export class TenantService {
     return tenantToTenantDto(updatedTenant);
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string): Promise<TenantDto> {
     const tenant = await this.findById(id);
 
     tenant.deleted = true;
 
     await this.tenantRepository.save(tenant);
+
+    return tenantToTenantDto(tenant);
   }
 
   async findDtoById(id: string): Promise<TenantDto> {
@@ -103,5 +93,24 @@ export class TenantService {
     }
 
     return tenant;
+  }
+
+  private async validateSlugUniqueness(
+    slug: string,
+    id: string,
+  ): Promise<void> {
+    const tenantWithGivenSlug = await this.tenantRepository.findOne({
+      where: {
+        slug,
+        deleted: false,
+        id: Not(id),
+      },
+    });
+    if (tenantWithGivenSlug) {
+      throw new HttpException(
+        'Tenant with given slug already exists.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }

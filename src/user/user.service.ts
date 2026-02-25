@@ -1,9 +1,4 @@
-import {
-  ForbiddenException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
 import { User } from '../entities/user';
@@ -88,7 +83,7 @@ export class UserService {
     return user;
   }
 
-  async findDtoById(id: string, requester: UserDto): Promise<UserDto> {
+  async findDtoById(id: string): Promise<UserDto> {
     const user = await this.userRepository.findOne({
       where: { id, deleted: false },
     });
@@ -96,15 +91,6 @@ export class UserService {
       throw new HttpException(
         'User with given id not found.',
         HttpStatus.NOT_FOUND,
-      );
-    }
-
-    if (
-      requester.role === UserRole.admin &&
-      requester.tenantId !== user.tenantId
-    ) {
-      throw new ForbiddenException(
-        'You can access users only within your own tenant.',
       );
     }
 
@@ -236,5 +222,17 @@ export class UserService {
       );
     }
     return userExistsWithinProvidedTenant;
+  }
+
+  async getTenantIdByUserId(userId: string): Promise<string> {
+    const user = await this.findById(userId);
+    if (!user.tenantId) {
+      throw new HttpException(
+        'User does not belong to any tenant.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return user.tenantId;
   }
 }

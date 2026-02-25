@@ -11,6 +11,7 @@ export const vacancySubmToVacancySubmDto = ({
   status,
   tags,
   candidateProfile,
+  answers,
 }: VacancySubmission): VacancySubmissionDto => {
   return {
     id,
@@ -23,5 +24,6 @@ export const vacancySubmToVacancySubmDto = ({
     candidateProfile: candidateProfile
       ? candidateToCandidateProfileDto(candidateProfile)
       : undefined,
+    answers,
   };
 };

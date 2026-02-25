@@ -21,18 +21,25 @@ import { expect } from 'chai';
 import { VacancySubmissionDto } from './dto/vacancySubmission.dto';
 import { nonExistentUUIDId } from '../../test/utils';
 import { Vacancy } from '../entities/vacancy';
+import { VacancyQuestion } from '../entities/vacancyQuestion';
+import { Question } from '../entities/question';
+import { SubmissionAnswer } from '../entities/submissionAnswers';
 import { UserService } from '../user/user.service';
 import { User } from '../entities/user';
 import { Tenant } from '../entities/tenant';
 import { TenantService } from '../tenant/tenant.service';
+import { QuestionService } from '../question/question.service';
 import { AuthService } from '../auth/auth.service';
 import { VacancySubmissionStatus } from '../entities/statuses.enum';
 import { CandidateProfile } from '../entities/candidateProfile';
 import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfiles';
+import { testQuestions } from '../../test/fixtures/testQuestions';
+import { testVacancyQuestions } from '../../test/fixtures/testVacancyQuestions';
 import { Repository } from 'typeorm';
 import { CandidateProfileService } from '../candidateProfile/candidateProfile.service';
 import { LanguageLevel } from '../entities/hiring.enum';
 import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
+import { testSubmissionAnswers } from '../../test/fixtures/testAnswers';
 
 describe('VacancySubmissionService', () => {
   let service: VacancySubmissionService;
@@ -46,14 +53,19 @@ describe('VacancySubmissionService', () => {
         TypeOrmModule.forFeature([
           VacancySubmission,
           Vacancy,
+          VacancyQuestion,
+          Question,
+          SubmissionAnswer,
           User,
           CandidateProfile,
           Tenant,
         ]),
       ],
+
       providers: [
         VacancySubmissionService,
         VacancyService,
+        QuestionService,
         UserService,
         CandidateProfileService,
         TenantService,
@@ -72,6 +84,9 @@ describe('VacancySubmissionService', () => {
       CandidateProfile: testCandidatesProfiles,
       Vacancy: testVacancies,
       VacancySubmission: testVacancySubmissions,
+      Question: testQuestions,
+      VacancyQuestion: testVacancyQuestions,
+      SubmissionAnswer: testSubmissionAnswers,
     });
   });
 
@@ -83,7 +98,7 @@ describe('VacancySubmissionService', () => {
 
   describe('create', () => {
     it('should create a new vacancy submission to given vacancy', async () => {
-      const CreateVacancySubmissionDto: CreateVacancySubmissionDto = {
+      const createSubmissionDto: CreateVacancySubmissionDto = {
         comment: 'Looking forward to this opportunity!',
       };
 
@@ -91,11 +106,7 @@ describe('VacancySubmissionService', () => {
       const userId = testUsers[5].id;
 
       const vacancySubmissionResult: VacancySubmissionDto =
-        await service.create(
-          CreateVacancySubmissionDto,
-          zooKeperVacancyID,
-          userId,
-        );
+        await service.create(createSubmissionDto, zooKeperVacancyID, userId);
 
       const expectedVacancySubmissionLength = (
         await service.findAllSubmissionsWithinVacancyWithFilters(
@@ -113,6 +124,110 @@ describe('VacancySubmissionService', () => {
       expect(vacancySubmissionResult.vacancyId).to.deep.equal(
         zooKeperVacancyID,
       );
+    });
+
+    it('should create a submission with valid answers', async () => {
+      const zooKeperVacancyID = testVacancies[1].id;
+      const userId = testUsers[5].id;
+
+      // vacancy[1] is linked to testQuestions[0] (boolean, required) and testQuestions[1] (text)
+      const createSubmissionDto: CreateVacancySubmissionDto = {
+        comment: 'Great opportunity!',
+        answers: [
+          { questionId: testQuestions[0].id, value: 'true' },
+          {
+            questionId: testQuestions[1].id,
+            value: 'Communication skills',
+          },
+        ],
+      };
+
+      const result = await service.create(
+        createSubmissionDto,
+        zooKeperVacancyID,
+        userId,
+      );
+
+      expect(result.vacancyId).to.equal(zooKeperVacancyID);
+    });
+
+    it('should throw BadRequestException when answer references a question not on the vacancy', async () => {
+      const zooKeperVacancyID = testVacancies[1].id;
+      const userId = testUsers[5].id;
+
+      // testQuestions[3] belongs to tenant[1] and is NOT linked to vacancy[1]
+      const createSubmissionDto: CreateVacancySubmissionDto = {
+        comment: 'Test',
+        answers: [
+          { questionId: testQuestions[0].id, value: 'true' },
+          { questionId: testQuestions[3].id, value: 'yes' },
+        ],
+      };
+
+      try {
+        await service.create(createSubmissionDto, zooKeperVacancyID, userId);
+        expect.fail('Should have thrown a BadRequestException but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(400);
+        expect(e.response.message).to.include(
+          'Current vacancy does not have question with id',
+        );
+      }
+    });
+
+    it('should throw BadRequestException when missing required question answers', async () => {
+      const zooKeperVacancyID = testVacancies[1].id;
+      const userId = testUsers[5].id;
+
+      // vacancy[1] has testQuestions[0] as required, but we only answer testQuestions[1]
+      const createSubmissionDto: CreateVacancySubmissionDto = {
+        comment: 'Test',
+        answers: [
+          {
+            questionId: testQuestions[1].id,
+            value: 'Some text answer',
+          },
+        ],
+      };
+
+      try {
+        await service.create(createSubmissionDto, zooKeperVacancyID, userId);
+        expect.fail('Should have thrown a BadRequestException but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(400);
+        expect(e.response.message).to.equal(
+          'You must answer all required questions.',
+        );
+        expect(e.response.missingRequiredQuestions).to.be.an('array');
+        expect(e.response.missingRequiredQuestions.length).to.equal(1);
+      }
+    });
+
+    it('should throw BadRequestException when dropdown answer has invalid value', async () => {
+      // vacancy[0] is linked to testQuestions[0] (boolean, required) and testQuestions[2] (dropdown)
+      const vacancyId = testVacancies[0].id;
+      const userId = testUsers[5].id;
+
+      const createSubmissionDto: CreateVacancySubmissionDto = {
+        comment: 'Test',
+        answers: [
+          { questionId: testQuestions[0].id, value: 'true' },
+          {
+            questionId: testQuestions[2].id,
+            value: 'InvalidOption',
+          },
+        ],
+      };
+
+      try {
+        await service.create(createSubmissionDto, vacancyId, userId);
+        expect.fail('Should have thrown a BadRequestException but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(400);
+        expect(e.response.message).to.include(
+          'Value in answers for question with id',
+        );
+      }
     });
   });
 
@@ -431,17 +546,260 @@ describe('VacancySubmissionService', () => {
 
       expect(result).to.deep.equal([]);
     });
-  });
-  describe('findAllByTenantId', () => {
-    it('should return all vacancy submissions for a given tenantId (viewer is superAdmin)', async () => {
-      const tenantId = testTenants[0].id;
 
-      const vacancySubmissionsResult: VacancySubmissionDto[] =
-        await service.findAllByTenantId(tenantId);
+    it('should return submissions when answer matches filter', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [{ questionId: testQuestions[0].id, value: 'true' }],
+      };
 
-      expect(vacancySubmissionsResult.length).to.equal(
-        EXPECTED_VACANCY_SUBMISSIONS_NUM,
+      const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+        vacancyId,
+        filter,
       );
+
+      expect(result.length).to.equal(1);
+      expect(result[0].id).to.equal(testVacancySubmissions[0].id);
+    });
+
+    it('should return empty when answer value does not match filter', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [{ questionId: testQuestions[0].id, value: 'false' }],
+      };
+
+      const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+        vacancyId,
+        filter,
+      );
+
+      expect(result).to.deep.equal([]);
+    });
+
+    it('should return submissions matching all answer filters (AND logic)', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [
+          { questionId: testQuestions[0].id, value: 'true' },
+          {
+            questionId: testQuestions[1].id,
+            value: 'I am very dedicated and detail-oriented.',
+          },
+        ],
+      };
+
+      const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+        vacancyId,
+        filter,
+      );
+
+      expect(result.length).to.equal(1);
+    });
+
+    it('should return empty when one of multiple answer filters does not match', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [
+          { questionId: testQuestions[0].id, value: 'true' },
+          { questionId: testQuestions[1].id, value: 'non-matching value' },
+        ],
+      };
+
+      const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+        vacancyId,
+        filter,
+      );
+
+      expect(result).to.deep.equal([]);
+    });
+
+    it('should return submissions when filtering by questionId only (no value)', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [{ questionId: testQuestions[0].id }],
+      };
+
+      const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+        vacancyId,
+        filter,
+      );
+
+      expect(result.length).to.equal(1);
+      expect(result[0].id).to.equal(testVacancySubmissions[0].id);
+    });
+
+    it('should combine experience and answer filters', async () => {
+      const filter: RecruitingFilterDto = {
+        minYearsOfExperience: 5,
+        answers: [{ questionId: testQuestions[0].id, value: 'true' }],
+      };
+
+      const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+        vacancyId,
+        filter,
+      );
+
+      expect(result.length).to.equal(1);
+    });
+
+    it('should return empty when experience filter matches but answer filter does not', async () => {
+      const filter: RecruitingFilterDto = {
+        minYearsOfExperience: 5,
+        answers: [{ questionId: testQuestions[0].id, value: 'false' }],
+      };
+
+      const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+        vacancyId,
+        filter,
+      );
+
+      expect(result).to.deep.equal([]);
+    });
+  });
+  describe('findAllSubmissionsWithinTenantWithFilters', () => {
+    const tenantId = testTenants[0].id;
+
+    it('should return all submissions for a tenant when no filters are provided', async () => {
+      const result =
+        await service.findAllSubmissionsWithinTenantWithFilters(tenantId);
+
+      expect(result.length).to.equal(EXPECTED_VACANCY_SUBMISSIONS_NUM);
+    });
+
+    it('should filter submissions by answer within tenant', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [{ questionId: testQuestions[0].id, value: 'true' }],
+      };
+
+      const result = await service.findAllSubmissionsWithinTenantWithFilters(
+        tenantId,
+        filter,
+      );
+
+      expect(result.length).to.equal(1);
+      expect(result[0].id).to.equal(testVacancySubmissions[0].id);
+    });
+
+    it('should return empty when answer does not match within tenant', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [{ questionId: testQuestions[0].id, value: 'false' }],
+      };
+
+      const result = await service.findAllSubmissionsWithinTenantWithFilters(
+        tenantId,
+        filter,
+      );
+
+      expect(result).to.deep.equal([]);
+    });
+
+    it('should combine candidate filters with answer filters within tenant', async () => {
+      const filter: RecruitingFilterDto = {
+        minYearsOfExperience: 5,
+        answers: [{ questionId: testQuestions[0].id, value: 'true' }],
+      };
+
+      const result = await service.findAllSubmissionsWithinTenantWithFilters(
+        tenantId,
+        filter,
+      );
+
+      expect(result.length).to.equal(1);
+    });
+
+    it('should return submissions when filtering by questionId only (no value)', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [{ questionId: testQuestions[0].id }],
+      };
+
+      const result = await service.findAllSubmissionsWithinTenantWithFilters(
+        tenantId,
+        filter,
+      );
+
+      expect(result.length).to.equal(1);
+      expect(result[0].id).to.equal(testVacancySubmissions[0].id);
+    });
+
+    it('should return empty when filtering by questionId that has no answers', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [{ questionId: testQuestions[3].id }],
+      };
+
+      const result = await service.findAllSubmissionsWithinTenantWithFilters(
+        tenantId,
+        filter,
+      );
+
+      expect(result).to.deep.equal([]);
+    });
+
+    it('should throw NOT_FOUND when answer filter references non-existent questionId', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [{ questionId: nonExistentUUIDId, value: 'true' }],
+      };
+
+      try {
+        await service.findAllSubmissionsWithinTenantWithFilters(
+          tenantId,
+          filter,
+        );
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(404);
+        expect(e.response).to.equal('Question not found.');
+      }
+    });
+
+    it('should filter by language within tenant', async () => {
+      const filter: RecruitingFilterDto = {
+        languages: [{ code: 'en' }],
+      };
+
+      const result = await service.findAllSubmissionsWithinTenantWithFilters(
+        tenantId,
+        filter,
+      );
+
+      expect(result.length).to.equal(1);
+    });
+
+    it('should combine language and answer filters within tenant', async () => {
+      const filter: RecruitingFilterDto = {
+        languages: [{ code: 'en', level: LanguageLevel.B2 }],
+        answers: [{ questionId: testQuestions[0].id, value: 'true' }],
+      };
+
+      const result = await service.findAllSubmissionsWithinTenantWithFilters(
+        tenantId,
+        filter,
+      );
+
+      expect(result.length).to.equal(1);
+      expect(result[0].id).to.equal(testVacancySubmissions[0].id);
+    });
+
+    it('should return empty for a non-existent tenant', async () => {
+      const result =
+        await service.findAllSubmissionsWithinTenantWithFilters(
+          nonExistentUUIDId,
+        );
+
+      expect(result).to.deep.equal([]);
+    });
+  });
+
+  describe('getTenantIdBySubmissionId', () => {
+    it('should return the tenantId for a given submission', async () => {
+      const submissionId = testVacancySubmissions[0].id;
+
+      const tenantId = await service.getTenantIdBySubmissionId(submissionId);
+
+      expect(tenantId).to.equal(testVacancySubmissions[0].tenantId);
+    });
+
+    it('should throw NOT_FOUND when submission does not exist', async () => {
+      try {
+        await service.getTenantIdBySubmissionId(nonExistentUUIDId);
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e: any) {
+        expect(e.response).to.equal('Vacancy Submission not found.');
+      }
     });
   });
 
@@ -455,6 +813,24 @@ describe('VacancySubmissionService', () => {
       expect(approvedVacancySubmission.status).to.equal(
         VacancySubmissionStatus.approved,
       );
+    });
+
+    it('should keep status approved when approving already-approved submission', async () => {
+      const submissionId = testVacancySubmissions[0].id;
+
+      await service.approve(submissionId);
+      const result = await service.approve(submissionId);
+
+      expect(result.status).to.equal(VacancySubmissionStatus.approved);
+    });
+
+    it('should approve a previously rejected submission', async () => {
+      const submissionId = testVacancySubmissions[0].id;
+
+      await service.reject(submissionId);
+      const result = await service.approve(submissionId);
+
+      expect(result.status).to.equal(VacancySubmissionStatus.approved);
     });
 
     it('should throw NOT_FOUND error if vacancy submission does not exist', async () => {
@@ -482,11 +858,29 @@ describe('VacancySubmissionService', () => {
       );
     });
 
+    it('should keep status rejected when rejecting already-rejected submission', async () => {
+      const submissionId = testVacancySubmissions[0].id;
+
+      await service.reject(submissionId);
+      const result = await service.reject(submissionId);
+
+      expect(result.status).to.equal(VacancySubmissionStatus.rejected);
+    });
+
+    it('should reject a previously approved submission', async () => {
+      const submissionId = testVacancySubmissions[0].id;
+
+      await service.approve(submissionId);
+      const result = await service.reject(submissionId);
+
+      expect(result.status).to.equal(VacancySubmissionStatus.rejected);
+    });
+
     it('should throw NOT_FOUND error if vacancy submission does not exist', async () => {
       const nonExistentSubmissionId = nonExistentUUIDId;
 
       try {
-        await service.approve(nonExistentSubmissionId);
+        await service.reject(nonExistentSubmissionId);
 
         expect.fail('Should have thrown a NOT_FOUND error but did not');
       } catch (e) {

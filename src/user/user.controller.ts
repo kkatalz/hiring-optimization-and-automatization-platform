@@ -28,11 +28,20 @@ import { ChangePasswordDto } from './dto/changePassword.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  /**
+   * Recruiter can be added by admin when admin's tenant is the same as recruiter's tenant.
+   *  SuperAdmin can add admin and recruiter without tenant restriction.
+   */
   @UseInterceptors(TenantInterceptor)
   @Roles(UserRole.admin, UserRole.superAdmin)
   @Post('recruiter')
-  createRecruiter(@Body() createRecruiterDto: CreateUserDto): Promise<UserDto> {
-    return this.userService.create(createRecruiterDto, UserRole.recruiter);
+  async createRecruiter(
+    @Body() createRecruiterDto: CreateUserDto,
+  ): Promise<UserDto> {
+    return await this.userService.create(
+      createRecruiterDto,
+      UserRole.recruiter,
+    );
   }
 
   @UseInterceptors(TenantInterceptor)
@@ -68,13 +77,21 @@ export class UserController {
 
   @Roles(UserRole.superAdmin, UserRole.admin)
   @Get(':id')
-  findById(
+  async findById(
     @AuthUser() requester: UserDto,
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<UserDto> {
-    return this.userService.findDtoById(id, requester);
+    const userTenantId = await this.userService.getTenantIdByUserId(id);
+    validateTenantAccess(requester, userTenantId);
+
+    return this.userService.findDtoById(id);
   }
 
+  /**
+   * SuperAdmin can update all users without tenant restriction.
+   * Admin can update only users within their tenant, but not other tenants.
+   * Recruiter can update only their own fields.
+   */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Patch(':userId/tenant/:tenantId')
   update(
@@ -92,6 +109,12 @@ export class UserController {
     return this.userService.update(userId, tenantId, updateUserDto);
   }
 
+  /**
+   * SuperAdmin can change email and password for all users without tenant restriction.
+   * Admin can change email and password only for users within their tenant, but not other tenants.
+   * Recruiter can change email and password only for themselves.
+   * Candidate can change email and password only for themselves.
+   */
   @Roles(
     UserRole.candidate,
     UserRole.recruiter,
@@ -117,6 +140,12 @@ export class UserController {
     return await this.userService.changeEmail(userId, changeEmailDto);
   }
 
+  /**
+   * SuperAdmin can change email and password for all users without tenant restriction.
+   * Admin can change email and password only for users within their tenant, but not other tenants.
+   * Recruiter can change email and password only for themselves.
+   * Candidate can change email and password only for themselves.
+   */
   @Roles(
     UserRole.candidate,
     UserRole.recruiter,
@@ -184,7 +213,7 @@ export class UserController {
   ): void {
     if (requester.role === UserRole.admin && requester.tenantId !== tenantId) {
       throw new ForbiddenException(
-        'You can access users only within your own tenant.',
+        `You can access users only within your own tenant: ${tenantId}, but not requested:${requester.tenantId}.`,
       );
     } else if (requester.role === UserRole.recruiter && requester.id !== userId)
       throw new HttpException(

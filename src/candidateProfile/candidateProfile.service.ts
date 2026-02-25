@@ -12,7 +12,8 @@ import { candidateToCandidateProfileDto } from './map/candidate.map';
 import { UserService } from '../user/user.service';
 import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
 import {
-  filterByExperienceCountriesCities,
+  filterByExperience,
+  filterByCountriesCities,
   filterByLanguages,
 } from '../utils/filterSubmissionsAndCandidateProfiles';
 
@@ -62,7 +63,8 @@ export class CandidateProfileService {
     }
 
     if (profileFilterDto) {
-      filterByExperienceCountriesCities(query, profileFilterDto);
+      filterByExperience(query, profileFilterDto);
+      filterByCountriesCities(query, profileFilterDto);
     }
 
     let candidates = await query.getMany();
