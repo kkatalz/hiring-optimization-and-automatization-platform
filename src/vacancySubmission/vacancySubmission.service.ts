@@ -10,7 +10,7 @@ import { VacancyService } from '../vacancy/vacancy.service';
 import { CreateVacancySubmissionDto } from './dto/createVacancySubmission.dto';
 import { VacancySubmissionDto } from './dto/vacancySubmission.dto';
 import { vacancySubmToVacancySubmDto } from './map/vacancySubmission.map';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { VacancySubmissionStatus } from '../entities/statuses.enum';
 import { CandidateProfileService } from '../candidateProfile/candidateProfile.service';
 import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
@@ -41,6 +41,8 @@ export class VacancySubmissionService {
     private readonly profileService: CandidateProfileService,
 
     private readonly questionService: QuestionService,
+
+    private dataSource: DataSource,
   ) {}
 
   async create(
@@ -69,33 +71,36 @@ export class VacancySubmissionService {
       vacancy,
     );
 
-    const vacancySubmission = this.vacancySubmissionRepository.create({
-      ...createVacancySubmissionDto,
-      vacancyId: vacancyId,
-      tenantId: vacancy.tenantId,
-      candidateId: candidate.id,
-      vacancy: vacancy,
-      candidateProfile: candidate,
-    });
+    return await this.dataSource.transaction(
+      async (transactionalEntityManager) => {
+        const vacancySubmission = this.vacancySubmissionRepository.create({
+          ...createVacancySubmissionDto,
+          vacancyId: vacancyId,
+          tenantId: vacancy.tenantId,
+          candidateId: candidate.id,
+          vacancy: vacancy,
+          candidateProfile: candidate,
+        });
 
-    const savedVacancySubmission =
-      await this.vacancySubmissionRepository.save(vacancySubmission);
+        const savedVacancySubmission =
+          await transactionalEntityManager.save(vacancySubmission);
 
-    if (createVacancySubmissionDto.answers?.length) {
-      const submissionAnswers = createVacancySubmissionDto.answers.map(
-        (answer) => {
-          return this.submissionAnswerRepository.create({
-            submissionId: savedVacancySubmission.id,
-            questionId: answer.questionId,
-            value: answer.value,
-          });
-        },
-      );
+        if (createVacancySubmissionDto.answers?.length) {
+          const submissionAnswers = createVacancySubmissionDto.answers.map(
+            (answer) => {
+              return this.submissionAnswerRepository.create({
+                submissionId: savedVacancySubmission.id,
+                questionId: answer.questionId,
+                value: answer.value,
+              });
+            },
+          );
+          await transactionalEntityManager.save(submissionAnswers);
+        }
 
-      await this.submissionAnswerRepository.save(submissionAnswers);
-    }
-
-    return vacancySubmToVacancySubmDto(savedVacancySubmission);
+        return vacancySubmToVacancySubmDto(savedVacancySubmission);
+      },
+    );
   }
 
   async getTenantIdBySubmissionId(submissionId: string): Promise<string> {
