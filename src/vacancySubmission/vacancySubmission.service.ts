@@ -148,6 +148,14 @@ export class VacancySubmissionService {
     let submissions = await query.getMany();
 
     if (filterSubmissionsDto.answers?.length) {
+      const allVacancyQuestions: VacancyQuestionDetailedDto[] =
+        await this.vacancyService.findAllQuestionsByVacancyId(vacancyId);
+
+      this.validateProvidedAnswers(
+        filterSubmissionsDto.answers,
+        allVacancyQuestions,
+      );
+
       submissions = filterByAnswers(submissions, filterSubmissionsDto.answers);
     }
 
@@ -176,15 +184,6 @@ export class VacancySubmissionService {
       return submissions.map(vacancySubmToVacancySubmDto);
     }
 
-    // If filters are provided, validate that the questionIds in answers[] exist
-    if (filterSubmissionsDto.answers?.length) {
-      await Promise.all(
-        filterSubmissionsDto.answers.map((pair) =>
-          this.questionService.findDtoById(pair.questionId),
-        ),
-      );
-    }
-
     const query = this.vacancySubmissionRepository
       .createQueryBuilder('submission')
       .leftJoinAndSelect('submission.vacancy', 'vacancy')
@@ -199,6 +198,20 @@ export class VacancySubmissionService {
     let submissions = await query.getMany();
 
     if (filterSubmissionsDto.answers?.length) {
+      // Validate that provided questionIds are valid and belong to the tenant, and that provided values match question types
+      for (const answer of filterSubmissionsDto.answers) {
+        const question = await this.questionService.findDtoById(
+          answer.questionId,
+        );
+
+        if (question.tenantId !== tenantId) {
+          throw new BadRequestException(
+            `Question with id ${answer.questionId} does not belong to tenant with id ${tenantId}. Please provide valid questionIds in filter.`,
+          );
+        }
+        this.validateValueMatchesQuestionType(answer, question);
+      }
+
       submissions = filterByAnswers(submissions, filterSubmissionsDto.answers);
     }
 
@@ -313,7 +326,7 @@ export class VacancySubmissionService {
     answer: QuestionAnswerFilterEntry,
     questionMatch: VacancyQuestionDetailedDto | QuestionDto,
   ) {
-    if (questionMatch.type === QuestionType.boolean) {
+    if (questionMatch.type === QuestionType.boolean && answer.value) {
       const isInvalidBool = answer.value !== 'true' && answer.value !== 'false';
 
       if (isInvalidBool) {
