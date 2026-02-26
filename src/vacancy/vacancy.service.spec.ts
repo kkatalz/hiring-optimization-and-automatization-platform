@@ -496,6 +496,23 @@ describe('VacancyService', () => {
         expect(e.status).to.equal(409);
       }
     });
+
+    it('should throw 400 when vacancy and question belong to different tenants', async () => {
+      const vacancyId = testVacancies[0].id;
+      const questionId = testQuestions[3].id; // belongs to tenant[1], while vacancy belongs to tenant[0]
+
+      try {
+        await service.addQuestionToVacancy(vacancyId, questionId, {
+          isRequired: false,
+        });
+        expect.fail('Should have thrown a BAD_REQUEST error but did not');
+      } catch (e: any) {
+        expect(e.response).to.equal(
+          `Vacancy and Question belong to different tenants. Vacancy belongs to tenant with ID: ${testVacancies[0].tenantId}, while Question belongs to tenant with ID: ${testQuestions[3].tenantId}.`,
+        );
+        expect(e.status).to.equal(400);
+      }
+    });
   });
 
   describe('removeQuestionFromVacancy', () => {
