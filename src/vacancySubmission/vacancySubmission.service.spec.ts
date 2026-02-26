@@ -41,7 +41,7 @@ import { LanguageLevel } from '../entities/hiring.enum';
 import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
 import { testSubmissionAnswers } from '../../test/fixtures/testAnswers';
 
-describe('VacancySubmissionService', () => {
+describe.only('VacancySubmissionService', () => {
   let service: VacancySubmissionService;
   let vacancyRepository: Repository<Vacancy>;
 
@@ -100,6 +100,7 @@ describe('VacancySubmissionService', () => {
     it('should create a new vacancy submission to given vacancy', async () => {
       const createSubmissionDto: CreateVacancySubmissionDto = {
         comment: 'Looking forward to this opportunity!',
+        answers: [{ questionId: testQuestions[0].id, value: 'yes' }],
       };
 
       const zooKeperVacancyID = testVacancies[1].id;
@@ -202,6 +203,26 @@ describe('VacancySubmissionService', () => {
         expect(e.response.missingRequiredQuestions.length).to.equal(1);
       }
     });
+    it('should throw BadRequestException when answers in DTO were not provided, but vacancy has required questions', async () => {
+      const zooKeperVacancyID = testVacancies[1].id;
+      const userId = testUsers[5].id;
+
+      const createSubmissionDto: CreateVacancySubmissionDto = {
+        comment: 'Test',
+      };
+
+      try {
+        await service.create(createSubmissionDto, zooKeperVacancyID, userId);
+        expect.fail('Should have thrown a BadRequestException but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(400);
+        expect(e.response.message).to.equal(
+          'You must answer all required questions.',
+        );
+        expect(e.response.missingRequiredQuestions).to.be.an('array');
+        expect(e.response.missingRequiredQuestions.length).to.equal(1);
+      }
+    });
 
     it('should throw BadRequestException when dropdown answer has invalid value', async () => {
       // vacancy[0] is linked to testQuestions[0] (boolean, required) and testQuestions[2] (dropdown)
@@ -242,6 +263,7 @@ describe('VacancySubmissionService', () => {
     const CreateVacancySubmissionDto: CreateVacancySubmissionDto = {
       comment: 'Looking forward to this opportunity!',
       tags,
+      answers: [{ questionId: testQuestions[0].id, value: 'yes' }],
     };
 
     const userId = testUsers[5].id;
@@ -258,6 +280,7 @@ describe('VacancySubmissionService', () => {
   it('should not allow to create a submission if candidate has already applied to the vacancy', async () => {
     const CreateVacancySubmissionDto: CreateVacancySubmissionDto = {
       comment: 'Looking forward to this opportunity!',
+      answers: [{ questionId: testQuestions[0].id, value: 'yes' }],
     };
 
     const zooKeperVacancyID = testVacancies[1].id;
@@ -290,6 +313,7 @@ describe('VacancySubmissionService', () => {
     const CreateVacancySubmissionDto: CreateVacancySubmissionDto = {
       comment: 'Looking forward to this opportunity!',
       tags: submissionInvalidTags,
+      answers: [{ questionId: testQuestions[0].id, value: 'yes' }],
     };
 
     const userId = testUsers[5].id;

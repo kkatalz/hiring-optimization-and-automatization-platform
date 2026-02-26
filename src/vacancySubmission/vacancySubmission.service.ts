@@ -26,6 +26,7 @@ import { QuestionService } from '../question/question.service';
 import { QuestionDto } from '../question/dto/question.dto';
 import { QuestionType } from '../entities/question.enum';
 import { SubmissionAnswer } from '../entities/submissionAnswers';
+import { VacancyQuestionDetailedDto } from '../vacancy/dto/vacancyQuestionDetailed.dto';
 
 @Injectable()
 export class VacancySubmissionService {
@@ -261,50 +262,47 @@ export class VacancySubmissionService {
     createVacancySubmissionDto: CreateVacancySubmissionDto,
     vacancy: VacancyDto,
   ) {
-    const allVacancyQuestions =
+    const allVacancyQuestions: VacancyQuestionDetailedDto[] =
       await this.vacancyService.findAllQuestionsByVacancyId(vacancy.id);
 
+    const allVacancyQuestionIds = allVacancyQuestions.map((q) => q.questionId);
+
     if (
-      !createVacancySubmissionDto.answers ||
+      !createVacancySubmissionDto.answers &&
       allVacancyQuestions.length === 0
     ) {
       createVacancySubmissionDto.answers = [];
       return;
     }
 
-    const allVacancyQuestionIds = allVacancyQuestions.map((q) => q.questionId);
-
-    for (const answer of createVacancySubmissionDto.answers) {
-      if (!allVacancyQuestionIds.includes(answer.questionId)) {
-        throw new BadRequestException(
-          `Current vacancy does not have question with id: ${answer.questionId}, but: ${allVacancyQuestionIds.join(', ')}`,
-        );
-      }
-    }
-
-    for (const answer of createVacancySubmissionDto.answers) {
-      const questionDetails = await this.questionService.findDtoById(
-        answer.questionId,
-      );
-
-      if (
-        questionDetails.type === QuestionType.dropdown &&
-        questionDetails.answerOptions?.length &&
-        answer.value
-      ) {
-        if (!questionDetails.answerOptions.includes(answer.value)) {
+    if (createVacancySubmissionDto.answers?.length) {
+      for (const answer of createVacancySubmissionDto.answers) {
+        if (!allVacancyQuestionIds.includes(answer.questionId)) {
           throw new BadRequestException(
-            `Value in answers for question with id - ${answer.questionId} must be either of: ${questionDetails.answerOptions.join(', ')}`,
+            `Current vacancy does not have question with id: ${answer.questionId}, but: ${allVacancyQuestionIds.join(', ')}`,
           );
+        }
+        const questionDetails = await this.questionService.findDtoById(
+          answer.questionId,
+        );
+
+        if (
+          questionDetails.type === QuestionType.dropdown &&
+          questionDetails.answerOptions?.length &&
+          answer.value
+        ) {
+          if (!questionDetails.answerOptions.includes(answer.value)) {
+            throw new BadRequestException(
+              `Value in answers for question with id - ${answer.questionId} must be either of: ${questionDetails.answerOptions.join(', ')}`,
+            );
+          }
         }
       }
     }
 
-    const requiredQuestions = vacancy.vacancyQuestions?.filter(
-      (q) => q.isRequired,
-    );
+    const requiredQuestions = allVacancyQuestions.filter((q) => q.isRequired);
 
-    if (requiredQuestions) {
+    if (requiredQuestions.length > 0) {
       const answeredQuestionIds = createVacancySubmissionDto.answers?.map(
         (a) => a.questionId,
       );
