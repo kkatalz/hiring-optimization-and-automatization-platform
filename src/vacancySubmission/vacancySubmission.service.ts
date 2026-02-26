@@ -13,7 +13,10 @@ import { vacancySubmToVacancySubmDto } from './map/vacancySubmission.map';
 import { DataSource, Repository } from 'typeorm';
 import { VacancySubmissionStatus } from '../entities/statuses.enum';
 import { CandidateProfileService } from '../candidateProfile/candidateProfile.service';
-import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
+import {
+  QuestionAnswerFilterEntry,
+  RecruitingFilterDto,
+} from '../recruiting/recruitingFilter.dto';
 import {
   filterByAnswers,
   filterByExperience,
@@ -23,10 +26,10 @@ import {
 import { VacancyDto } from '../vacancy/dto/vacancy.dto';
 import { CandidateProfile } from '../entities/candidateProfile';
 import { QuestionService } from '../question/question.service';
-import { QuestionDto } from '../question/dto/question.dto';
 import { QuestionType } from '../entities/question.enum';
 import { SubmissionAnswer } from '../entities/submissionAnswers';
 import { VacancyQuestionDetailedDto } from '../vacancy/dto/vacancyQuestionDetailed.dto';
+import { QuestionDto } from '../question/dto/question.dto';
 
 @Injectable()
 export class VacancySubmissionService {
@@ -265,65 +268,98 @@ export class VacancySubmissionService {
     const allVacancyQuestions: VacancyQuestionDetailedDto[] =
       await this.vacancyService.findAllQuestionsByVacancyId(vacancy.id);
 
-    const allVacancyQuestionIds = allVacancyQuestions.map((q) => q.questionId);
+    const answers = createVacancySubmissionDto.answers || [];
 
-    if (
-      !createVacancySubmissionDto.answers &&
-      allVacancyQuestions.length === 0
-    ) {
+    // Exit if no questions exist and no answers provided
+    if (answers.length === 0 && allVacancyQuestions.length === 0) {
       createVacancySubmissionDto.answers = [];
       return;
     }
 
-    if (createVacancySubmissionDto.answers?.length) {
-      for (const answer of createVacancySubmissionDto.answers) {
-        if (!allVacancyQuestionIds.includes(answer.questionId)) {
-          throw new BadRequestException(
-            `Current vacancy does not have question with id: ${answer.questionId}, but: ${allVacancyQuestionIds.join(', ')}`,
-          );
-        }
-        const questionDetails = await this.questionService.findDtoById(
-          answer.questionId,
-        );
+    //  Validate that provided answers belong to this vacancy and have valid values
+    this.validateProvidedAnswers(answers, allVacancyQuestions);
 
-        if (
-          questionDetails.type === QuestionType.dropdown &&
-          questionDetails.answerOptions?.length &&
-          answer.value
-        ) {
-          if (!questionDetails.answerOptions.includes(answer.value)) {
-            throw new BadRequestException(
-              `Value in answers for question with id - ${answer.questionId} must be either of: ${questionDetails.answerOptions.join(', ')}`,
-            );
-          }
-        }
+    // Ensure all mandatory questions are present
+    await this.ensureRequiredQuestionsPresent(answers, allVacancyQuestions);
+  }
+
+  private validateProvidedAnswers(
+    answers: QuestionAnswerFilterEntry[],
+    allVacancyQuestions: VacancyQuestionDetailedDto[],
+  ) {
+    const validQuestionIds = allVacancyQuestions.map((q) => q.questionId);
+
+    for (const answer of answers) {
+      const questionMatch = allVacancyQuestions.find(
+        (q) => q.questionId === answer.questionId,
+      );
+
+      if (!questionMatch) {
+        throw new BadRequestException(
+          `Current vacancy does not have question with id: ${answer.questionId}. Valid ids: ${validQuestionIds.join(', ')}`,
+        );
+      }
+
+      this.validateValueMatchesQuestionType(answer, questionMatch);
+    }
+  }
+
+  /**
+   * Validates that:
+   * Value for boolean questions is either 'true' or 'false'
+   * Value for dropdown questions is one of the allowed options
+   */
+  private validateValueMatchesQuestionType(
+    answer: QuestionAnswerFilterEntry,
+    questionMatch: VacancyQuestionDetailedDto | QuestionDto,
+  ) {
+    if (questionMatch.type === QuestionType.boolean) {
+      const isInvalidBool = answer.value !== 'true' && answer.value !== 'false';
+
+      if (isInvalidBool) {
+        throw new BadRequestException(
+          `Question '${questionMatch.label}' - (ID: ${answer.questionId}) requires a boolean value ('true' or 'false'), but received: '${answer.value}'`,
+        );
       }
     }
 
-    const requiredQuestions = allVacancyQuestions.filter((q) => q.isRequired);
-
-    if (requiredQuestions.length > 0) {
-      const answeredQuestionIds = createVacancySubmissionDto.answers?.map(
-        (a) => a.questionId,
-      );
-
-      const missingRequiredQuestions = requiredQuestions.filter(
-        (q) => !answeredQuestionIds?.includes(q.questionId),
-      );
-
-      if (missingRequiredQuestions.length > 0) {
-        const missingDetails: QuestionDto[] = [];
-        for (const question of missingRequiredQuestions) {
-          const questionDetails: QuestionDto =
-            await this.questionService.findDtoById(question.questionId);
-          missingDetails.push(questionDetails);
-        }
-
-        throw new BadRequestException({
-          message: 'You must answer all required questions.',
-          missingRequiredQuestions: missingDetails,
-        });
+    if (
+      questionMatch.type === QuestionType.dropdown &&
+      questionMatch.answerOptions?.length &&
+      answer.value
+    ) {
+      if (!questionMatch.answerOptions.includes(answer.value)) {
+        throw new BadRequestException(
+          `Value for question ${answer.questionId} must be one of: ${questionMatch.answerOptions.join(', ')}`,
+        );
       }
+    }
+  }
+
+  private async ensureRequiredQuestionsPresent(
+    answers: QuestionAnswerFilterEntry[],
+    allVacancyQuestions: VacancyQuestionDetailedDto[],
+  ) {
+    const requiredQuestions = allVacancyQuestions.filter((q) => q.isRequired);
+    if (requiredQuestions.length === 0) return;
+
+    const answeredIds = new Set(answers.map((a) => a.questionId));
+    const missingQuestions = requiredQuestions.filter(
+      (q) => !answeredIds.has(q.questionId),
+    );
+
+    // Fetch all missing details
+    if (missingQuestions.length > 0) {
+      const missingDetails = await Promise.all(
+        missingQuestions.map((q) =>
+          this.questionService.findDtoById(q.questionId),
+        ),
+      );
+
+      throw new BadRequestException({
+        message: 'You must answer all required questions.',
+        missingRequiredQuestions: missingDetails,
+      });
     }
   }
 

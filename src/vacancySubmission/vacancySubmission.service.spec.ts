@@ -41,7 +41,7 @@ import { LanguageLevel } from '../entities/hiring.enum';
 import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
 import { testSubmissionAnswers } from '../../test/fixtures/testAnswers';
 
-describe.only('VacancySubmissionService', () => {
+describe('VacancySubmissionService', () => {
   let service: VacancySubmissionService;
   let vacancyRepository: Repository<Vacancy>;
 
@@ -100,7 +100,7 @@ describe.only('VacancySubmissionService', () => {
     it('should create a new vacancy submission to given vacancy', async () => {
       const createSubmissionDto: CreateVacancySubmissionDto = {
         comment: 'Looking forward to this opportunity!',
-        answers: [{ questionId: testQuestions[0].id, value: 'yes' }],
+        answers: [{ questionId: testQuestions[0].id, value: 'true' }],
       };
 
       const zooKeperVacancyID = testVacancies[1].id;
@@ -245,8 +245,27 @@ describe.only('VacancySubmissionService', () => {
         expect.fail('Should have thrown a BadRequestException but did not');
       } catch (e: any) {
         expect(e.status).to.equal(400);
+        expect(e.response.message).to.include('Value for question');
+      }
+    });
+
+    it('should throw BadRequestException when instead of boolean value for boolean question, another value is provided', async () => {
+      // vacancy[0] is linked to testQuestions[0] (boolean, required) and testQuestions[2] (dropdown)
+      const vacancyId = testVacancies[0].id;
+      const userId = testUsers[5].id;
+
+      const createSubmissionDto: CreateVacancySubmissionDto = {
+        comment: 'Test',
+        answers: [{ questionId: testQuestions[0].id, value: 'notABoolean' }],
+      };
+
+      try {
+        await service.create(createSubmissionDto, vacancyId, userId);
+        expect.fail('Should have thrown a BadRequestException but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(400);
         expect(e.response.message).to.include(
-          'Value in answers for question with id',
+          `Question '${testQuestions[0].label}' - (ID: ${testQuestions[0].id}) requires a boolean value ('true' or 'false'), but received: 'notABoolean'`,
         );
       }
     });
