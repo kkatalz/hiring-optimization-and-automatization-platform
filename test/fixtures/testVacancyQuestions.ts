@@ -36,6 +36,13 @@ export const testVacancyQuestions: VacancyQuestion[] = [
     vacancy: testVacancies[1],
     question: testQuestions[1],
   },
+  {
+    vacancyId: testVacancies[1].id,
+    questionId: testQuestions[2].id,
+    isRequired: true,
+    vacancy: testVacancies[1],
+    question: testQuestions[2],
+  },
 ];
 
 export const EXPECTED_NUMBER_OF_VACANCIES_WITH_QUESTIONS = new Set(

@@ -161,8 +161,16 @@ export class VacancyService {
     questionId: string,
     body: CreateVacancyQuestionDto,
   ): Promise<VacancyQuestionDto> {
-    await this.findVacancyById(vacancyId);
-    await this.questionService.findDtoById(questionId);
+    const vacancy = await this.findVacancyById(vacancyId);
+    const question = await this.questionService.findDtoById(questionId);
+
+    // Allow adding question to vacancy only if they belong to the same tenant
+    if (vacancy.tenantId !== question.tenantId) {
+      throw new HttpException(
+        `Vacancy and Question belong to different tenants. Vacancy belongs to tenant with ID: ${vacancy.tenantId}, while Question belongs to tenant with ID: ${question.tenantId}.`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
     const existing = await this.vacancyQuestionRepository.findOne({
       where: { vacancyId, questionId },

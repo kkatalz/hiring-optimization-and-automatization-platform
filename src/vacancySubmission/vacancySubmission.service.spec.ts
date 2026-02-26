@@ -100,6 +100,10 @@ describe('VacancySubmissionService', () => {
     it('should create a new vacancy submission to given vacancy', async () => {
       const createSubmissionDto: CreateVacancySubmissionDto = {
         comment: 'Looking forward to this opportunity!',
+        answers: [
+          { questionId: testQuestions[0].id, value: 'true' },
+          { questionId: testQuestions[2].id, value: 'Bachelor' },
+        ],
       };
 
       const zooKeperVacancyID = testVacancies[1].id;
@@ -139,6 +143,7 @@ describe('VacancySubmissionService', () => {
             questionId: testQuestions[1].id,
             value: 'Communication skills',
           },
+          { questionId: testQuestions[2].id, value: 'Bachelor' },
         ],
       };
 
@@ -199,7 +204,27 @@ describe('VacancySubmissionService', () => {
           'You must answer all required questions.',
         );
         expect(e.response.missingRequiredQuestions).to.be.an('array');
-        expect(e.response.missingRequiredQuestions.length).to.equal(1);
+        expect(e.response.missingRequiredQuestions.length).to.equal(2);
+      }
+    });
+    it('should throw BadRequestException when answers in DTO were not provided, but vacancy has required questions', async () => {
+      const zooKeperVacancyID = testVacancies[1].id;
+      const userId = testUsers[5].id;
+
+      const createSubmissionDto: CreateVacancySubmissionDto = {
+        comment: 'Test',
+      };
+
+      try {
+        await service.create(createSubmissionDto, zooKeperVacancyID, userId);
+        expect.fail('Should have thrown a BadRequestException but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(400);
+        expect(e.response.message).to.equal(
+          'You must answer all required questions.',
+        );
+        expect(e.response.missingRequiredQuestions).to.be.an('array');
+        expect(e.response.missingRequiredQuestions.length).to.equal(2);
       }
     });
 
@@ -224,8 +249,27 @@ describe('VacancySubmissionService', () => {
         expect.fail('Should have thrown a BadRequestException but did not');
       } catch (e: any) {
         expect(e.status).to.equal(400);
+        expect(e.response.message).to.include('Value for question');
+      }
+    });
+
+    it('should throw BadRequestException when instead of boolean value for boolean question, another value is provided', async () => {
+      // vacancy[0] is linked to testQuestions[0] (boolean, required) and testQuestions[2] (dropdown)
+      const vacancyId = testVacancies[0].id;
+      const userId = testUsers[5].id;
+
+      const createSubmissionDto: CreateVacancySubmissionDto = {
+        comment: 'Test',
+        answers: [{ questionId: testQuestions[0].id, value: 'notABoolean' }],
+      };
+
+      try {
+        await service.create(createSubmissionDto, vacancyId, userId);
+        expect.fail('Should have thrown a BadRequestException but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(400);
         expect(e.response.message).to.include(
-          'Value in answers for question with id',
+          `Question '${testQuestions[0].label}' - (ID: ${testQuestions[0].id}) requires a boolean value ('true' or 'false'), but received: 'notABoolean'`,
         );
       }
     });
@@ -242,6 +286,10 @@ describe('VacancySubmissionService', () => {
     const CreateVacancySubmissionDto: CreateVacancySubmissionDto = {
       comment: 'Looking forward to this opportunity!',
       tags,
+      answers: [
+        { questionId: testQuestions[0].id, value: 'true' },
+        { questionId: testQuestions[2].id, value: 'Bachelor' },
+      ],
     };
 
     const userId = testUsers[5].id;
@@ -258,6 +306,7 @@ describe('VacancySubmissionService', () => {
   it('should not allow to create a submission if candidate has already applied to the vacancy', async () => {
     const CreateVacancySubmissionDto: CreateVacancySubmissionDto = {
       comment: 'Looking forward to this opportunity!',
+      answers: [{ questionId: testQuestions[0].id, value: 'true' }],
     };
 
     const zooKeperVacancyID = testVacancies[1].id;
@@ -290,6 +339,7 @@ describe('VacancySubmissionService', () => {
     const CreateVacancySubmissionDto: CreateVacancySubmissionDto = {
       comment: 'Looking forward to this opportunity!',
       tags: submissionInvalidTags,
+      answers: [{ questionId: testQuestions[0].id, value: 'true' }],
     };
 
     const userId = testUsers[5].id;
@@ -650,7 +700,80 @@ describe('VacancySubmissionService', () => {
 
       expect(result).to.deep.equal([]);
     });
+
+    it('should return submissions that include provided questionId, when answer[] filter has only questionId (question is type of boolean), but not value (findAllSubmissionsWithinVacancyWithFilters)', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [{ questionId: testQuestions[0].id }],
+      };
+
+      const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+        vacancyId, //testVacancies[1].id
+        filter,
+      );
+
+      expect(result.length).to.equal(1);
+      expect(result[0].id).to.equal(testVacancySubmissions[0].id);
+    });
+
+    it('should throw BadRequestException when questionId in answer filter is not linked to the vacancy', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [{ questionId: testQuestions[3].id, value: 'true' }],
+      };
+
+      try {
+        await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId, //vacancyId: 1bf26415-b5d1-407d-a040-69b78c7bc268
+          filter,
+        );
+        expect.fail('Should have thrown a BadRequestException but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(400);
+        expect(e.response.message).to.equal(
+          `Current vacancy does not have question with id: ${testQuestions[3].id}. Valid ids: ${testQuestions[0].id}, ${testQuestions[1].id}, ${testQuestions[2].id}`,
+        );
+      }
+    });
+
+    it('should throw BadRequestException when value for boolean question is not a boolean', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [{ questionId: testQuestions[0].id, value: 'not-a-boolean' }],
+      };
+
+      try {
+        await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+        expect.fail('Should have thrown a BadRequestException but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(400);
+        expect(e.response.message).to.equal(
+          `Question '${testQuestions[0].label}' - (ID: ${testQuestions[0].id}) requires a boolean value ('true' or 'false'), but received: 'not-a-boolean'`,
+        );
+      }
+    });
+
+    it('should throw BadRequestException when value for dropdown question is not one of the allowed options', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [{ questionId: testQuestions[2].id, value: 'InvalidOption' }],
+      };
+
+      try {
+        await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        expect.fail('Should have thrown a BadRequestException but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(400);
+        expect(e.response.message).to.equal(
+          `Value for question ${testQuestions[2].id} must be one of: High School, Bachelor, Master, PhD`,
+        );
+      }
+    });
   });
+
   describe('findAllSubmissionsWithinTenantWithFilters', () => {
     const tenantId = testTenants[0].id;
 
@@ -716,36 +839,6 @@ describe('VacancySubmissionService', () => {
       expect(result[0].id).to.equal(testVacancySubmissions[0].id);
     });
 
-    it('should return empty when filtering by questionId that has no answers', async () => {
-      const filter: RecruitingFilterDto = {
-        answers: [{ questionId: testQuestions[3].id }],
-      };
-
-      const result = await service.findAllSubmissionsWithinTenantWithFilters(
-        tenantId,
-        filter,
-      );
-
-      expect(result).to.deep.equal([]);
-    });
-
-    it('should throw NOT_FOUND when answer filter references non-existent questionId', async () => {
-      const filter: RecruitingFilterDto = {
-        answers: [{ questionId: nonExistentUUIDId, value: 'true' }],
-      };
-
-      try {
-        await service.findAllSubmissionsWithinTenantWithFilters(
-          tenantId,
-          filter,
-        );
-        expect.fail('Should have thrown a NOT_FOUND error but did not');
-      } catch (e: any) {
-        expect(e.status).to.equal(404);
-        expect(e.response).to.equal('Question not found.');
-      }
-    });
-
     it('should filter by language within tenant', async () => {
       const filter: RecruitingFilterDto = {
         languages: [{ code: 'en' }],
@@ -781,6 +874,92 @@ describe('VacancySubmissionService', () => {
         );
 
       expect(result).to.deep.equal([]);
+    });
+
+    it('should return submissions when answer filter has questionId (question is type of boolean), but not value (findAllSubmissionWithinTenantWithFilters)', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [{ questionId: testQuestions[0].id }],
+      };
+
+      const result = await service.findAllSubmissionsWithinTenantWithFilters(
+        tenantId, //testTenants[0].id
+        filter,
+      );
+      expect(result.length).to.equal(1);
+    });
+
+    it('should throw NOT_FOUND when answer filter references non-existent questionId', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [{ questionId: nonExistentUUIDId, value: 'true' }],
+      };
+
+      try {
+        await service.findAllSubmissionsWithinTenantWithFilters(
+          tenantId,
+          filter,
+        );
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(404);
+        expect(e.response).to.equal('Question not found.');
+      }
+    });
+
+    it('should throw BadRequestException when answer filter references questionId that is not linked to any vacancy within tenant', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [{ questionId: testQuestions[3].id, value: 'true' }],
+      };
+
+      try {
+        await service.findAllSubmissionsWithinTenantWithFilters(
+          tenantId,
+          filter,
+        );
+        expect.fail('Should have thrown a BadRequestException but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(400);
+        expect(e.response.message).to.equal(
+          `Question with id ${testQuestions[3].id} does not belong to tenant with id ${tenantId}. Please provide valid questionIds in filter.`,
+        );
+      }
+    });
+
+    it('should throw BadRequestException when value for boolean question is not a boolean within tenant filter', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [{ questionId: testQuestions[0].id, value: 'not-a-boolean' }],
+      };
+
+      try {
+        await service.findAllSubmissionsWithinTenantWithFilters(
+          tenantId,
+          filter,
+        );
+        expect.fail('Should have thrown a BadRequestException but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(400);
+        expect(e.response.message).to.equal(
+          `Question '${testQuestions[0].label}' - (ID: ${testQuestions[0].id}) requires a boolean value ('true' or 'false'), but received: 'not-a-boolean'`,
+        );
+      }
+    });
+
+    it('should throw BadRequestException when value for dropdown question is not one of the allowed options within tenant filter', async () => {
+      const filter: RecruitingFilterDto = {
+        answers: [{ questionId: testQuestions[2].id, value: 'InvalidOption' }],
+      };
+
+      try {
+        await service.findAllSubmissionsWithinTenantWithFilters(
+          tenantId,
+          filter,
+        );
+        expect.fail('Should have thrown a BadRequestException but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(400);
+        expect(e.response.message).to.equal(
+          `Value for question ${testQuestions[2].id} must be one of: High School, Bachelor, Master, PhD`,
+        );
+      }
     });
   });
 

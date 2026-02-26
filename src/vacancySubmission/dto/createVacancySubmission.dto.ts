@@ -1,6 +1,22 @@
-import { IsArray, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { QuestionAnswerFilterEntry } from '../../recruiting/recruitingFilter.dto';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
+
+export class QuestionAnswerAllRequiredDto {
+  @IsNotEmpty()
+  @IsUUID()
+  questionId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  value: string;
+}
 
 export class CreateVacancySubmissionDto {
   @IsOptional()
@@ -15,6 +31,6 @@ export class CreateVacancySubmissionDto {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => QuestionAnswerFilterEntry)
-  answers?: QuestionAnswerFilterEntry[];
+  @Type(() => QuestionAnswerAllRequiredDto)
+  answers?: QuestionAnswerAllRequiredDto[];
 }
