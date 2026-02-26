@@ -11,6 +11,7 @@ export const testQuestions: Question[] = [
     answerOptions: undefined,
     vacancyQuestions: [],
     answers: [],
+    tenant: testTenants[0],
   },
   {
     id: 'a0000000-aaaa-aaaa-aaaa-000000000002',
@@ -20,6 +21,7 @@ export const testQuestions: Question[] = [
     answerOptions: undefined,
     vacancyQuestions: [],
     answers: [],
+    tenant: testTenants[0],
   },
   {
     id: 'a0000000-aaaa-aaaa-aaaa-000000000003',
@@ -29,6 +31,7 @@ export const testQuestions: Question[] = [
     answerOptions: ['High School', 'Bachelor', 'Master', 'PhD'],
     vacancyQuestions: [],
     answers: [],
+    tenant: testTenants[0],
   },
   // Belongs to a different tenant — used to test cross-tenant isolation
   {
@@ -39,6 +42,7 @@ export const testQuestions: Question[] = [
     answerOptions: undefined,
     vacancyQuestions: [],
     answers: [],
+    tenant: testTenants[1],
   },
 ];
 

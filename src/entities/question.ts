@@ -1,7 +1,15 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { QuestionType } from './question.enum';
 import { SubmissionAnswer } from './submissionAnswers';
 import { VacancyQuestion } from './vacancyQuestion';
+import { Tenant } from './tenant';
 
 @Entity({ name: 'questions' })
 export class Question {
@@ -25,4 +33,11 @@ export class Question {
 
   @OneToMany(() => SubmissionAnswer, (sa) => sa.question, { nullable: true })
   answers?: SubmissionAnswer[];
+
+  @ManyToOne(() => Tenant, (tenant) => tenant.questions, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'tenant_id' })
+  tenant: Tenant;
 }
