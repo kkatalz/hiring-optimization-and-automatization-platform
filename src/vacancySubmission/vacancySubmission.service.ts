@@ -10,7 +10,7 @@ import { VacancyService } from '../vacancy/vacancy.service';
 import { CreateVacancySubmissionDto } from './dto/createVacancySubmission.dto';
 import { VacancySubmissionDto } from './dto/vacancySubmission.dto';
 import { vacancySubmToVacancySubmDto } from './map/vacancySubmission.map';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Repository, SelectQueryBuilder } from 'typeorm';
 import { VacancySubmissionStatus } from '../entities/statuses.enum';
 import { CandidateProfileService } from '../candidateProfile/candidateProfile.service';
 import {
@@ -126,28 +126,13 @@ export class VacancySubmissionService {
     vacancyId: string,
     filterSubmissionsDto?: RecruitingFilterDto,
   ): Promise<VacancySubmissionDto[]> {
-    if (!filterSubmissionsDto) {
-      const submissions = await this.vacancySubmissionRepository.find({
-        where: { vacancyId },
-        relations: ['candidateProfile', 'candidateProfile.user'],
-      });
-      return submissions.map(vacancySubmToVacancySubmDto);
-    }
+    const query = this.createBaseSubmissionQuery().where(
+      'submission.vacancy_id = :vacancyId',
+      { vacancyId },
+    );
 
-    const query = this.vacancySubmissionRepository
-      .createQueryBuilder('submission')
-      .leftJoinAndSelect('submission.vacancy', 'vacancy')
-      .leftJoinAndSelect('submission.candidateProfile', 'candidateProfile')
-      .leftJoinAndSelect('candidateProfile.user', 'user')
-      .leftJoinAndSelect('submission.answers', 'answers')
-      .where('submission.vacancy_id = :vacancyId', { vacancyId });
-
-    filterByExperience(query, filterSubmissionsDto);
-    filterByCountriesCities(query, filterSubmissionsDto);
-
-    let submissions = await query.getMany();
-
-    if (filterSubmissionsDto.answers?.length) {
+    // Validate that provided answers belong to this vacancy and have valid values
+    if (filterSubmissionsDto?.answers?.length) {
       const allVacancyQuestions: VacancyQuestionDetailedDto[] =
         await this.vacancyService.findAllQuestionsByVacancyId(vacancyId);
 
@@ -155,77 +140,29 @@ export class VacancySubmissionService {
         filterSubmissionsDto.answers,
         allVacancyQuestions,
       );
-
-      submissions = filterByAnswers(submissions, filterSubmissionsDto.answers);
     }
 
-    if (filterSubmissionsDto.languages?.length) {
-      submissions = submissions.filter((s) => {
-        if (!s.candidateProfile) return false;
-        const { languages } = s.candidateProfile;
-        return filterSubmissionsDto.languages!.some((requiredLang) =>
-          meetsLanguageRequirement(languages, requiredLang),
-        );
-      });
-    }
-
-    return submissions.map(vacancySubmToVacancySubmDto);
+    return this.executeFilteredSubmissions(query, filterSubmissionsDto);
   }
 
   async findAllSubmissionsWithinTenantWithFilters(
     tenantId: string,
     filterSubmissionsDto?: RecruitingFilterDto,
   ): Promise<VacancySubmissionDto[]> {
-    if (!filterSubmissionsDto) {
-      const submissions = await this.vacancySubmissionRepository.find({
-        where: { tenantId },
-        relations: ['candidateProfile', 'candidateProfile.user'],
-      });
-      return submissions.map(vacancySubmToVacancySubmDto);
+    const query = this.createBaseSubmissionQuery().where(
+      'submission.tenant_id = :tenantId',
+      { tenantId },
+    );
+
+    // Validate that provided answers belong to this tenant and have valid values
+    if (filterSubmissionsDto?.answers?.length) {
+      await this.validateAnswersBelongToTenant(
+        filterSubmissionsDto.answers,
+        tenantId,
+      );
     }
 
-    const query = this.vacancySubmissionRepository
-      .createQueryBuilder('submission')
-      .leftJoinAndSelect('submission.vacancy', 'vacancy')
-      .leftJoinAndSelect('submission.candidateProfile', 'candidateProfile')
-      .leftJoinAndSelect('candidateProfile.user', 'user')
-      .leftJoinAndSelect('submission.answers', 'answers')
-      .where('submission.tenant_id = :tenantId', { tenantId });
-
-    filterByExperience(query, filterSubmissionsDto);
-    filterByCountriesCities(query, filterSubmissionsDto);
-
-    let submissions = await query.getMany();
-
-    if (filterSubmissionsDto.answers?.length) {
-      // Validate that provided questionIds are valid and belong to the tenant, and that provided values match question types
-      for (const answer of filterSubmissionsDto.answers) {
-        const question = await this.questionService.findDtoById(
-          answer.questionId,
-        );
-
-        if (question.tenantId !== tenantId) {
-          throw new BadRequestException(
-            `Question with id ${answer.questionId} does not belong to tenant with id ${tenantId}. Please provide valid questionIds in filter.`,
-          );
-        }
-        this.validateValueMatchesQuestionType(answer, question);
-      }
-
-      submissions = filterByAnswers(submissions, filterSubmissionsDto.answers);
-    }
-
-    if (filterSubmissionsDto.languages?.length) {
-      submissions = submissions.filter((s) => {
-        if (!s.candidateProfile) return false;
-        const { languages } = s.candidateProfile;
-        return filterSubmissionsDto.languages!.some((requiredLang) =>
-          meetsLanguageRequirement(languages, requiredLang),
-        );
-      });
-    }
-
-    return submissions.map(vacancySubmToVacancySubmDto);
+    return this.executeFilteredSubmissions(query, filterSubmissionsDto);
   }
 
   async approve(submissionId: string): Promise<VacancySubmissionDto> {
@@ -272,6 +209,68 @@ export class VacancySubmissionService {
       await this.vacancySubmissionRepository.save(submission);
 
     return vacancySubmToVacancySubmDto(savedSubmission);
+  }
+  private createBaseSubmissionQuery() {
+    return this.vacancySubmissionRepository
+      .createQueryBuilder('submission')
+      .leftJoinAndSelect('submission.vacancy', 'vacancy')
+      .leftJoinAndSelect('submission.candidateProfile', 'candidateProfile')
+      .leftJoinAndSelect('candidateProfile.user', 'user')
+      .leftJoinAndSelect('submission.answers', 'answers');
+  }
+
+  private async executeFilteredSubmissions(
+    query: SelectQueryBuilder<VacancySubmission>,
+    filterDto?: RecruitingFilterDto,
+  ): Promise<VacancySubmissionDto[]> {
+    if (!filterDto) {
+      const submissions = await query.getMany();
+      return submissions.map(vacancySubmToVacancySubmDto);
+    }
+
+    // Apply QueryBuilder filters (SQL side)
+    filterByExperience(query, filterDto);
+    filterByCountriesCities(query, filterDto);
+
+    let submissions = await query.getMany();
+
+    // Apply In-Memory filters (JS side)
+    if (filterDto.answers?.length) {
+      submissions = filterByAnswers(submissions, filterDto.answers);
+    }
+
+    if (filterDto.languages?.length) {
+      submissions = submissions.filter((s) => {
+        const languages = s.candidateProfile?.languages;
+        return (
+          languages &&
+          filterDto.languages!.some((req) =>
+            meetsLanguageRequirement(languages, req),
+          )
+        );
+      });
+    }
+
+    return submissions.map(vacancySubmToVacancySubmDto);
+  }
+
+  private async validateAnswersBelongToTenant(
+    answers: QuestionAnswerFilterEntry[],
+    tenantId: string,
+  ) {
+    await Promise.all(
+      answers.map(async (answer) => {
+        const question = await this.questionService.findDtoById(
+          answer.questionId,
+        );
+        if (question.tenantId !== tenantId) {
+          throw new BadRequestException(
+            `Question with id ${answer.questionId} does not belong to tenant with id ${tenantId}. Please provide valid questionIds in filter.`,
+          );
+        }
+        this.validateValueMatchesQuestionType(answer, question);
+      }),
+    );
   }
 
   private async validateRequiredQuestionsAnswered(
