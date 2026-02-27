@@ -20,11 +20,25 @@ class RequiredIfDropdownConstraint implements ValidatorConstraintInterface {
       );
     }
 
-    return true; // Valid if it's not a dropdown
+    // Reject answerOptions when type is NOT dropdown
+    if (value !== undefined && value !== null) {
+      const isNonEmptyArray = Array.isArray(value) && value.length > 0;
+      if (isNonEmptyArray) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
-  defaultMessage() {
-    return 'Answer options are required for dropdown questions.';
+  defaultMessage(args: ValidationArguments) {
+    const dto = args.object as any;
+
+    if (dto.type === QuestionType.dropdown) {
+      return 'Answer options are required for dropdown questions.';
+    }
+
+    return 'Answer options are only allowed for dropdown questions. Remove answer options for non-dropdown question types.';
   }
 }
 
