@@ -3,7 +3,13 @@ import { Repository } from 'typeorm';
 
 import { Vacancy } from '../entities/vacancy';
 import { VacancyQuestion } from '../entities/vacancyQuestion';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
+import { QuestionType } from '../entities/question.enum';
 import { VacancyDto } from '../vacancy/dto/vacancy.dto';
 import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
 import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
@@ -183,10 +189,19 @@ export class VacancyService {
       );
     }
 
+    this.validateExpectedValue(
+      body.expectedValue,
+      question.type,
+      question.answerOptions,
+      question.label,
+    );
+
     const vacancyQuestion = this.vacancyQuestionRepository.create({
       vacancyId,
       questionId,
       isRequired: body.isRequired,
+      priority: body.priority ?? 1,
+      expectedValue: body.expectedValue,
     });
 
     const saved = await this.vacancyQuestionRepository.save(vacancyQuestion);
@@ -279,16 +294,57 @@ export class VacancyService {
         );
       }
 
+      this.validateExpectedValue(
+        q.expectedValue,
+        q.type,
+        q.answerOptions ?? question.answerOptions,
+        q.label,
+      );
+
       return this.vacancyQuestionRepository.create({
         vacancyId,
         questionId: question.id,
         isRequired: q.isRequired,
+        priority: q.priority ?? 1,
+        expectedValue: q.expectedValue,
       });
     });
 
     const vacancyQuestions = await Promise.all(linkPromises);
 
     await this.vacancyQuestionRepository.save(vacancyQuestions);
+  }
+
+  /**
+   * Validates the expectedValue.
+   * For boolean questions, expectedValue must be 'true' or 'false'.
+   * For dropdown questions, expectedValue must be one of the defined
+   */
+  private validateExpectedValue(
+    expectedValue: string | undefined,
+    questionType: QuestionType,
+    answerOptions: string[] | undefined,
+    questionLabel: string,
+  ): void {
+    if (expectedValue == null) return;
+
+    if (questionType === QuestionType.boolean) {
+      if (expectedValue !== 'true' && expectedValue !== 'false') {
+        throw new BadRequestException(
+          `Expected value for boolean question '${questionLabel}' must be 'true' or 'false', but received: '${expectedValue}'.`,
+        );
+      }
+    }
+
+    if (questionType === QuestionType.dropdown) {
+      if (!answerOptions?.length) return;
+
+      if (!answerOptions.includes(expectedValue)) {
+        throw new BadRequestException(
+          `Expected value for dropdown question '${questionLabel}' must be one of: ${answerOptions.join(', ')}. Received: '${expectedValue}'.`,
+        );
+      }
+    }
   }
 
   private async getPopulatedVacancy(id: string): Promise<VacancyDto> {
