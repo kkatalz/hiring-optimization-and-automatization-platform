@@ -2,7 +2,10 @@ import { ConfigModule } from '@nestjs/config';
 import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
 import { Vacancy } from '../entities/vacancy';
 import { VacancyQuestion } from '../entities/vacancyQuestion';
+import { VacancySubmission } from '../entities/vacancySubmission';
+import { SubmissionAnswer } from '../entities/submissionAnswers';
 import { VacancyService } from '../vacancy/vacancy.service';
+import { VacancySubmissionService } from '../vacancySubmission/vacancySubmission.service';
 import {
   cleanDatabase,
   loadDatabase,
@@ -23,6 +26,7 @@ import {
   EXPECTED_NUMBER_OF_VACANCIES_WITH_QUESTIONS,
   testVacancyQuestions,
 } from '../../test/fixtures/testVacancyQuestions';
+import { testSubmissionAnswers } from '../../test/fixtures/testAnswers';
 import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
 import { VacancyDto } from '../vacancy/dto/vacancy.dto';
 import { Repository } from 'typeorm';
@@ -30,6 +34,7 @@ import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
 import { nonExistentUUIDId } from '../../test/utils';
 import { UserModule } from '../user/user.module';
 import { QuestionModule } from '../question/question.module';
+import { CandidateProfileModule } from '../candidateProfile/candidateProfile.module';
 import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfiles';
 import { QuestionType } from '../entities/question.enum';
 import { Question } from '../entities/question';
@@ -38,17 +43,24 @@ describe('VacancyService', () => {
   let service: VacancyService;
   let vacancyRepository: Repository<Vacancy>;
   let questionRepository: Repository<Question>;
+  let submissionRepository: Repository<VacancySubmission>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot(),
         TypeOrmModule.forRoot(testDatabaseConfig),
-        TypeOrmModule.forFeature([Vacancy, VacancyQuestion]),
+        TypeOrmModule.forFeature([
+          Vacancy,
+          VacancyQuestion,
+          VacancySubmission,
+          SubmissionAnswer,
+        ]),
         UserModule,
         QuestionModule,
+        CandidateProfileModule,
       ],
-      providers: [VacancyService],
+      providers: [VacancyService, VacancySubmissionService],
     }).compile();
 
     service = module.get<VacancyService>(VacancyService);
@@ -57,6 +69,9 @@ describe('VacancyService', () => {
     );
     questionRepository = module.get<Repository<Question>>(
       getRepositoryToken(Question),
+    );
+    submissionRepository = module.get<Repository<VacancySubmission>>(
+      getRepositoryToken(VacancySubmission),
     );
 
     await loadDatabase({
@@ -67,6 +82,7 @@ describe('VacancyService', () => {
       VacancySubmission: testVacancySubmissions,
       Question: testQuestions,
       VacancyQuestion: testVacancyQuestions,
+      SubmissionAnswer: testSubmissionAnswers,
     });
   });
 
@@ -235,7 +251,7 @@ describe('VacancyService', () => {
       const createVacancyDto: CreateVacancyDto = {
         name: 'Developer',
         description: 'Full-stack developer position',
-        questions: [
+        vacancyQuestions: [
           {
             label: 'Do you know TypeScript?',
             type: QuestionType.boolean,
@@ -293,7 +309,7 @@ describe('VacancyService', () => {
       const createVacancyDto: CreateVacancyDto = {
         name: 'Driver position',
         description: 'Needs a car',
-        questions: [
+        vacancyQuestions: [
           {
             label: existingQuestion.label,
             type: existingQuestion.type,
@@ -320,7 +336,7 @@ describe('VacancyService', () => {
       const createVacancyDto: CreateVacancyDto = {
         name: 'Senior Developer',
         description: 'Senior role',
-        questions: [
+        vacancyQuestions: [
           {
             label: 'Do you have 5+ years experience?',
             type: QuestionType.boolean,
@@ -368,7 +384,7 @@ describe('VacancyService', () => {
           {
             name: 'Test vacancy',
             description: 'desc',
-            questions: [
+            vacancyQuestions: [
               {
                 label: 'Do you have experience?',
                 type: QuestionType.boolean,
@@ -396,7 +412,7 @@ describe('VacancyService', () => {
           {
             name: 'Test vacancy',
             description: 'desc',
-            questions: [
+            vacancyQuestions: [
               {
                 label: 'Pick a city',
                 type: QuestionType.dropdown,
@@ -427,7 +443,7 @@ describe('VacancyService', () => {
       const createVacancyDto: CreateVacancyDto = {
         name: 'Remote position',
         description: 'Remote work available',
-        questions: [
+        vacancyQuestions: [
           {
             label: otherTenantQuestion.label,
             type: otherTenantQuestion.type,
@@ -452,7 +468,7 @@ describe('VacancyService', () => {
     });
   });
 
-  describe('update', () => {
+  describe.only('update', () => {
     it('should update vacancy with updateVacancyDto', async () => {
       const updateVacancyDto: UpdateVacancyDto = {
         name: 'Zoo keeper Updated',
@@ -514,6 +530,168 @@ describe('VacancyService', () => {
         await service.findAllQuestionsByVacancyId(vacancyId);
 
       expect(questionsAfter.length).to.equal(questionsBefore.length);
+    });
+
+    it('should recalculate matchScore when vacancy questions expectedValue changes', async () => {
+      // vacancy[1] has a submission with answer 'true' for question[0] (boolean, expectedValue 'true')
+      // and question[2] (dropdown, expectedValue 'Bachelor') has no answer
+      // Initial score: (1/1 * 1 + 1/2 * 0) / (1/1 + 1/2) * 100 = 66.67
+      const vacancyId = testVacancies[1].id;
+
+      // Change expectedValue of question[0] from 'true' to 'false'
+      const updateDto: UpdateVacancyDto = {
+        name: testVacancies[1].name,
+        description: testVacancies[1].description,
+        vacancyQuestions: [
+          {
+            questionId: testQuestions[0].id,
+            label: testQuestions[0].label,
+            type: testQuestions[0].type,
+            isRequired: true,
+            priority: 1,
+            expectedValue: 'false',
+          },
+          {
+            questionId: testQuestions[1].id,
+            label: testQuestions[1].label,
+            type: testQuestions[1].type,
+            isRequired: false,
+            priority: 3,
+          },
+          {
+            questionId: testQuestions[2].id,
+            label: testQuestions[2].label,
+            type: testQuestions[2].type,
+            isRequired: true,
+            priority: 2,
+            expectedValue: 'Bachelor',
+          },
+        ],
+      };
+
+      await service.update(vacancyId, updateDto);
+
+      // Now answer 'true' !== expected 'false', and no answer for question[2]
+      // Score = (1*0 + 0.5*0) / (1 + 0.5) * 100 = 0
+      const submission = await submissionRepository.findOne({
+        where: { id: testVacancySubmissions[0].id },
+      });
+
+      expect(Number(submission!.matchScore)).to.equal(0);
+    });
+
+    it('should recalculate matchScore when vacancy questions priority changes', async () => {
+      const vacancyId = testVacancies[1].id;
+
+      // Change priority of question[0] from 1 to 3 (lower weight)
+      const updateDto: UpdateVacancyDto = {
+        name: testVacancies[1].name,
+        description: testVacancies[1].description,
+        vacancyQuestions: [
+          {
+            questionId: testQuestions[0].id,
+            label: testQuestions[0].label,
+            type: testQuestions[0].type,
+            isRequired: true,
+            priority: 3,
+            expectedValue: 'true',
+          },
+          {
+            questionId: testQuestions[1].id,
+            label: testQuestions[1].label,
+            type: testQuestions[1].type,
+            isRequired: false,
+            priority: 3,
+          },
+          {
+            questionId: testQuestions[2].id,
+            label: testQuestions[2].label,
+            type: testQuestions[2].type,
+            isRequired: true,
+            priority: 2,
+            expectedValue: 'Bachelor',
+          },
+        ],
+      };
+
+      await service.update(vacancyId, updateDto);
+
+      // question[0]: weight = 1/3, isMatch = 1 (answer 'true' === expected 'true')
+      // question[2]: weight = 1/2, isMatch = 0 (no answer)
+      // Score = (1/3) / (1/3 + 1/2) * 100 = 0.3333 / 0.8333 * 100 = 40
+      const submission = await submissionRepository.findOne({
+        where: { id: testVacancySubmissions[0].id },
+      });
+
+      expect(Number(submission!.matchScore)).to.equal(40);
+    });
+
+    it('should save recalculated matchScore to DB', async () => {
+      const vacancyId = testVacancies[1].id;
+
+      // Change expectedValue so score changes
+      const updateDto: UpdateVacancyDto = {
+        name: testVacancies[1].name,
+        description: testVacancies[1].description,
+        vacancyQuestions: [
+          {
+            questionId: testQuestions[0].id,
+            label: testQuestions[0].label,
+            type: testQuestions[0].type,
+            isRequired: true,
+            priority: 1,
+            expectedValue: 'false',
+          },
+          {
+            questionId: testQuestions[1].id,
+            label: testQuestions[1].label,
+            type: testQuestions[1].type,
+            isRequired: false,
+            priority: 3,
+          },
+          {
+            questionId: testQuestions[2].id,
+            label: testQuestions[2].label,
+            type: testQuestions[2].type,
+            isRequired: true,
+            priority: 2,
+            expectedValue: 'Bachelor',
+          },
+        ],
+      };
+
+      await service.update(vacancyId, updateDto);
+
+      // Verify by fetching the vacancy with submissions from scratch
+      const vacancy = await service.findVacancyById(vacancyId);
+
+      const submission = vacancy.submissions!.find(
+        (s) => s.id === testVacancySubmissions[0].id,
+      );
+
+      expect(submission).to.not.be.undefined;
+      expect(Number(submission!.matchScore)).to.equal(0);
+    });
+
+    it('should not recalculate matchScore when only basic fields are updated', async () => {
+      const vacancyId = testVacancies[1].id;
+
+      // Get the current matchScore
+      const submissionBefore = await submissionRepository.findOne({
+        where: { id: testVacancySubmissions[0].id },
+      });
+      const scoreBefore = submissionBefore!.matchScore;
+
+      await service.update(vacancyId, {
+        name: 'Updated name only',
+        description: 'Updated desc only',
+      });
+
+      const submissionAfter = await submissionRepository.findOne({
+        where: { id: testVacancySubmissions[0].id },
+      });
+
+      expect(submissionAfter!.matchScore).to.equal(scoreBefore);
     });
   });
   describe('remove', () => {
@@ -630,7 +808,7 @@ describe('VacancyService', () => {
       expect(result.expectedValue).to.equal('Communication skills');
     });
 
-    it.only('when no priority and expectedValue are provided, should default priority to 1 and expectedValue to null', async () => {
+    it('when no priority and expectedValue are provided, should default priority to 1 and expectedValue to null', async () => {
       const vacancyId = testVacancies[0].id;
       const questionId = testQuestions[1].id;
 

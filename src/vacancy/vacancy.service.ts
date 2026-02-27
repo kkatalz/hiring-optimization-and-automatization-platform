@@ -5,8 +5,10 @@ import { Vacancy } from '../entities/vacancy';
 import { VacancyQuestion } from '../entities/vacancyQuestion';
 import {
   BadRequestException,
+  forwardRef,
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
 } from '@nestjs/common';
 import { QuestionType } from '../entities/question.enum';
@@ -24,6 +26,7 @@ import { CreateVacancyQuestionDto } from './dto/createVacancyQuesion.dto';
 import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
 import { vacancyQuestionToDetailedDto } from './map/vacancyQuestionDetailed.map';
 import { CreateVacancyQuestionInlineDto } from './dto/createVacancyWithQuestions.dto';
+import { VacancySubmissionService } from '../vacancySubmission/vacancySubmission.service';
 
 @Injectable()
 export class VacancyService {
@@ -36,6 +39,9 @@ export class VacancyService {
 
     private readonly userService: UserService,
     private readonly questionService: QuestionService,
+
+    @Inject(forwardRef(() => VacancySubmissionService))
+    private readonly vacancySubmissionService: VacancySubmissionService,
   ) {}
 
   async findAll(): Promise<VacancyDto[]> {
@@ -79,7 +85,7 @@ export class VacancyService {
   async findVacancyById(vacancyId: string): Promise<VacancyDto> {
     const vacancy = await this.vacancyRepository.findOne({
       where: { id: vacancyId },
-      relations: ['vacancyQuestions'],
+      relations: ['vacancyQuestions', 'submissions', 'submissions.answers'],
     });
 
     if (!vacancy) {
@@ -109,15 +115,15 @@ export class VacancyService {
     createVacancyDto: CreateVacancyDto,
     creator: UserDto,
   ): Promise<VacancyDto> {
-    const { questions, ...vacancyFields } = createVacancyDto;
+    const { vacancyQuestions, ...vacancyFields } = createVacancyDto;
 
     const savedVacancy = await this.saveBaseVacancy(vacancyFields, creator);
 
-    if (questions?.length) {
+    if (vacancyQuestions?.length) {
       await this.handleVacancyQuestions(
         savedVacancy.id,
         savedVacancy.tenantId,
-        questions,
+        vacancyQuestions,
       );
     }
 
@@ -131,12 +137,18 @@ export class VacancyService {
     const vacancy: VacancyDto = await this.findVacancyById(vacancyId);
 
     Object.keys(updateVacancyDto).forEach((key) => {
-      if (updateVacancyDto[key] !== undefined) {
+      if (updateVacancyDto[key] !== undefined && key !== 'vacancyQuestions') {
         vacancy[key] = updateVacancyDto[key];
       }
     });
 
+    this.applyVacancyQuestionUpdates(updateVacancyDto, vacancy);
+
     await this.vacancyRepository.save(vacancy);
+
+    if (updateVacancyDto.vacancyQuestions) {
+      await this.recalculateSubmissionMatchScores(vacancyId);
+    }
 
     return this.getPopulatedVacancy(vacancyId);
   }
@@ -361,5 +373,55 @@ export class VacancyService {
     }
 
     return vacancyToVacancyDto(vacancy);
+  }
+
+  private applyVacancyQuestionUpdates(
+    updateVacancyDto: UpdateVacancyDto,
+    vacancy: VacancyDto,
+  ): void {
+    if (!updateVacancyDto.vacancyQuestions || !vacancy.vacancyQuestions) return;
+
+    updateVacancyDto.vacancyQuestions.forEach((updatedQuestion) => {
+      const existingQuestion = vacancy.vacancyQuestions!.find(
+        (vq) => vq.questionId === updatedQuestion.questionId,
+      );
+
+      if (existingQuestion) {
+        existingQuestion.isRequired = updatedQuestion.isRequired;
+        existingQuestion.priority =
+          updatedQuestion.priority ?? existingQuestion.priority;
+        existingQuestion.expectedValue =
+          updatedQuestion.expectedValue ?? existingQuestion.expectedValue;
+      }
+    });
+  }
+
+  /**
+   * Recalculates matchScore for all submissions linked to this vacancy.
+   */
+  private async recalculateSubmissionMatchScores(
+    vacancyId: string,
+  ): Promise<void> {
+    const allVacancyQuestions =
+      await this.findAllQuestionsByVacancyId(vacancyId);
+
+    const vacancy = await this.vacancyRepository.findOne({
+      where: { id: vacancyId },
+      relations: ['submissions', 'submissions.answers'],
+    });
+
+    if (!vacancy?.submissions?.length) return;
+
+    for (const submission of vacancy.submissions) {
+      if (submission.answers?.length) {
+        submission.matchScore =
+          this.vacancySubmissionService.calculateMatchScore(
+            submission.answers,
+            allVacancyQuestions,
+          );
+      }
+    }
+
+    await this.vacancyRepository.manager.save(vacancy.submissions);
   }
 }

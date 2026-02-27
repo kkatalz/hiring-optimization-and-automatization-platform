@@ -1,7 +1,9 @@
 import {
   BadRequestException,
+  forwardRef,
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -41,6 +43,7 @@ export class VacancySubmissionService {
     @InjectRepository(SubmissionAnswer)
     private readonly submissionAnswerRepository: Repository<SubmissionAnswer>,
 
+    @Inject(forwardRef(() => VacancyService))
     private readonly vacancyService: VacancyService,
 
     private readonly profileService: CandidateProfileService,
@@ -464,7 +467,8 @@ export class VacancySubmissionService {
    * Questions without expectedValue are excluded from scoring.
    * Returns null if no scorable questions exist.
    */
-  private calculateMatchScore(
+
+  calculateMatchScore(
     answers: QuestionAnswerAllRequiredDto[],
     vacancyQuestions: VacancyQuestionDetailedDto[],
   ): number | null {
