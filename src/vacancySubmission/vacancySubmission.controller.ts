@@ -76,12 +76,16 @@ export class VacancySubmissionController {
     @AuthUser() viewer: UserDto,
     @Body() filterSubmissionsDto?: RecruitingFilterDto,
     @Query('tenantId') tenantId?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('order') order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
     const resolvedTenantId = extractUserTenantId(viewer, tenantId);
 
     return await this.vacancySubmissionService.findAllSubmissionsWithinTenantWithFilters(
       resolvedTenantId,
       filterSubmissionsDto,
+      sortBy,
+      order,
     );
   }
 
@@ -96,6 +100,8 @@ export class VacancySubmissionController {
     @AuthUser() viewer: UserDto,
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
     @Body() filterSubmissionsDto?: RecruitingFilterDto,
+    @Query('sortBy') sortBy?: string,
+    @Query('order') order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
     const vacancyTenantId =
       await this.vacancyService.getTenantIdByVacancyId(vacancyId);
@@ -105,6 +111,8 @@ export class VacancySubmissionController {
     return await this.vacancySubmissionService.findAllSubmissionsWithinVacancyWithFilters(
       vacancyId,
       filterSubmissionsDto,
+      sortBy,
+      order,
     );
   }
 }
