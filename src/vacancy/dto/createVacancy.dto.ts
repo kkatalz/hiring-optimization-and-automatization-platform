@@ -45,5 +45,5 @@ export class CreateVacancyDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateVacancyQuestionInlineDto)
-  questions?: CreateVacancyQuestionInlineDto[];
+  vacancyQuestions?: CreateVacancyQuestionInlineDto[];
 }

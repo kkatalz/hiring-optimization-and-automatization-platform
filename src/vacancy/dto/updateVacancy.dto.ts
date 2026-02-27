@@ -10,7 +10,7 @@ import {
   TimeCommitment,
 } from '../../entities/hiring.enum';
 import { Type } from 'class-transformer';
-import { CreateVacancyQuestionInlineDto } from './createVacancyWithQuestions.dto';
+import { UpdateVacancyQuestionInlineDto } from './updateVacancyWithQuestions.dto';
 
 export class UpdateVacancyDto {
   @IsOptional()
@@ -43,6 +43,6 @@ export class UpdateVacancyDto {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CreateVacancyQuestionInlineDto)
-  questions?: CreateVacancyQuestionInlineDto[];
+  @Type(() => UpdateVacancyQuestionInlineDto)
+  vacancyQuestions?: UpdateVacancyQuestionInlineDto[];
 }
