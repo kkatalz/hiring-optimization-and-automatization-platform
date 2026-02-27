@@ -8,5 +8,7 @@ export const vacancyQuestionToDto = (
     vacancyId: vq.vacancyId,
     questionId: vq.questionId,
     isRequired: vq.isRequired,
+    priority: vq.priority ?? 1,
+    expectedValue: vq.expectedValue,
   };
 };

@@ -13,6 +13,12 @@ export class VacancyQuestion {
   @Column({ name: 'is_required', type: 'boolean', default: false })
   isRequired: boolean;
 
+  @Column({ type: 'int', default: 1 })
+  priority: number;
+
+  @Column({ name: 'expected_value', type: 'varchar', nullable: true })
+  expectedValue?: string;
+
   @ManyToOne(() => Vacancy, (vacancy) => vacancy.vacancyQuestions, {
     onDelete: 'CASCADE',
   })

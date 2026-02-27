@@ -1,6 +1,7 @@
 import {
   IsArray,
   IsEnum,
+  IsNumber,
   IsOptional,
   IsString,
   ValidateNested,
@@ -36,6 +37,10 @@ export class VacancySubmissionDto {
   @IsArray()
   @IsString({ each: true })
   tags?: string[];
+
+  @IsOptional()
+  @IsNumber()
+  matchScore?: number;
 
   @IsOptional()
   @ValidateNested()

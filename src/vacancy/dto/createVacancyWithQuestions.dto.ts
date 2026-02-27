@@ -1,7 +1,15 @@
-import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 import { RequiredIfDropdown } from '../../decorators/requiredIfDropdown.decorator';
 import { ConvertStringToBool } from '../../decorators/convertStringToBool.decorator';
 import { QuestionType } from '../../entities/question.enum';
+import { Type } from 'class-transformer';
 
 export class CreateVacancyQuestionInlineDto {
   @IsNotEmpty()
@@ -18,4 +26,14 @@ export class CreateVacancyQuestionInlineDto {
   @ConvertStringToBool()
   @IsBoolean()
   isRequired: boolean;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  priority?: number;
+
+  @IsOptional()
+  @IsString()
+  expectedValue?: string;
 }

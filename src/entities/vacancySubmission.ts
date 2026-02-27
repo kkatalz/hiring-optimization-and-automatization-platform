@@ -6,6 +6,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Transform } from 'class-transformer';
 import { CandidateProfile } from './candidateProfile';
 import { Interview } from './interview';
 import { VacancySubmissionStatus } from './statuses.enum';
@@ -37,6 +38,16 @@ export class VacancySubmission {
 
   @Column({ type: 'jsonb', default: [] })
   tags?: string[];
+
+  @Column({
+    name: 'match_score',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+  })
+  @Transform(({ value }) => (value != null ? Number(value) : null))
+  matchScore?: number | null;
 
   @ManyToOne(() => Vacancy, (vacancy) => vacancy.submissions, {
     nullable: false,
