@@ -11,31 +11,23 @@ import { QuestionType } from '../entities/question.enum';
 class RequiredIfDropdownConstraint implements ValidatorConstraintInterface {
   validate(value: any, args: ValidationArguments) {
     const dto = args.object as any;
+    const isDropdown = dto.type === QuestionType.dropdown;
 
-    if (dto.type === QuestionType.dropdown) {
-      return (
-        value !== undefined &&
-        value !== null &&
-        (Array.isArray(value) ? value.length > 0 : true)
-      );
+    // If it IS a dropdown: value must be a non-empty array
+    if (isDropdown) {
+      return Array.isArray(value) && value.length > 0;
     }
 
-    // Reject answerOptions when type is NOT dropdown
-    if (value !== undefined && value !== null) {
-      return false;
-    }
-
-    return true;
+    // If it is NOT a dropdown: value must be undefined or null.
+    // If we send empty array, it still will return false and trigger an error.
+    return value === undefined || value === null;
   }
 
   defaultMessage(args: ValidationArguments) {
     const dto = args.object as any;
-
-    if (dto.type === QuestionType.dropdown) {
-      return 'Answer options are required for dropdown questions.';
-    }
-
-    return 'Answer options are only allowed for dropdown questions. Remove answer options for non-dropdown question types.';
+    return dto.type === QuestionType.dropdown
+      ? 'Answer options are required and cannot be empty for dropdown questions.'
+      : 'Answer options must be removed for non-dropdown question types.';
   }
 }
 
