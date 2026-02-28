@@ -842,6 +842,9 @@ describe('VacancySubmissionService', () => {
           result[1].matchScore,
         );
       }
+      if (result[0].matchScore != null && result[1].matchScore == null) {
+        expect(result[0].matchScore).to.equal(0);
+      }
     });
 
     it('should sort submissions by matchScore ASC when order=ASC', async () => {
@@ -1049,10 +1052,17 @@ describe('VacancySubmissionService', () => {
       );
 
       expect(result.length).to.equal(2);
+
+      // The existing submission (testVacancySubmissions[0]) has no matchScore (null - from fixture)
+      // The new submission has matchScore = 0
+      // With NULLS LAST, the new score should come first
       if (result[0].matchScore != null && result[1].matchScore != null) {
         expect(result[0].matchScore).to.be.greaterThanOrEqual(
           result[1].matchScore,
         );
+      }
+      if (result[0].matchScore != null && result[1].matchScore == null) {
+        expect(result[0].matchScore).to.equal(0);
       }
     });
 

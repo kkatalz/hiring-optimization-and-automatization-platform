@@ -485,7 +485,7 @@ export class VacancySubmissionService {
     let weightTotal = 0;
 
     for (const vq of scorableQuestions) {
-      const weight = 1 / vq.priority;
+      const weight = vq.priority > 0 ? 1 / vq.priority : 1;
       const candidateAnswer = answerMap.get(vq.questionId);
       const isMatch = candidateAnswer === vq.expectedValue ? 1 : 0;
 
