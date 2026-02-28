@@ -22,10 +22,7 @@ class RequiredIfDropdownConstraint implements ValidatorConstraintInterface {
 
     // Reject answerOptions when type is NOT dropdown
     if (value !== undefined && value !== null) {
-      const isNonEmptyArray = Array.isArray(value) && value.length > 0;
-      if (isNonEmptyArray) {
-        return false;
-      }
+      return false;
     }
 
     return true;
