@@ -468,7 +468,7 @@ describe('VacancyService', () => {
     });
   });
 
-  describe.only('update', () => {
+  describe('update', () => {
     it('should update vacancy with updateVacancyDto', async () => {
       const updateVacancyDto: UpdateVacancyDto = {
         name: 'Zoo keeper Updated',
@@ -663,7 +663,8 @@ describe('VacancyService', () => {
       await service.update(vacancyId, updateDto);
 
       // Verify by fetching the vacancy with submissions from scratch
-      const vacancy = await service.findVacancyById(vacancyId);
+      const vacancy =
+        await service.findVacancyByIdWithSubmissionsAndAnswers(vacancyId);
 
       const submission = vacancy.submissions!.find(
         (s) => s.id === testVacancySubmissions[0].id,

@@ -85,7 +85,7 @@ export class VacancyService {
   async findVacancyById(vacancyId: string): Promise<VacancyDto> {
     const vacancy = await this.vacancyRepository.findOne({
       where: { id: vacancyId },
-      relations: ['vacancyQuestions', 'submissions', 'submissions.answers'],
+      relations: ['vacancyQuestions'],
     });
 
     if (!vacancy) {
@@ -134,7 +134,8 @@ export class VacancyService {
     vacancyId: string,
     updateVacancyDto: UpdateVacancyDto,
   ): Promise<VacancyDto> {
-    const vacancy: VacancyDto = await this.findVacancyById(vacancyId);
+    const vacancy: VacancyDto =
+      await this.findVacancyByIdWithSubmissionsAndAnswers(vacancyId);
 
     Object.keys(updateVacancyDto).forEach((key) => {
       if (updateVacancyDto[key] !== undefined && key !== 'vacancyQuestions') {
@@ -201,12 +202,14 @@ export class VacancyService {
       );
     }
 
-    this.validateExpectedValue(
-      body.expectedValue,
-      question.type,
-      question.answerOptions,
-      question.label,
-    );
+    if (body.expectedValue) {
+      this.validateExpectedValue(
+        body.expectedValue,
+        question.type,
+        question.answerOptions,
+        question.label,
+      );
+    }
 
     const vacancyQuestion = this.vacancyQuestionRepository.create({
       vacancyId,
@@ -306,12 +309,14 @@ export class VacancyService {
         );
       }
 
-      this.validateExpectedValue(
-        q.expectedValue,
-        q.type,
-        q.answerOptions ?? question.answerOptions,
-        q.label,
-      );
+      if (q.expectedValue) {
+        this.validateExpectedValue(
+          q.expectedValue,
+          q.type,
+          q.answerOptions ?? question.answerOptions,
+          q.label,
+        );
+      }
 
       return this.vacancyQuestionRepository.create({
         vacancyId,
@@ -333,13 +338,11 @@ export class VacancyService {
    * For dropdown questions, expectedValue must be one of the defined
    */
   private validateExpectedValue(
-    expectedValue: string | undefined,
+    expectedValue: string,
     questionType: QuestionType,
     answerOptions: string[] | undefined,
     questionLabel: string,
   ): void {
-    if (expectedValue == null) return;
-
     if (questionType === QuestionType.boolean) {
       if (expectedValue !== 'true' && expectedValue !== 'false') {
         throw new BadRequestException(
@@ -349,11 +352,15 @@ export class VacancyService {
     }
 
     if (questionType === QuestionType.dropdown) {
-      if (!answerOptions?.length) return;
-
-      if (!answerOptions.includes(expectedValue)) {
+      if (!answerOptions?.length && expectedValue) {
         throw new BadRequestException(
-          `Expected value for dropdown question '${questionLabel}' must be one of: ${answerOptions.join(', ')}. Received: '${expectedValue}'.`,
+          `Question '${questionLabel}' does not have defined answer options, so expected value cannot be provided.`,
+        );
+      }
+
+      if (!answerOptions?.includes(expectedValue)) {
+        throw new BadRequestException(
+          `Expected value for dropdown question '${questionLabel}' must be one of: ${answerOptions?.join(', ')}. Received: '${expectedValue}'.`,
         );
       }
     }
@@ -423,5 +430,20 @@ export class VacancyService {
     }
 
     await this.vacancyRepository.manager.save(vacancy.submissions);
+  }
+
+  async findVacancyByIdWithSubmissionsAndAnswers(
+    vacancyId: string,
+  ): Promise<VacancyDto> {
+    const vacancy = await this.vacancyRepository.findOne({
+      where: { id: vacancyId },
+      relations: ['vacancyQuestions', 'submissions', 'submissions.answers'],
+    });
+
+    if (!vacancy) {
+      throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
+    }
+
+    return vacancyToVacancyDto(vacancy);
   }
 }
