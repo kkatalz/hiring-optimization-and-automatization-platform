@@ -1,5 +1,6 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -48,6 +49,25 @@ export class VacancySubmission {
     transformer: new ColumnNumericTransformer(),
   })
   matchScore?: number;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @Column({
+    name: 'expected_salary',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+    transformer: new ColumnNumericTransformer(),
+  })
+  expectedSalary?: number;
+
+  @Column({ name: 'recruiter_rating', type: 'int', nullable: true })
+  recruiterRating?: number | null;
+
+  @Column({ name: 'rated_by_recruiter_id', type: 'uuid', nullable: true })
+  ratedByRecruiterId?: string | null;
 
   @ManyToOne(() => Vacancy, (vacancy) => vacancy.submissions, {
     nullable: false,

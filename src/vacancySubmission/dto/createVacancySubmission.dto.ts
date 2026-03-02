@@ -1,6 +1,7 @@
 import {
   IsArray,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
@@ -33,4 +34,8 @@ export class CreateVacancySubmissionDto {
   @ValidateNested({ each: true })
   @Type(() => QuestionAnswerAllRequiredDto)
   answers?: QuestionAnswerAllRequiredDto[];
+
+  @IsOptional()
+  @IsNumber()
+  expectedSalary?: number;
 }

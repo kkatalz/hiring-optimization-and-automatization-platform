@@ -42,6 +42,20 @@ export class VacancySubmissionDto {
   @IsNumber()
   matchScore?: number;
 
+  createdAt: Date;
+
+  @IsOptional()
+  @IsNumber()
+  expectedSalary?: number;
+
+  @IsOptional()
+  @IsNumber()
+  recruiterRating?: number | null;
+
+  @IsOptional()
+  @IsString()
+  ratedByRecruiterId?: string | null;
+
   @IsOptional()
   @ValidateNested()
   @Type(() => CandidateProfileDto)
