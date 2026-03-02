@@ -1289,6 +1289,28 @@ describe('VacancySubmissionService', () => {
         expect(e.response).to.equal('Vacancy Submission not found.');
       }
     });
+
+    it('should throw BadRequestException if submission was already rated', async () => {
+      const submissionId = testVacancySubmissions[0].id;
+      const recruiterId = testUsers[1].id;
+
+      // add initial rating
+      testVacancySubmissions[0].recruiterRating = 5;
+
+      await service.addRecruiterRating(submissionId, recruiterId, 5);
+
+      try {
+        await service.addRecruiterRating(submissionId, recruiterId, 4);
+        expect.fail('Should have thrown a BadRequestException but did not');
+      } catch (e: any) {
+        expect(e.response.statusCode).to.equal(400);
+        expect(e.response.message).to.equal(
+          'This submission has already been rated by a recruiter. Please use updateRecruiterRating endpoint to change the rating.',
+        );
+      }
+      // cleanup: reset rating to null for other tests
+      testVacancySubmissions[0].recruiterRating = null;
+    });
   });
 
   describe('updateRecruiterRating', () => {
@@ -1336,6 +1358,21 @@ describe('VacancySubmissionService', () => {
       } catch (e: any) {
         expect(e.status).to.equal(404);
         expect(e.response).to.equal('Vacancy Submission not found.');
+      }
+    });
+
+    it('should throw BadRequestException if submission has not been rated yet', async () => {
+      const submissionId = testVacancySubmissions[0].id;
+      const recruiterId = testUsers[1].id;
+
+      try {
+        await service.updateRecruiterRating(submissionId, recruiterId, 4);
+        expect.fail('Should have thrown a BadRequestException but did not');
+      } catch (e: any) {
+        expect(e.response.statusCode).to.equal(400);
+        expect(e.response.message).to.equal(
+          'This submission has not been rated by a recruiter yet. Please use addRecruiterRating endpoint to add a rating.',
+        );
       }
     });
   });

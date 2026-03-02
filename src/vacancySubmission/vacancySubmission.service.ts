@@ -96,7 +96,6 @@ export class VacancySubmissionService {
           tenantId: vacancy.tenantId,
           candidateId: candidate.id,
           matchScore,
-          createdAt: new Date(),
           vacancy: vacancy,
           candidateProfile: candidate,
         });
@@ -129,6 +128,12 @@ export class VacancySubmissionService {
   ): Promise<VacancySubmissionDto> {
     const submission = await this.findOneById(submissionId);
 
+    if (submission.recruiterRating) {
+      throw new BadRequestException(
+        'This submission has already been rated by a recruiter. Please use updateRecruiterRating endpoint to change the rating.',
+      );
+    }
+
     submission.ratedByRecruiterId = recruiterId;
     submission.recruiterRating = rating;
 
@@ -150,8 +155,16 @@ export class VacancySubmissionService {
     rating: number,
   ): Promise<VacancySubmissionDto> {
     const submission = await this.findOneById(submissionId);
+
+    if (!submission.recruiterRating) {
+      throw new BadRequestException(
+        'This submission has not been rated by a recruiter yet. Please use addRecruiterRating endpoint to add a rating.',
+      );
+    }
+
     submission.ratedByRecruiterId = recruiterId;
     submission.recruiterRating = rating;
+
     const savedSubmission =
       await this.vacancySubmissionRepository.save(submission);
     return vacancySubmToVacancySubmDto(savedSubmission);
