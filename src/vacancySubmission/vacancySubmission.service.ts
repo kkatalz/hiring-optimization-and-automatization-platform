@@ -95,7 +95,7 @@ export class VacancySubmissionService {
           vacancyId: vacancyId,
           tenantId: vacancy.tenantId,
           candidateId: candidate.id,
-          matchScore: matchScore,
+          matchScore,
           vacancy: vacancy,
           candidateProfile: candidate,
         });
@@ -462,22 +462,22 @@ export class VacancySubmissionService {
 
   /**
    * Calculates match score using weighted priority formula.
-   * Score = sum((1/pi)*xi) / sum(1/pi) * 100
+   * Score = sum((1/priority)*xi) / sum(1/pi) * 100, where xi = 1 if answer matches expected value, 0 otherwise.
    * Text questions are excluded from scoring.
    * Questions without expectedValue are excluded from scoring.
-   * Returns null if no scorable questions exist.
+   * Returns 0 if no scorable questions exist.
    */
 
   calculateMatchScore(
     answers: QuestionAnswerAllRequiredDto[],
     vacancyQuestions: VacancyQuestionDetailedDto[],
-  ): number | null {
+  ): number {
     // Only score non-text questions that have an expectedValue
     const scorableQuestions = vacancyQuestions.filter(
       (vq) => vq.type !== QuestionType.text && vq.expectedValue != null,
     );
 
-    if (scorableQuestions.length === 0) return null;
+    if (scorableQuestions.length === 0) return 0;
 
     const answerMap = new Map(answers.map((a) => [a.questionId, a.value]));
 

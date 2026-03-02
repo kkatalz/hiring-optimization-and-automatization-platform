@@ -22,7 +22,7 @@ export const vacancySubmToVacancySubmDto = ({
     candidateId,
     status,
     tags,
-    matchScore: matchScore != null ? Number(matchScore) : undefined,
+    matchScore: matchScore ? Number(matchScore) : 0,
     candidateProfile: candidateProfile
       ? candidateToCandidateProfileDto(candidateProfile)
       : undefined,
