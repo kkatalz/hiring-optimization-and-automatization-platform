@@ -1,7 +1,9 @@
 import {
   BadRequestException,
+  forwardRef,
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -30,6 +32,7 @@ import { QuestionType } from '../entities/question.enum';
 import { SubmissionAnswer } from '../entities/submissionAnswers';
 import { VacancyQuestionDetailedDto } from '../vacancy/dto/vacancyQuestionDetailed.dto';
 import { QuestionDto } from '../question/dto/question.dto';
+import { QuestionAnswerAllRequiredDto } from './dto/createVacancySubmission.dto';
 
 @Injectable()
 export class VacancySubmissionService {
@@ -40,6 +43,7 @@ export class VacancySubmissionService {
     @InjectRepository(SubmissionAnswer)
     private readonly submissionAnswerRepository: Repository<SubmissionAnswer>,
 
+    @Inject(forwardRef(() => VacancyService))
     private readonly vacancyService: VacancyService,
 
     private readonly profileService: CandidateProfileService,
@@ -75,6 +79,15 @@ export class VacancySubmissionService {
       vacancy,
     );
 
+    // Calculate match score based on answers vs expected values
+    const allVacancyQuestions =
+      await this.vacancyService.findAllQuestionsByVacancyId(vacancy.id);
+
+    const matchScore = this.calculateMatchScore(
+      createVacancySubmissionDto.answers || [],
+      allVacancyQuestions,
+    );
+
     return await this.dataSource.transaction(
       async (transactionalEntityManager) => {
         const vacancySubmission = this.vacancySubmissionRepository.create({
@@ -82,6 +95,7 @@ export class VacancySubmissionService {
           vacancyId: vacancyId,
           tenantId: vacancy.tenantId,
           candidateId: candidate.id,
+          matchScore,
           vacancy: vacancy,
           candidateProfile: candidate,
         });
@@ -125,6 +139,8 @@ export class VacancySubmissionService {
   async findAllSubmissionsWithinVacancyWithFilters(
     vacancyId: string,
     filterSubmissionsDto?: RecruitingFilterDto,
+    sortBy?: string,
+    order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
     const query = this.createBaseSubmissionQuery().where(
       'submission.vacancy_id = :vacancyId',
@@ -142,12 +158,19 @@ export class VacancySubmissionService {
       );
     }
 
-    return this.executeFilteredSubmissions(query, filterSubmissionsDto);
+    return this.executeFilteredSubmissions(
+      query,
+      filterSubmissionsDto,
+      sortBy,
+      order,
+    );
   }
 
   async findAllSubmissionsWithinTenantWithFilters(
     tenantId: string,
     filterSubmissionsDto?: RecruitingFilterDto,
+    sortBy?: string,
+    order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
     const query = this.createBaseSubmissionQuery().where(
       'submission.tenant_id = :tenantId',
@@ -162,7 +185,12 @@ export class VacancySubmissionService {
       );
     }
 
-    return this.executeFilteredSubmissions(query, filterSubmissionsDto);
+    return this.executeFilteredSubmissions(
+      query,
+      filterSubmissionsDto,
+      sortBy,
+      order,
+    );
   }
 
   async approve(submissionId: string): Promise<VacancySubmissionDto> {
@@ -219,11 +247,16 @@ export class VacancySubmissionService {
       .leftJoinAndSelect('submission.answers', 'answers');
   }
 
+  private static readonly ALLOWED_SORT_FIELDS = ['matchScore'];
+
   private async executeFilteredSubmissions(
     query: SelectQueryBuilder<VacancySubmission>,
     filterDto?: RecruitingFilterDto,
+    sortBy?: string,
+    order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
     if (!filterDto) {
+      this.applySorting(query, sortBy, order);
       const submissions = await query.getMany();
       return submissions.map(vacancySubmToVacancySubmDto);
     }
@@ -231,6 +264,7 @@ export class VacancySubmissionService {
     // Apply QueryBuilder filters (SQL side)
     filterByExperience(query, filterDto);
     filterByCountriesCities(query, filterDto);
+    this.applySorting(query, sortBy, order);
 
     let submissions = await query.getMany();
 
@@ -252,6 +286,20 @@ export class VacancySubmissionService {
     }
 
     return submissions.map(vacancySubmToVacancySubmDto);
+  }
+
+  private applySorting(
+    query: SelectQueryBuilder<VacancySubmission>,
+    sortBy?: string,
+    order?: 'ASC' | 'DESC',
+  ): void {
+    if (
+      sortBy &&
+      VacancySubmissionService.ALLOWED_SORT_FIELDS.includes(sortBy)
+    ) {
+      const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
+      query.orderBy(`submission.${sortBy}`, direction, 'NULLS LAST');
+    }
   }
 
   private async validateAnswersBelongToTenant(
@@ -410,5 +458,42 @@ export class VacancySubmissionService {
         );
       }
     }
+  }
+
+  /**
+   * Calculates match score using weighted priority formula.
+   * Score = sum((1/priority)*xi) / sum(1/pi) * 100, where xi = 1 if answer matches expected value, 0 otherwise.
+   * Text questions are excluded from scoring.
+   * Questions without expectedValue are excluded from scoring.
+   * Returns 0 if no scorable questions exist.
+   */
+
+  calculateMatchScore(
+    answers: QuestionAnswerAllRequiredDto[],
+    vacancyQuestions: VacancyQuestionDetailedDto[],
+  ): number {
+    // Only score non-text questions that have an expectedValue
+    const scorableQuestions = vacancyQuestions.filter(
+      (vq) => vq.type !== QuestionType.text && vq.expectedValue != null,
+    );
+
+    if (scorableQuestions.length === 0) return 0;
+
+    const answerMap = new Map(answers.map((a) => [a.questionId, a.value]));
+
+    let weightedSum = 0;
+    let weightTotal = 0;
+
+    for (const vq of scorableQuestions) {
+      const weight = vq.priority > 0 ? 1 / vq.priority : 1;
+      const candidateAnswer = answerMap.get(vq.questionId);
+      const isMatch = candidateAnswer === vq.expectedValue ? 1 : 0;
+
+      weightedSum += weight * isMatch;
+      weightTotal += weight;
+    }
+
+    const score = (weightedSum / weightTotal) * 100;
+    return Math.round(score * 100) / 100; // round to 2 decimal places
   }
 }

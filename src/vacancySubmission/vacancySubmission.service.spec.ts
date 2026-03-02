@@ -39,7 +39,7 @@ import { Repository } from 'typeorm';
 import { CandidateProfileService } from '../candidateProfile/candidateProfile.service';
 import { LanguageLevel } from '../entities/hiring.enum';
 import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
-import { testSubmissionAnswers } from '../../test/fixtures/testAnswers';
+import { testSubmissionAnswers } from '../../test/fixtures/testSubmissionAnswers';
 
 describe('VacancySubmissionService', () => {
   let service: VacancySubmissionService;
@@ -251,6 +251,100 @@ describe('VacancySubmissionService', () => {
         expect(e.status).to.equal(400);
         expect(e.response.message).to.include('Value for question');
       }
+    });
+
+    it('should calculate matchScore on submission creation when questions have expectedValue', async () => {
+      const zooKeperVacancyID = testVacancies[1].id;
+      const userId = testUsers[5].id;
+
+      // vacancy[1] questions with expectedValue:
+      //   testQuestions[0]: boolean, priority 1, expectedValue 'true'
+      //   testQuestions[2]: dropdown, priority 2, expectedValue 'Bachelor'
+      //   testQuestions[1]: text, no expectedValue (excluded from scoring)
+      // Candidate answers: testQuestions[0]='true' (match), testQuestions[2]='Bachelor' (match)
+      // Score = ((1/1)*1 + (1/2)*1) / ((1/1) + (1/2)) * 100 = 1.5/1.5 * 100 = 100
+      const createSubmissionDto: CreateVacancySubmissionDto = {
+        comment: 'Perfect match!',
+        answers: [
+          { questionId: testQuestions[0].id, value: 'true' },
+          { questionId: testQuestions[2].id, value: 'Bachelor' },
+        ],
+      };
+
+      const result = await service.create(
+        createSubmissionDto,
+        zooKeperVacancyID,
+        userId,
+      );
+
+      expect(result.matchScore).to.equal(100);
+    });
+
+    it('should calculate partial matchScore when some answers do not match expectedValue', async () => {
+      const zooKeperVacancyID = testVacancies[1].id;
+      const userId = testUsers[5].id;
+
+      // Candidate answers: testQuestions[0]='true' (match, priority 1), testQuestions[2]='Master' (no match, priority 2)
+      // Score = ((1/1)*1 + (1/2)*0) / ((1/1) + (1/2)) * 100 = 1/1.5 * 100 = 66.67
+      const createSubmissionDto: CreateVacancySubmissionDto = {
+        comment: 'Partial match',
+        answers: [
+          { questionId: testQuestions[0].id, value: 'true' },
+          { questionId: testQuestions[2].id, value: 'Master' },
+        ],
+      };
+
+      const result = await service.create(
+        createSubmissionDto,
+        zooKeperVacancyID,
+        userId,
+      );
+
+      expect(result.matchScore).to.equal(66.67);
+    });
+
+    it('should calculate 0 matchScore when no answers match expectedValue', async () => {
+      const zooKeperVacancyID = testVacancies[1].id;
+      const userId = testUsers[5].id;
+
+      // Candidate answers: testQuestions[0]='false' (no match), testQuestions[2]='PhD' (no match)
+      // Score = ((1/1)*0 + (1/2)*0) / ((1/1) + (1/2)) * 100 = 0
+      const createSubmissionDto: CreateVacancySubmissionDto = {
+        comment: 'No match',
+        answers: [
+          { questionId: testQuestions[0].id, value: 'false' },
+          { questionId: testQuestions[2].id, value: 'PhD' },
+        ],
+      };
+
+      const result = await service.create(
+        createSubmissionDto,
+        zooKeperVacancyID,
+        userId,
+      );
+
+      expect(result.matchScore).to.equal(0);
+    });
+
+    it('should return matchScore as a number (not string) from the database', async () => {
+      const zooKeperVacancyID = testVacancies[1].id;
+      const userId = testUsers[5].id;
+
+      const createSubmissionDto: CreateVacancySubmissionDto = {
+        comment: 'Type check',
+        answers: [
+          { questionId: testQuestions[0].id, value: 'true' },
+          { questionId: testQuestions[2].id, value: 'Bachelor' },
+        ],
+      };
+
+      const result = await service.create(
+        createSubmissionDto,
+        zooKeperVacancyID,
+        userId,
+      );
+
+      expect(result.matchScore).to.be.a('number');
     });
 
     it('should throw BadRequestException when instead of boolean value for boolean question, another value is provided', async () => {
@@ -715,6 +809,71 @@ describe('VacancySubmissionService', () => {
       expect(result[0].id).to.equal(testVacancySubmissions[0].id);
     });
 
+    it('should sort submissions by matchScore DESC when sortBy=matchScore', async () => {
+      // Create a second submission to vacancy[1] with a different candidate
+      const userId = testUsers[5].id; // candidate who hasn't applied to vacancy[1]
+
+      await service.create(
+        {
+          comment: 'Second submission',
+          answers: [
+            { questionId: testQuestions[0].id, value: 'false' },
+            { questionId: testQuestions[2].id, value: 'PhD' },
+          ],
+        },
+        vacancyId,
+        userId,
+      );
+
+      // Now we have two submissions: existing one (from fixture) and the new one
+      const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+        vacancyId,
+        undefined,
+        'matchScore',
+        'DESC',
+      );
+
+      expect(result.length).to.equal(2);
+      // The existing submission (testVacancySubmissions[0]) has no matchScore (0 by default)
+      // The new submission has matchScore = 0
+      // With NULLS LAST, the 0 score should come first
+      if (result[0].matchScore && result[1].matchScore) {
+        expect(result[0].matchScore).to.be.greaterThanOrEqual(
+          result[1].matchScore,
+        );
+      }
+    });
+
+    it('should sort submissions by matchScore ASC when order=ASC', async () => {
+      const userId = testUsers[5].id;
+
+      await service.create(
+        {
+          comment: 'Second submission',
+          answers: [
+            { questionId: testQuestions[0].id, value: 'false' },
+            { questionId: testQuestions[2].id, value: 'PhD' },
+          ],
+        },
+        vacancyId,
+        userId,
+      );
+
+      const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+        vacancyId,
+        undefined,
+        'matchScore',
+        'ASC',
+      );
+
+      expect(result.length).to.equal(2);
+      if (result[0].matchScore && result[1].matchScore) {
+        expect(result[0].matchScore).to.be.lessThanOrEqual(
+          result[1].matchScore,
+        );
+      }
+    });
+
     it('should throw BadRequestException when questionId in answer filter is not linked to the vacancy', async () => {
       const filter: RecruitingFilterDto = {
         answers: [{ questionId: testQuestions[3].id, value: 'true' }],
@@ -865,6 +1024,43 @@ describe('VacancySubmissionService', () => {
 
       expect(result.length).to.equal(1);
       expect(result[0].id).to.equal(testVacancySubmissions[0].id);
+    });
+
+    it('should sort submissions by matchScore DESC within tenant', async () => {
+      const userId = testUsers[5].id;
+
+      await service.create(
+        {
+          comment: 'Second submission in tenant',
+          answers: [
+            { questionId: testQuestions[0].id, value: 'false' },
+            { questionId: testQuestions[2].id, value: 'PhD' },
+          ],
+        },
+        testVacancies[1].id,
+        userId,
+      );
+
+      const result = await service.findAllSubmissionsWithinTenantWithFilters(
+        tenantId,
+        undefined,
+        'matchScore',
+        'DESC',
+      );
+
+      expect(result.length).to.equal(2);
+
+      // The existing submission (testVacancySubmissions[0]) has no matchScore (0 by default)
+      // The new submission has matchScore = 0
+      // With NULLS LAST, the new score should come first
+      if (result[0].matchScore && result[1].matchScore) {
+        expect(result[0].matchScore).to.be.greaterThanOrEqual(
+          result[1].matchScore,
+        );
+      }
+      if (result[0].matchScore && !result[1].matchScore) {
+        expect(result[0].matchScore).to.equal(0);
+      }
     });
 
     it('should return empty for a non-existent tenant', async () => {

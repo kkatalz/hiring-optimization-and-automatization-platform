@@ -11,6 +11,7 @@ import { Interview } from './interview';
 import { VacancySubmissionStatus } from './statuses.enum';
 import { SubmissionAnswer } from './submissionAnswers';
 import { Vacancy } from './vacancy';
+import { ColumnNumericTransformer } from '../utils/convertStringToNumberTransformer';
 
 @Entity({ name: 'vacancy_submissions' })
 export class VacancySubmission {
@@ -37,6 +38,16 @@ export class VacancySubmission {
 
   @Column({ type: 'jsonb', default: [] })
   tags?: string[];
+
+  @Column({
+    name: 'match_score',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    default: 0,
+    transformer: new ColumnNumericTransformer(),
+  })
+  matchScore?: number;
 
   @ManyToOne(() => Vacancy, (vacancy) => vacancy.submissions, {
     nullable: false,

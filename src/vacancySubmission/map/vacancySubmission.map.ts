@@ -10,6 +10,7 @@ export const vacancySubmToVacancySubmDto = ({
   candidateId,
   status,
   tags,
+  matchScore,
   candidateProfile,
   answers,
 }: VacancySubmission): VacancySubmissionDto => {
@@ -21,6 +22,7 @@ export const vacancySubmToVacancySubmDto = ({
     candidateId,
     status,
     tags,
+    matchScore: matchScore ? Number(matchScore) : 0,
     candidateProfile: candidateProfile
       ? candidateToCandidateProfileDto(candidateProfile)
       : undefined,

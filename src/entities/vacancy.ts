@@ -56,6 +56,6 @@ export class Vacancy {
   @OneToMany(() => VacancySubmission, (submission) => submission.vacancy)
   submissions?: VacancySubmission[];
 
-  @OneToMany(() => VacancyQuestion, (vq) => vq.vacancy)
+  @OneToMany(() => VacancyQuestion, (vq) => vq.vacancy, { cascade: true })
   vacancyQuestions?: VacancyQuestion[];
 }

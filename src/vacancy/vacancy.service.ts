@@ -3,7 +3,15 @@ import { Repository } from 'typeorm';
 
 import { Vacancy } from '../entities/vacancy';
 import { VacancyQuestion } from '../entities/vacancyQuestion';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
+import { QuestionType } from '../entities/question.enum';
 import { VacancyDto } from '../vacancy/dto/vacancy.dto';
 import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
 import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
@@ -18,6 +26,7 @@ import { CreateVacancyQuestionDto } from './dto/createVacancyQuesion.dto';
 import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
 import { vacancyQuestionToDetailedDto } from './map/vacancyQuestionDetailed.map';
 import { CreateVacancyQuestionInlineDto } from './dto/createVacancyWithQuestions.dto';
+import { VacancySubmissionService } from '../vacancySubmission/vacancySubmission.service';
 
 @Injectable()
 export class VacancyService {
@@ -30,6 +39,9 @@ export class VacancyService {
 
     private readonly userService: UserService,
     private readonly questionService: QuestionService,
+
+    @Inject(forwardRef(() => VacancySubmissionService))
+    private readonly vacancySubmissionService: VacancySubmissionService,
   ) {}
 
   async findAll(): Promise<VacancyDto[]> {
@@ -103,15 +115,15 @@ export class VacancyService {
     createVacancyDto: CreateVacancyDto,
     creator: UserDto,
   ): Promise<VacancyDto> {
-    const { questions, ...vacancyFields } = createVacancyDto;
+    const { vacancyQuestions, ...vacancyFields } = createVacancyDto;
 
     const savedVacancy = await this.saveBaseVacancy(vacancyFields, creator);
 
-    if (questions?.length) {
+    if (vacancyQuestions?.length) {
       await this.handleVacancyQuestions(
         savedVacancy.id,
         savedVacancy.tenantId,
-        questions,
+        vacancyQuestions,
       );
     }
 
@@ -122,15 +134,22 @@ export class VacancyService {
     vacancyId: string,
     updateVacancyDto: UpdateVacancyDto,
   ): Promise<VacancyDto> {
-    const vacancy: VacancyDto = await this.findVacancyById(vacancyId);
+    const vacancy: VacancyDto =
+      await this.findVacancyByIdWithSubmissionsAndAnswers(vacancyId);
 
     Object.keys(updateVacancyDto).forEach((key) => {
-      if (updateVacancyDto[key] !== undefined) {
+      if (updateVacancyDto[key] !== undefined && key !== 'vacancyQuestions') {
         vacancy[key] = updateVacancyDto[key];
       }
     });
 
+    this.applyVacancyQuestionUpdates(updateVacancyDto, vacancy);
+
     await this.vacancyRepository.save(vacancy);
+
+    if (updateVacancyDto.vacancyQuestions) {
+      await this.recalculateSubmissionMatchScores(vacancyId);
+    }
 
     return this.getPopulatedVacancy(vacancyId);
   }
@@ -183,10 +202,21 @@ export class VacancyService {
       );
     }
 
+    if (body.expectedValue) {
+      this.validateExpectedValue(
+        body.expectedValue,
+        question.type,
+        question.answerOptions,
+        question.label,
+      );
+    }
+
     const vacancyQuestion = this.vacancyQuestionRepository.create({
       vacancyId,
       questionId,
       isRequired: body.isRequired,
+      priority: body.priority ?? 1,
+      expectedValue: body.expectedValue,
     });
 
     const saved = await this.vacancyQuestionRepository.save(vacancyQuestion);
@@ -279,16 +309,61 @@ export class VacancyService {
         );
       }
 
+      if (q.expectedValue) {
+        this.validateExpectedValue(
+          q.expectedValue,
+          q.type,
+          q.answerOptions ?? question.answerOptions,
+          q.label,
+        );
+      }
+
       return this.vacancyQuestionRepository.create({
         vacancyId,
         questionId: question.id,
         isRequired: q.isRequired,
+        priority: q.priority ?? 1,
+        expectedValue: q.expectedValue,
       });
     });
 
     const vacancyQuestions = await Promise.all(linkPromises);
 
     await this.vacancyQuestionRepository.save(vacancyQuestions);
+  }
+
+  /**
+   * Validates the expectedValue.
+   * For boolean questions, expectedValue must be 'true' or 'false'.
+   * For dropdown questions, expectedValue must be one of the defined
+   */
+  private validateExpectedValue(
+    expectedValue: string,
+    questionType: QuestionType,
+    answerOptions: string[] | undefined,
+    questionLabel: string,
+  ): void {
+    if (questionType === QuestionType.boolean) {
+      if (expectedValue !== 'true' && expectedValue !== 'false') {
+        throw new BadRequestException(
+          `Expected value for boolean question '${questionLabel}' must be 'true' or 'false', but received: '${expectedValue}'.`,
+        );
+      }
+    }
+
+    if (questionType === QuestionType.dropdown) {
+      if (!answerOptions?.length && expectedValue) {
+        throw new BadRequestException(
+          `Question '${questionLabel}' does not have defined answer options, so expected value cannot be provided.`,
+        );
+      }
+
+      if (!answerOptions?.includes(expectedValue)) {
+        throw new BadRequestException(
+          `Expected value for dropdown question '${questionLabel}' must be one of: ${answerOptions?.join(', ')}. Received: '${expectedValue}'.`,
+        );
+      }
+    }
   }
 
   private async getPopulatedVacancy(id: string): Promise<VacancyDto> {
@@ -302,6 +377,71 @@ export class VacancyService {
         'Vacancy not found after creation/update.',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+
+    return vacancyToVacancyDto(vacancy);
+  }
+
+  private applyVacancyQuestionUpdates(
+    updateVacancyDto: UpdateVacancyDto,
+    vacancy: VacancyDto,
+  ): void {
+    if (!updateVacancyDto.vacancyQuestions || !vacancy.vacancyQuestions) return;
+
+    updateVacancyDto.vacancyQuestions.forEach((updatedQuestion) => {
+      const existingQuestion = vacancy.vacancyQuestions!.find(
+        (vq) => vq.questionId === updatedQuestion.questionId,
+      );
+
+      if (existingQuestion) {
+        existingQuestion.isRequired = updatedQuestion.isRequired;
+        existingQuestion.priority =
+          updatedQuestion.priority ?? existingQuestion.priority;
+        existingQuestion.expectedValue =
+          updatedQuestion.expectedValue ?? existingQuestion.expectedValue;
+      }
+    });
+  }
+
+  /**
+   * Recalculates matchScore for all submissions linked to this vacancy.
+   */
+  private async recalculateSubmissionMatchScores(
+    vacancyId: string,
+  ): Promise<void> {
+    const allVacancyQuestions =
+      await this.findAllQuestionsByVacancyId(vacancyId);
+
+    const vacancy = await this.vacancyRepository.findOne({
+      where: { id: vacancyId },
+      relations: ['submissions', 'submissions.answers'],
+    });
+
+    if (!vacancy?.submissions?.length) return;
+
+    for (const submission of vacancy.submissions) {
+      if (submission.answers?.length) {
+        submission.matchScore =
+          this.vacancySubmissionService.calculateMatchScore(
+            submission.answers,
+            allVacancyQuestions,
+          );
+      }
+    }
+
+    await this.vacancyRepository.manager.save(vacancy.submissions);
+  }
+
+  async findVacancyByIdWithSubmissionsAndAnswers(
+    vacancyId: string,
+  ): Promise<VacancyDto> {
+    const vacancy = await this.vacancyRepository.findOne({
+      where: { id: vacancyId },
+      relations: ['vacancyQuestions', 'submissions', 'submissions.answers'],
+    });
+
+    if (!vacancy) {
+      throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
     }
 
     return vacancyToVacancyDto(vacancy);

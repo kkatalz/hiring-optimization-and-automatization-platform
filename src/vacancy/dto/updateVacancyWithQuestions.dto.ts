@@ -11,7 +11,11 @@ import { ConvertStringToBool } from '../../decorators/convertStringToBool.decora
 import { QuestionType } from '../../entities/question.enum';
 import { Type } from 'class-transformer';
 
-export class CreateVacancyQuestionInlineDto {
+export class UpdateVacancyQuestionInlineDto {
+  @IsNotEmpty()
+  @IsString()
+  questionId: string;
+
   @IsNotEmpty()
   @IsString()
   label: string;
