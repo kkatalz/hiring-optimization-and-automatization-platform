@@ -59,6 +59,10 @@ export class VacancySubmissionController {
     return await this.vacancySubmissionService.reject(submissionId);
   }
 
+  /**
+   * Filter submissions by Candidate fields: minYearsOfExperience, maxYearsOfExperience, countries, cities, languages
+   * Sort by submissionDate (createdAt), expectedSalary, recruiterRating
+   */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Post('get/filter/within/tenant')
   async findAllSubmissionsWithinTenant(
@@ -69,6 +73,7 @@ export class VacancySubmissionController {
     @Query('order') order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
     const resolvedTenantId = extractUserTenantId(viewer, tenantId);
+    console.log(`Resolved tenant ID`);
 
     return await this.vacancySubmissionService.findAllSubmissionsWithinTenantWithFilters(
       resolvedTenantId,
@@ -81,7 +86,8 @@ export class VacancySubmissionController {
   /** Shows all submissions for superAdmin, and for admin/recruiter within given vacancy
    * Super admin can view all submissions across all tenants.
    * Admin and recruiter can only view submissions within their own tenant.
-   * Filter submissions by Candidate fields: minYearsOfExperience, maxYearsOfExperience, countries, cities, languages
+   * Filter submissions by Candidate fields: minYearsOfExperience, maxYearsOfExperience, countries, cities, languages.
+   * Sort by submissionDate (createdAt), expectedSalary, recruiterRating.
    */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Post('get/filter/within/vacancy/:vacancyId')
