@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
@@ -17,6 +19,7 @@ import { validateTenantAccess } from '../utils/validate';
 import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
 import { VacancyService } from '../vacancy/vacancy.service';
 import { extractUserTenantId } from '../utils/extractUserTenantId';
+import { SubmissionRatingDto } from './dto/submissionRating.dto';
 
 @Controller('vacanciesSubmissions')
 export class VacancySubmissionController {
@@ -24,20 +27,6 @@ export class VacancySubmissionController {
     private readonly vacancySubmissionService: VacancySubmissionService,
     private readonly vacancyService: VacancyService,
   ) {}
-
-  @Roles(UserRole.candidate)
-  @Post(':vacancyId')
-  async create(
-    @Body() createVacancySubmissionDto: CreateVacancySubmissionDto,
-    @Param('vacancyId') vacancyId: string,
-    @AuthUser() user: UserDto,
-  ): Promise<VacancySubmissionDto> {
-    return await this.vacancySubmissionService.create(
-      createVacancySubmissionDto,
-      vacancyId,
-      user.id,
-    );
-  }
 
   @Roles(UserRole.admin, UserRole.recruiter)
   @Post('approve/:submissionId')
@@ -113,6 +102,79 @@ export class VacancySubmissionController {
       filterSubmissionsDto,
       sortBy,
       order,
+    );
+  }
+
+  @Roles(UserRole.superAdmin, UserRole.recruiter)
+  @Post('add-recruiter-rating/:submissionId')
+  async addRecruiterRatingToSubmission(
+    @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
+    @AuthUser() recruiter: UserDto,
+    @Body() submissionRatingDto: SubmissionRatingDto,
+  ): Promise<VacancySubmissionDto> {
+    const submissionTenantId =
+      await this.vacancySubmissionService.getTenantIdBySubmissionId(
+        submissionId,
+      );
+
+    validateTenantAccess(recruiter, submissionTenantId);
+
+    return await this.vacancySubmissionService.addRecruiterRating(
+      submissionId,
+      recruiter.id,
+      submissionRatingDto.rating,
+    );
+  }
+  @Roles(UserRole.superAdmin, UserRole.recruiter)
+  @Patch('update-recruiter-rating/:submissionId')
+  async updateRecruiterRatingToSubmission(
+    @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
+    @AuthUser() recruiter: UserDto,
+    @Body() submissionRatingDto: SubmissionRatingDto,
+  ): Promise<VacancySubmissionDto> {
+    const submissionTenantId =
+      await this.vacancySubmissionService.getTenantIdBySubmissionId(
+        submissionId,
+      );
+
+    validateTenantAccess(recruiter, submissionTenantId);
+
+    return await this.vacancySubmissionService.updateRecruiterRating(
+      submissionId,
+      recruiter.id,
+      submissionRatingDto.rating,
+    );
+  }
+
+  @Roles(UserRole.superAdmin, UserRole.recruiter)
+  @Delete('remove-recruiter-rating/:submissionId')
+  async removeRecruiterRatingToSubmission(
+    @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
+    @AuthUser() recruiter: UserDto,
+  ): Promise<VacancySubmissionDto> {
+    const submissionTenantId =
+      await this.vacancySubmissionService.getTenantIdBySubmissionId(
+        submissionId,
+      );
+
+    validateTenantAccess(recruiter, submissionTenantId);
+
+    return await this.vacancySubmissionService.removeRecruiterRating(
+      submissionId,
+    );
+  }
+
+  @Roles(UserRole.candidate)
+  @Post(':vacancyId')
+  async create(
+    @Body() createVacancySubmissionDto: CreateVacancySubmissionDto,
+    @Param('vacancyId') vacancyId: string,
+    @AuthUser() user: UserDto,
+  ): Promise<VacancySubmissionDto> {
+    return await this.vacancySubmissionService.create(
+      createVacancySubmissionDto,
+      vacancyId,
+      user.id,
     );
   }
 }

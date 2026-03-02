@@ -96,6 +96,7 @@ export class VacancySubmissionService {
           tenantId: vacancy.tenantId,
           candidateId: candidate.id,
           matchScore,
+          createdAt: new Date(),
           vacancy: vacancy,
           candidateProfile: candidate,
         });
@@ -121,19 +122,53 @@ export class VacancySubmissionService {
     );
   }
 
-  async getTenantIdBySubmissionId(submissionId: string): Promise<string> {
-    const submission = await this.vacancySubmissionRepository.findOne({
-      where: { id: submissionId },
-    });
+  async addRecruiterRating(
+    submissionId: string,
+    recruiterId: string,
+    rating: number,
+  ): Promise<VacancySubmissionDto> {
+    const submission = await this.findOneById(submissionId);
 
-    if (!submission) {
-      throw new HttpException(
-        'Vacancy Submission not found.',
-        HttpStatus.NOT_FOUND,
-      );
-    }
+    submission.ratedByRecruiterId = recruiterId;
+    submission.recruiterRating = rating;
+
+    const savedSubmission =
+      await this.vacancySubmissionRepository.save(submission);
+
+    return vacancySubmToVacancySubmDto(savedSubmission);
+  }
+
+  async getTenantIdBySubmissionId(submissionId: string): Promise<string> {
+    const submission = await this.findOneById(submissionId);
 
     return submission.tenantId;
+  }
+
+  async updateRecruiterRating(
+    submissionId: string,
+    recruiterId: string,
+    rating: number,
+  ): Promise<VacancySubmissionDto> {
+    const submission = await this.findOneById(submissionId);
+    submission.ratedByRecruiterId = recruiterId;
+    submission.recruiterRating = rating;
+    const savedSubmission =
+      await this.vacancySubmissionRepository.save(submission);
+    return vacancySubmToVacancySubmDto(savedSubmission);
+  }
+
+  async removeRecruiterRating(
+    submissionId: string,
+  ): Promise<VacancySubmissionDto> {
+    const submission = await this.findOneById(submissionId);
+
+    submission.ratedByRecruiterId = null;
+    submission.recruiterRating = null;
+
+    const savedSubmission =
+      await this.vacancySubmissionRepository.save(submission);
+
+    return vacancySubmToVacancySubmDto(savedSubmission);
   }
 
   async findAllSubmissionsWithinVacancyWithFilters(
@@ -194,18 +229,7 @@ export class VacancySubmissionService {
   }
 
   async approve(submissionId: string): Promise<VacancySubmissionDto> {
-    const submission = await this.vacancySubmissionRepository.findOne({
-      where: {
-        id: submissionId,
-      },
-    });
-
-    if (!submission) {
-      throw new HttpException(
-        'Vacancy Submission not found.',
-        HttpStatus.NOT_FOUND,
-      );
-    }
+    const submission = await this.findOneById(submissionId);
 
     if (submission.status !== VacancySubmissionStatus.approved)
       submission.status = VacancySubmissionStatus.approved;
@@ -217,18 +241,7 @@ export class VacancySubmissionService {
   }
 
   async reject(submissionId: string): Promise<VacancySubmissionDto> {
-    const submission = await this.vacancySubmissionRepository.findOne({
-      where: {
-        id: submissionId,
-      },
-    });
-
-    if (!submission) {
-      throw new HttpException(
-        'Vacancy Submission not found.',
-        HttpStatus.NOT_FOUND,
-      );
-    }
+    const submission = await this.findOneById(submissionId);
 
     if (submission.status !== VacancySubmissionStatus.rejected)
       submission.status = VacancySubmissionStatus.rejected;
@@ -495,5 +508,19 @@ export class VacancySubmissionService {
 
     const score = (weightedSum / weightTotal) * 100;
     return Math.round(score * 100) / 100; // round to 2 decimal places
+  }
+
+  private async findOneById(id: string): Promise<VacancySubmission> {
+    const submission = await this.vacancySubmissionRepository.findOne({
+      where: { id },
+    });
+
+    if (!submission) {
+      throw new HttpException(
+        'Vacancy Submission not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return submission;
   }
 }
