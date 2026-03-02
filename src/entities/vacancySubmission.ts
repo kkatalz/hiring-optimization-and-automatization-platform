@@ -59,9 +59,8 @@ export class VacancySubmission {
     precision: 10,
     scale: 2,
     nullable: true,
-    transformer: new ColumnNumericTransformer(),
   })
-  expectedSalary?: number;
+  expectedSalary?: number | null;
 
   @Column({ name: 'recruiter_rating', type: 'int', nullable: true })
   recruiterRating?: number | null;
