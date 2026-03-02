@@ -73,7 +73,6 @@ export class VacancySubmissionController {
     @Query('order') order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
     const resolvedTenantId = extractUserTenantId(viewer, tenantId);
-    console.log(`Resolved tenant ID`);
 
     return await this.vacancySubmissionService.findAllSubmissionsWithinTenantWithFilters(
       resolvedTenantId,

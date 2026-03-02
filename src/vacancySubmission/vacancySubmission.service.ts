@@ -207,7 +207,6 @@ export class VacancySubmissionService {
     sortBy?: string,
     order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
-    console.log('Finding submissions for tenant');
     const query = this.createBaseSubmissionQuery().where(
       'submission.tenant_id = :tenantId',
       { tenantId },
@@ -220,7 +219,6 @@ export class VacancySubmissionService {
         tenantId,
       );
     }
-    console.log('LALAL');
     return this.executeFilteredSubmissions(
       query,
       filterSubmissionsDto,
@@ -280,7 +278,6 @@ export class VacancySubmissionService {
       return submissions.map(vacancySubmToVacancySubmDto);
     }
 
-    console.log('PANDA');
     // Apply QueryBuilder filters (SQL side)
     filterByExperience(query, filterDto);
     filterByCountriesCities(query, filterDto);
@@ -317,7 +314,6 @@ export class VacancySubmissionService {
       sortBy &&
       VacancySubmissionService.ALLOWED_SORT_FIELDS.includes(sortBy)
     ) {
-      console.log(`Applying sorting in ${order} order`);
       const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
       query.orderBy(`submission.${sortBy}`, direction, 'NULLS LAST');
     }
