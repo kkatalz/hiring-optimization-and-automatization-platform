@@ -6,12 +6,12 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Transform } from 'class-transformer';
 import { CandidateProfile } from './candidateProfile';
 import { Interview } from './interview';
 import { VacancySubmissionStatus } from './statuses.enum';
 import { SubmissionAnswer } from './submissionAnswers';
 import { Vacancy } from './vacancy';
+import { ColumnNumericTransformer } from '../utils/convertStringToNumberTransformer';
 
 @Entity({ name: 'vacancy_submissions' })
 export class VacancySubmission {
@@ -44,10 +44,10 @@ export class VacancySubmission {
     type: 'decimal',
     precision: 5,
     scale: 2,
-    nullable: true,
+    default: 0,
+    transformer: new ColumnNumericTransformer(),
   })
-  @Transform(({ value }) => (value != null ? Number(value) : null))
-  matchScore?: number | null;
+  matchScore?: number;
 
   @ManyToOne(() => Vacancy, (vacancy) => vacancy.submissions, {
     nullable: false,

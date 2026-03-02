@@ -26,7 +26,7 @@ import {
   EXPECTED_NUMBER_OF_VACANCIES_WITH_QUESTIONS,
   testVacancyQuestions,
 } from '../../test/fixtures/testVacancyQuestions';
-import { testSubmissionAnswers } from '../../test/fixtures/testAnswers';
+import { testSubmissionAnswers } from '../../test/fixtures/testSubmissionAnswers';
 import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
 import { VacancyDto } from '../vacancy/dto/vacancy.dto';
 import { Repository } from 'typeorm';
@@ -551,21 +551,6 @@ describe('VacancyService', () => {
             priority: 1,
             expectedValue: 'false',
           },
-          {
-            questionId: testQuestions[1].id,
-            label: testQuestions[1].label,
-            type: testQuestions[1].type,
-            isRequired: false,
-            priority: 3,
-          },
-          {
-            questionId: testQuestions[2].id,
-            label: testQuestions[2].label,
-            type: testQuestions[2].type,
-            isRequired: true,
-            priority: 2,
-            expectedValue: 'Bachelor',
-          },
         ],
       };
 
@@ -577,7 +562,7 @@ describe('VacancyService', () => {
         where: { id: testVacancySubmissions[0].id },
       });
 
-      expect(Number(submission!.matchScore)).to.equal(0);
+      expect(submission!.matchScore).to.equal(0);
     });
 
     it('should recalculate matchScore when vacancy questions priority changes', async () => {
@@ -623,7 +608,7 @@ describe('VacancyService', () => {
         where: { id: testVacancySubmissions[0].id },
       });
 
-      expect(Number(submission!.matchScore)).to.equal(40);
+      expect(submission!.matchScore).to.equal(40);
     });
 
     it('should save recalculated matchScore to DB', async () => {
@@ -671,7 +656,7 @@ describe('VacancyService', () => {
       );
 
       expect(submission).to.not.be.undefined;
-      expect(Number(submission!.matchScore)).to.equal(0);
+      expect(submission!.matchScore).to.equal(0);
     });
 
     it('should not recalculate matchScore when only basic fields are updated', async () => {
