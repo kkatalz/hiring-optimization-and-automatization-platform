@@ -1,6 +1,6 @@
 import {
   IsArray,
-  IsNumber,
+  IsInt,
   IsOptional,
   IsString,
   Min,
@@ -19,7 +19,7 @@ export class UpdateCandidateProfileDto {
   lastName?: string;
 
   @IsOptional()
-  @IsNumber()
+  @IsInt()
   @Min(0)
   yearsOfExperience?: number;
 

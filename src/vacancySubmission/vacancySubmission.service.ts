@@ -121,19 +121,67 @@ export class VacancySubmissionService {
     );
   }
 
-  async getTenantIdBySubmissionId(submissionId: string): Promise<string> {
-    const submission = await this.vacancySubmissionRepository.findOne({
-      where: { id: submissionId },
-    });
+  async addRecruiterRating(
+    submissionId: string,
+    recruiterId: string,
+    rating: number,
+  ): Promise<VacancySubmissionDto> {
+    const submission = await this.findOneById(submissionId);
 
-    if (!submission) {
-      throw new HttpException(
-        'Vacancy Submission not found.',
-        HttpStatus.NOT_FOUND,
+    if (submission.recruiterRating) {
+      throw new BadRequestException(
+        'This submission has already been rated by a recruiter. Please use updateRecruiterRating endpoint to change the rating.',
       );
     }
 
+    submission.ratedByRecruiterId = recruiterId;
+    submission.recruiterRating = rating;
+
+    const savedSubmission =
+      await this.vacancySubmissionRepository.save(submission);
+
+    return vacancySubmToVacancySubmDto(savedSubmission);
+  }
+
+  async getTenantIdBySubmissionId(submissionId: string): Promise<string> {
+    const submission = await this.findOneById(submissionId);
+
     return submission.tenantId;
+  }
+
+  async updateRecruiterRating(
+    submissionId: string,
+    recruiterId: string,
+    rating: number,
+  ): Promise<VacancySubmissionDto> {
+    const submission = await this.findOneById(submissionId);
+
+    if (!submission.recruiterRating) {
+      throw new BadRequestException(
+        'This submission has not been rated by a recruiter yet. Please use addRecruiterRating endpoint to add a rating.',
+      );
+    }
+
+    submission.ratedByRecruiterId = recruiterId;
+    submission.recruiterRating = rating;
+
+    const savedSubmission =
+      await this.vacancySubmissionRepository.save(submission);
+    return vacancySubmToVacancySubmDto(savedSubmission);
+  }
+
+  async removeRecruiterRating(
+    submissionId: string,
+  ): Promise<VacancySubmissionDto> {
+    const submission = await this.findOneById(submissionId);
+
+    submission.ratedByRecruiterId = null;
+    submission.recruiterRating = null;
+
+    const savedSubmission =
+      await this.vacancySubmissionRepository.save(submission);
+
+    return vacancySubmToVacancySubmDto(savedSubmission);
   }
 
   async findAllSubmissionsWithinVacancyWithFilters(
@@ -184,7 +232,6 @@ export class VacancySubmissionService {
         tenantId,
       );
     }
-
     return this.executeFilteredSubmissions(
       query,
       filterSubmissionsDto,
@@ -194,18 +241,7 @@ export class VacancySubmissionService {
   }
 
   async approve(submissionId: string): Promise<VacancySubmissionDto> {
-    const submission = await this.vacancySubmissionRepository.findOne({
-      where: {
-        id: submissionId,
-      },
-    });
-
-    if (!submission) {
-      throw new HttpException(
-        'Vacancy Submission not found.',
-        HttpStatus.NOT_FOUND,
-      );
-    }
+    const submission = await this.findOneById(submissionId);
 
     if (submission.status !== VacancySubmissionStatus.approved)
       submission.status = VacancySubmissionStatus.approved;
@@ -217,18 +253,7 @@ export class VacancySubmissionService {
   }
 
   async reject(submissionId: string): Promise<VacancySubmissionDto> {
-    const submission = await this.vacancySubmissionRepository.findOne({
-      where: {
-        id: submissionId,
-      },
-    });
-
-    if (!submission) {
-      throw new HttpException(
-        'Vacancy Submission not found.',
-        HttpStatus.NOT_FOUND,
-      );
-    }
+    const submission = await this.findOneById(submissionId);
 
     if (submission.status !== VacancySubmissionStatus.rejected)
       submission.status = VacancySubmissionStatus.rejected;
@@ -247,7 +272,12 @@ export class VacancySubmissionService {
       .leftJoinAndSelect('submission.answers', 'answers');
   }
 
-  private static readonly ALLOWED_SORT_FIELDS = ['matchScore'];
+  private static readonly ALLOWED_SORT_FIELDS = [
+    'matchScore',
+    'createdAt',
+    'expectedSalary',
+    'recruiterRating',
+  ];
 
   private async executeFilteredSubmissions(
     query: SelectQueryBuilder<VacancySubmission>,
@@ -495,5 +525,19 @@ export class VacancySubmissionService {
 
     const score = (weightedSum / weightTotal) * 100;
     return Math.round(score * 100) / 100; // round to 2 decimal places
+  }
+
+  private async findOneById(id: string): Promise<VacancySubmission> {
+    const submission = await this.vacancySubmissionRepository.findOne({
+      where: { id },
+    });
+
+    if (!submission) {
+      throw new HttpException(
+        'Vacancy Submission not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return submission;
   }
 }

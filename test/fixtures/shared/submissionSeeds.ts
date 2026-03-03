@@ -8,5 +8,6 @@ export const submissionSeeds = [
     tenantId: 'df0787ee-3bd2-49bd-a0aa-de97b112e3b6',
     candidateId: '22222222-2222-2222-2222-222222222222',
     status: VacancySubmissionStatus.pending,
+    createdAt: new Date(),
   },
 ];

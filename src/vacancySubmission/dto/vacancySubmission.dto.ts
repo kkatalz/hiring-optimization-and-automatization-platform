@@ -1,6 +1,7 @@
 import {
   IsArray,
   IsEnum,
+  IsInt,
   IsNumber,
   IsOptional,
   IsString,
@@ -41,6 +42,20 @@ export class VacancySubmissionDto {
   @IsOptional()
   @IsNumber()
   matchScore?: number;
+
+  createdAt: Date;
+
+  @IsOptional()
+  @IsNumber()
+  expectedSalary?: number | null;
+
+  @IsOptional()
+  @IsInt()
+  recruiterRating?: number | null;
+
+  @IsOptional()
+  @IsString()
+  ratedByRecruiterId?: string | null;
 
   @IsOptional()
   @ValidateNested()

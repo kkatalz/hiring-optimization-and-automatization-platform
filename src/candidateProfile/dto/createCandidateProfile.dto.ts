@@ -1,8 +1,8 @@
 import {
   IsArray,
   IsEmail,
+  IsInt,
   IsNotEmpty,
-  IsNumber,
   IsString,
   Min,
   ValidateNested,
@@ -28,7 +28,7 @@ export class CreateCandidateProfileDto {
   lastName: string;
 
   @IsNotEmpty()
-  @IsNumber()
+  @IsInt()
   @Min(0)
   yearsOfExperience: number;
 
