@@ -13,6 +13,7 @@ import { CreateVacancySubmissionDto } from './dto/createVacancySubmission.dto';
 import { VacancySubmissionDto } from './dto/vacancySubmission.dto';
 import { vacancySubmToVacancySubmDto } from './map/vacancySubmission.map';
 import { DataSource, Repository, SelectQueryBuilder } from 'typeorm';
+import { Vacancy } from '../entities/vacancy';
 import { VacancySubmissionStatus } from '../entities/statuses.enum';
 import { CandidateProfileService } from '../candidateProfile/candidateProfile.service';
 import {
@@ -42,6 +43,9 @@ export class VacancySubmissionService {
 
     @InjectRepository(SubmissionAnswer)
     private readonly submissionAnswerRepository: Repository<SubmissionAnswer>,
+
+    @InjectRepository(Vacancy)
+    private readonly vacancyRepository: Repository<Vacancy>,
 
     @Inject(forwardRef(() => VacancyService))
     private readonly vacancyService: VacancyService,
@@ -141,6 +145,12 @@ export class VacancySubmissionService {
           );
           await transactionalEntityManager.save(submissionAnswers);
         }
+
+        await transactionalEntityManager.update(
+          Vacancy,
+          { id: vacancyId },
+          { needsReclustering: true },
+        );
 
         return vacancySubmToVacancySubmDto(savedVacancySubmission);
       },

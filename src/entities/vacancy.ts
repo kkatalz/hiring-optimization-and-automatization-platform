@@ -46,6 +46,13 @@ export class Vacancy {
   @Column({ type: 'jsonb', default: [] })
   tags?: string[];
 
+  @Column({
+    name: 'needs_reclustering',
+    type: 'boolean',
+    default: false,
+  })
+  needsReclustering: boolean;
+
   @ManyToOne(() => User, (user) => user.createdVacancies, {
     onDelete: 'SET NULL',
     nullable: true,

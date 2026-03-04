@@ -130,6 +130,10 @@ export class ClusteringService {
     }
 
     await this.submissionRepository.save(submissions);
+    await this.vacancyRepository.update(
+      { id: vacancyId },
+      { needsReclustering: false },
+    );
   }
 
   async findSimilar(submissionId: string): Promise<VacancySubmissionDto[]> {
@@ -155,9 +159,16 @@ export class ClusteringService {
 
   @Cron(CronExpression.EVERY_6_HOURS)
   async handleClusteringCron(): Promise<void> {
-    this.logger.log('Running scheduled clustering for all vacancies...');
+    this.logger.log('Running scheduled clustering for stale vacancies...');
 
-    const vacancies = await this.vacancyRepository.find();
+    const vacancies = await this.vacancyRepository.find({
+      where: { needsReclustering: true },
+    });
+
+    if (vacancies.length === 0) {
+      this.logger.log('No vacancies need reclustering. Skipping.');
+      return;
+    }
 
     for (const vacancy of vacancies) {
       try {

@@ -15,6 +15,7 @@ export const testVacancies: Vacancy[] = [
     salary: '1000-1100 USD',
     tenantId: testTenants[0].id,
     createdById: testUsers[0].id,
+    needsReclustering: false,
   },
 
   {
@@ -24,6 +25,7 @@ export const testVacancies: Vacancy[] = [
     salary: '500-700 USD',
     tenantId: testTenants[0].id,
     createdById: testUsers[0].id,
+    needsReclustering: false,
     submissions: [submissionSeeds[0]],
     timeCommitment: TimeCommitment.FULL_TIME,
     languageRequirements: [

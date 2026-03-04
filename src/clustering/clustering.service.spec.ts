@@ -45,6 +45,7 @@ const clusteringVacancy: Vacancy = {
   description: 'Vacancy for clustering tests',
   tenantId: testTenants[0].id,
   createdById: testUsers[0].id,
+  needsReclustering: false,
   tags: ['React', 'Node', 'Python', 'SQL'],
 };
 
