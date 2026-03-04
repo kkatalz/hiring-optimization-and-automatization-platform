@@ -68,6 +68,9 @@ export class VacancySubmission {
   @Column({ name: 'rated_by_recruiter_id', type: 'uuid', nullable: true })
   ratedByRecruiterId?: string | null;
 
+  @Column({ name: 'cluster_id', type: 'int', nullable: true })
+  clusterId?: number | null;
+
   @ManyToOne(() => Vacancy, (vacancy) => vacancy.submissions, {
     nullable: false,
     onDelete: 'CASCADE',

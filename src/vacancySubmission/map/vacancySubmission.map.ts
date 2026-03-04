@@ -15,6 +15,7 @@ export const vacancySubmToVacancySubmDto = ({
   expectedSalary,
   recruiterRating,
   ratedByRecruiterId,
+  clusterId,
   candidateProfile,
   answers,
 }: VacancySubmission): VacancySubmissionDto => {
@@ -31,6 +32,7 @@ export const vacancySubmToVacancySubmDto = ({
     expectedSalary,
     recruiterRating,
     ratedByRecruiterId,
+    clusterId,
     candidateProfile: candidateProfile
       ? candidateToCandidateProfileDto(candidateProfile)
       : undefined,
