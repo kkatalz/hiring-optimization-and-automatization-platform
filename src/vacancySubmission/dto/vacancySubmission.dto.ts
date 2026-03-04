@@ -58,6 +58,10 @@ export class VacancySubmissionDto {
   ratedByRecruiterId?: string | null;
 
   @IsOptional()
+  @IsInt()
+  clusterId?: number | null;
+
+  @IsOptional()
   @ValidateNested()
   @Type(() => CandidateProfileDto)
   candidateProfile?: CandidateProfileDto;

@@ -13,6 +13,7 @@ import { CreateVacancySubmissionDto } from './dto/createVacancySubmission.dto';
 import { VacancySubmissionDto } from './dto/vacancySubmission.dto';
 import { vacancySubmToVacancySubmDto } from './map/vacancySubmission.map';
 import { DataSource, Repository, SelectQueryBuilder } from 'typeorm';
+import { Vacancy } from '../entities/vacancy';
 import { VacancySubmissionStatus } from '../entities/statuses.enum';
 import { CandidateProfileService } from '../candidateProfile/candidateProfile.service';
 import {
@@ -43,6 +44,9 @@ export class VacancySubmissionService {
     @InjectRepository(SubmissionAnswer)
     private readonly submissionAnswerRepository: Repository<SubmissionAnswer>,
 
+    @InjectRepository(Vacancy)
+    private readonly vacancyRepository: Repository<Vacancy>,
+
     @Inject(forwardRef(() => VacancyService))
     private readonly vacancyService: VacancyService,
 
@@ -52,6 +56,32 @@ export class VacancySubmissionService {
 
     private dataSource: DataSource,
   ) {}
+
+  async findSubmissionAnswersByVacancyId(
+    vacancyId: string,
+  ): Promise<VacancySubmission[]> {
+    const submissions = await this.vacancySubmissionRepository.find({
+      where: { vacancyId },
+      relations: ['answers'],
+    });
+
+    return submissions;
+  }
+
+  async findSimilarSubmissions(
+    vacancyId: string,
+    clusterId: number,
+  ): Promise<VacancySubmission[]> {
+    const similar = await this.vacancySubmissionRepository.find({
+      where: {
+        vacancyId,
+        clusterId,
+      },
+      relations: ['candidateProfile', 'candidateProfile.user', 'answers'],
+    });
+
+    return similar;
+  }
 
   async create(
     createVacancySubmissionDto: CreateVacancySubmissionDto,
@@ -115,6 +145,12 @@ export class VacancySubmissionService {
           );
           await transactionalEntityManager.save(submissionAnswers);
         }
+
+        await transactionalEntityManager.update(
+          Vacancy,
+          { id: vacancyId },
+          { needsReclustering: true },
+        );
 
         return vacancySubmToVacancySubmDto(savedVacancySubmission);
       },
@@ -492,6 +528,7 @@ export class VacancySubmissionService {
 
   /**
    * Calculates match score using weighted priority formula.
+   * Calculated only based on non-text questions that have expectedValue defined (boolean and dropdown).
    * Score = sum((1/priority)*xi) / sum(1/pi) * 100, where xi = 1 if answer matches expected value, 0 otherwise.
    * Text questions are excluded from scoring.
    * Questions without expectedValue are excluded from scoring.
@@ -527,7 +564,7 @@ export class VacancySubmissionService {
     return Math.round(score * 100) / 100; // round to 2 decimal places
   }
 
-  private async findOneById(id: string): Promise<VacancySubmission> {
+  async findOneById(id: string): Promise<VacancySubmission> {
     const submission = await this.vacancySubmissionRepository.findOne({
       where: { id },
     });
