@@ -123,7 +123,7 @@ export class ClusteringService {
       Math.ceil(Math.sqrt(numberOfSubmissions / 2)),
     );
 
-    const result = mlKmeans.kmeans(vectors, numberOfClusters, {}); // Returns array of cluster ids: e.g. [0, 1, 0, 2, ...]
+    const result = mlKmeans.kmeans(vectors, numberOfClusters, { seed: 42 });
 
     for (let i = 0; i < submissions.length; i++) {
       submissions[i].clusterId = result.clusters[i];
