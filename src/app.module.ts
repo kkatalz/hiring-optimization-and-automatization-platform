@@ -8,6 +8,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TenantModule } from './tenant/tenant.module';
 import ormconfig from './ormconfig';
 import { UserModule } from 'src/user/user.module';
@@ -20,11 +21,13 @@ import { VacancySubmissionModule } from './vacancySubmission/vacancySubmission.m
 import { InterviewModule } from 'src/interview/interview.module';
 import { CandidateProfileModule } from 'src/candidateProfile/candidateProfile.module';
 import { QuestionModule } from 'src/question/question.module';
+import { ClusteringModule } from './clustering/clustering.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot(ormconfig),
+    ScheduleModule.forRoot(),
     TenantModule,
     UserModule,
     CandidateProfileModule,
@@ -33,6 +36,7 @@ import { QuestionModule } from 'src/question/question.module';
     VacancySubmissionModule,
     InterviewModule,
     QuestionModule,
+    ClusteringModule,
   ],
   controllers: [AppController],
   providers: [
