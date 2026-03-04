@@ -136,7 +136,7 @@ const clusteringAnswers: SubmissionAnswer[] = [
     questionId: testQuestions[2].id,
     value: 'Master',
     submission: clusteringSubmissions[1],
-    question: testQuestions[1],
+    question: testQuestions[2],
   },
   // Submission 3: license = false, level = High School
   {
