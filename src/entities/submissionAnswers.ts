@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { Question } from './question';
 import { VacancySubmission } from './vacancySubmission';
+import { jsonToStringArrayTransformer } from '../utils/transformer';
 
 @Entity({ name: 'submission_answers' })
 export class SubmissionAnswer {
@@ -19,7 +20,11 @@ export class SubmissionAnswer {
   @Column({ name: 'question_id', type: 'uuid', nullable: false })
   questionId: string;
 
-  @Column({ type: 'jsonb', nullable: false })
+  @Column({
+    type: 'jsonb',
+    nullable: false,
+    transformer: jsonToStringArrayTransformer,
+  })
   value: string | string[];
 
   @ManyToOne(() => VacancySubmission, (vs) => vs.answers, {

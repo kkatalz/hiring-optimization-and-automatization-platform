@@ -1,6 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 import { Question } from './question';
 import { Vacancy } from './vacancy';
+import { jsonToStringArrayTransformer } from '../utils/transformer';
 
 @Entity({ name: 'vacancy_questions' })
 export class VacancyQuestion {
@@ -16,7 +17,12 @@ export class VacancyQuestion {
   @Column({ type: 'int', default: 1 })
   priority: number;
 
-  @Column({ name: 'expected_value', type: 'jsonb', nullable: true })
+  @Column({
+    name: 'expected_value',
+    type: 'jsonb',
+    nullable: true,
+    transformer: jsonToStringArrayTransformer,
+  })
   expectedValue?: string | string[];
 
   @ManyToOne(() => Vacancy, (vacancy) => vacancy.vacancyQuestions, {
