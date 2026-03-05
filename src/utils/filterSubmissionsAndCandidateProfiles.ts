@@ -67,6 +67,7 @@ export const filterByLanguages = (
   );
 };
 
+/** Checks whether a submission has an answer that matches a filter criterion */
 export const filterByAnswers = (
   submissions: VacancySubmission[],
   questionAnswerPair: QuestionAnswerFilterEntry[],
@@ -76,9 +77,17 @@ export const filterByAnswers = (
 
     return questionAnswerPair.every((pair) => {
       if (pair.value) {
-        return submissionAnswers.some(
-          (a) => a.questionId === pair.questionId && a.value === pair.value,
-        );
+        return submissionAnswers.some((a) => {
+          if (a.questionId !== pair.questionId) return false;
+
+          //  Array-to-array comparison (dropdown) — If both the filter value and the answer are arrays,
+          // check that every value the filter requires is present in the candidate's answer.
+          // E.g., filter ['Bachelor', 'Master'] matches answer ['Bachelor', 'Master', 'PhD'] but not ['Bachelor'].
+          if (Array.isArray(pair.value) && Array.isArray(a.value)) {
+            return pair.value.every((v) => (a.value as string[]).includes(v));
+          }
+          return a.value === pair.value;
+        });
       }
       return submissionAnswers.some((a) => a.questionId === pair.questionId);
     });
