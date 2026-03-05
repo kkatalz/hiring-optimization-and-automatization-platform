@@ -553,6 +553,9 @@ export class VacancySubmissionService {
    * Text questions are excluded from scoring.
    * Questions without expectedValue are excluded from scoring.
    * Returns 0 if no scorable questions exist.
+   * For dropdown questions with multiple expected values, partial score is given based on
+   * how many expected values are matched. When all expected values are matched, +1 bonus point
+   * is added to the total score for each extra selected option (not weighted, added directly).
    */
 
   calculateMatchScore(
@@ -572,6 +575,7 @@ export class VacancySubmissionService {
 
     let weightedSum = 0;
     let weightTotal = 0;
+    let bonusPoints = 0;
 
     for (const vq of scorableQuestions) {
       const weight = vq.priority > 0 ? 1 / vq.priority : 1;
@@ -588,24 +592,23 @@ export class VacancySubmissionService {
           ? candidateAnswer
           : [];
 
-        const matchCount = candidateAnswerValues.filter((cAnswerValue) =>
-          expected.includes(cAnswerValue),
+        const matchCount = candidateAnswerValues.filter((vcAnswerValue) =>
+          expected.includes(vcAnswerValue),
         ).length;
 
         isMatch = matchCount / expected.length;
 
-        // All expectedValues matched — check for bonus (max is 25%)
+        // All expectedValues matched — +1 bonus point per extra selected option
         if (matchCount === expected.length) {
           const extraOptions = (vq.answerOptions || []).filter(
             (answerOption) => !expected.includes(answerOption),
           );
-          const bonusCount = candidateAnswerValues.filter((cAnswerValue) =>
-            extraOptions.includes(cAnswerValue),
+
+          const bonusCount = candidateAnswerValues.filter((vcAnswerValue) =>
+            extraOptions.includes(vcAnswerValue),
           ).length;
 
-          if (extraOptions.length > 0) {
-            isMatch += (bonusCount / extraOptions.length) * 0.25;
-          }
+          bonusPoints += bonusCount;
         }
       } else {
         isMatch = candidateAnswer === vq.expectedValue ? 1 : 0;
@@ -615,7 +618,7 @@ export class VacancySubmissionService {
       weightTotal += weight;
     }
 
-    const score = (weightedSum / weightTotal) * 100;
+    const score = (weightedSum / weightTotal) * 100 + bonusPoints;
     return Math.round(score * 100) / 100; // round to 2 decimal places
   }
 
