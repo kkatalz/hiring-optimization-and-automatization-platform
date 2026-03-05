@@ -19,8 +19,8 @@ export class SubmissionAnswer {
   @Column({ name: 'question_id', type: 'uuid', nullable: false })
   questionId: string;
 
-  @Column({ type: 'varchar', nullable: false })
-  value: string;
+  @Column({ type: 'jsonb', nullable: false })
+  value: string | string[];
 
   @ManyToOne(() => VacancySubmission, (vs) => vs.answers, {
     onDelete: 'CASCADE',

@@ -9,7 +9,7 @@ import { testQuestions } from './testQuestions';
  * Priority/expectedValue setup for vacancy[1] (used for match score tests):
  *   [0] "Do you have a car?" — boolean, priority 1, expectedValue 'true'
  *   [1] "What is your biggest strength?" — text, no expectedValue (excluded from scoring)
- *   [2] "What is your education level?" — dropdown, priority 2, expectedValue 'Bachelor'
+ *   [2] "What is your education level?" — dropdown, priority 2, expectedValue ['Bachelor']
  */
 export const testVacancyQuestions: VacancyQuestion[] = [
   {
@@ -26,7 +26,7 @@ export const testVacancyQuestions: VacancyQuestion[] = [
     questionId: testQuestions[2].id,
     isRequired: false,
     priority: 2,
-    expectedValue: 'Bachelor',
+    expectedValue: ['Bachelor'],
     vacancy: testVacancies[0],
     question: testQuestions[2],
   },
@@ -54,7 +54,7 @@ export const testVacancyQuestions: VacancyQuestion[] = [
     questionId: testQuestions[2].id,
     isRequired: true,
     priority: 2,
-    expectedValue: 'Bachelor',
+    expectedValue: ['Bachelor'],
     vacancy: testVacancies[1],
     question: testQuestions[2],
   },

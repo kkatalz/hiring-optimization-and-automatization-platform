@@ -5,7 +5,7 @@ export class VacancyQuestionDetailedDto {
   questionId: string;
   isRequired: boolean;
   priority: number;
-  expectedValue?: string;
+  expectedValue?: string | string[];
   label: string;
   type: QuestionType;
   answerOptions?: string[] | null;

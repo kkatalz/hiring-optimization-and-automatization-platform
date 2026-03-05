@@ -17,8 +17,7 @@ export class QuestionAnswerFilterEntry {
   questionId: string;
 
   @IsOptional()
-  @IsString()
-  value?: string;
+  value?: string | string[];
 }
 
 export class RecruitingFilterDto {

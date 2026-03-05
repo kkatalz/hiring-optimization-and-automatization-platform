@@ -38,6 +38,5 @@ export class UpdateVacancyQuestionInlineDto {
   priority?: number;
 
   @IsOptional()
-  @IsString()
-  expectedValue?: string;
+  expectedValue?: string | string[];
 }

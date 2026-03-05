@@ -3,7 +3,6 @@ import {
   IsInt,
   IsNotEmpty,
   IsOptional,
-  IsString,
   Min,
 } from 'class-validator';
 import { ConvertStringToBool } from '../../decorators/convertStringToBool.decorator';
@@ -22,6 +21,5 @@ export class CreateVacancyQuestionDto {
   priority?: number;
 
   @IsOptional()
-  @IsString()
-  expectedValue?: string;
+  expectedValue?: string | string[];
 }

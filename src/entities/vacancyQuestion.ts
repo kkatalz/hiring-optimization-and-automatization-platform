@@ -16,8 +16,8 @@ export class VacancyQuestion {
   @Column({ type: 'int', default: 1 })
   priority: number;
 
-  @Column({ name: 'expected_value', type: 'varchar', nullable: true })
-  expectedValue?: string;
+  @Column({ name: 'expected_value', type: 'jsonb', nullable: true })
+  expectedValue?: string | string[];
 
   @ManyToOne(() => Vacancy, (vacancy) => vacancy.vacancyQuestions, {
     onDelete: 'CASCADE',
