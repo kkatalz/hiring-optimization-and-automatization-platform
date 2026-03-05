@@ -102,7 +102,7 @@ describe('VacancySubmissionService', () => {
         comment: 'Looking forward to this opportunity!',
         answers: [
           { questionId: testQuestions[0].id, value: 'true' },
-          { questionId: testQuestions[2].id, value: 'Bachelor' },
+          { questionId: testQuestions[2].id, value: ['Bachelor'] },
         ],
       };
 
@@ -143,7 +143,7 @@ describe('VacancySubmissionService', () => {
             questionId: testQuestions[1].id,
             value: 'Communication skills',
           },
-          { questionId: testQuestions[2].id, value: 'Bachelor' },
+          { questionId: testQuestions[2].id, value: ['Bachelor'] },
         ],
       };
 
@@ -239,7 +239,7 @@ describe('VacancySubmissionService', () => {
           { questionId: testQuestions[0].id, value: 'true' },
           {
             questionId: testQuestions[2].id,
-            value: 'InvalidOption',
+            value: ['InvalidOption'],
           },
         ],
       };
@@ -259,15 +259,15 @@ describe('VacancySubmissionService', () => {
 
       // vacancy[1] questions with expectedValue:
       //   testQuestions[0]: boolean, priority 1, expectedValue 'true'
-      //   testQuestions[2]: dropdown, priority 2, expectedValue 'Bachelor'
+      //   testQuestions[2]: dropdown, priority 2, expectedValue ['Bachelor']
       //   testQuestions[1]: text, no expectedValue (excluded from scoring)
-      // Candidate answers: testQuestions[0]='true' (match), testQuestions[2]='Bachelor' (match)
-      // Score = ((1/1)*1 + (1/2)*1) / ((1/1) + (1/2)) * 100 = 1.5/1.5 * 100 = 100
+      // Candidate answers: testQuestions[0]='true' (match), testQuestions[2]=['Bachelor'] (match 1/1 = 1.0)
+      // Score = ((1/1)*1 + (1/2)*1.0) / ((1/1) + (1/2)) * 100 = 1.5/1.5 * 100 = 100
       const createSubmissionDto: CreateVacancySubmissionDto = {
         comment: 'Perfect match!',
         answers: [
           { questionId: testQuestions[0].id, value: 'true' },
-          { questionId: testQuestions[2].id, value: 'Bachelor' },
+          { questionId: testQuestions[2].id, value: ['Bachelor'] },
         ],
       };
 
@@ -284,13 +284,13 @@ describe('VacancySubmissionService', () => {
       const zooKeperVacancyID = testVacancies[1].id;
       const userId = testUsers[5].id;
 
-      // Candidate answers: testQuestions[0]='true' (match, priority 1), testQuestions[2]='Master' (no match, priority 2)
+      // Candidate answers: testQuestions[0]='true' (match, priority 1), testQuestions[2]=['Master'] (no match with expected ['Bachelor'], matchCount=0/1=0)
       // Score = ((1/1)*1 + (1/2)*0) / ((1/1) + (1/2)) * 100 = 1/1.5 * 100 = 66.67
       const createSubmissionDto: CreateVacancySubmissionDto = {
         comment: 'Partial match',
         answers: [
           { questionId: testQuestions[0].id, value: 'true' },
-          { questionId: testQuestions[2].id, value: 'Master' },
+          { questionId: testQuestions[2].id, value: ['Master'] },
         ],
       };
 
@@ -307,13 +307,13 @@ describe('VacancySubmissionService', () => {
       const zooKeperVacancyID = testVacancies[1].id;
       const userId = testUsers[5].id;
 
-      // Candidate answers: testQuestions[0]='false' (no match), testQuestions[2]='PhD' (no match)
+      // Candidate answers: testQuestions[0]='false' (no match), testQuestions[2]=['PhD'] (no match with expected ['Bachelor'])
       // Score = ((1/1)*0 + (1/2)*0) / ((1/1) + (1/2)) * 100 = 0
       const createSubmissionDto: CreateVacancySubmissionDto = {
         comment: 'No match',
         answers: [
           { questionId: testQuestions[0].id, value: 'false' },
-          { questionId: testQuestions[2].id, value: 'PhD' },
+          { questionId: testQuestions[2].id, value: ['PhD'] },
         ],
       };
 
@@ -334,7 +334,7 @@ describe('VacancySubmissionService', () => {
         comment: 'Type check',
         answers: [
           { questionId: testQuestions[0].id, value: 'true' },
-          { questionId: testQuestions[2].id, value: 'Bachelor' },
+          { questionId: testQuestions[2].id, value: ['Bachelor'] },
         ],
       };
 
@@ -382,7 +382,7 @@ describe('VacancySubmissionService', () => {
       tags,
       answers: [
         { questionId: testQuestions[0].id, value: 'true' },
-        { questionId: testQuestions[2].id, value: 'Bachelor' },
+        { questionId: testQuestions[2].id, value: ['Bachelor'] },
       ],
     };
 
@@ -818,7 +818,7 @@ describe('VacancySubmissionService', () => {
           comment: 'Second submission',
           answers: [
             { questionId: testQuestions[0].id, value: 'false' },
-            { questionId: testQuestions[2].id, value: 'PhD' },
+            { questionId: testQuestions[2].id, value: ['PhD'] },
           ],
         },
         vacancyId,
@@ -852,7 +852,7 @@ describe('VacancySubmissionService', () => {
           comment: 'Second submission',
           answers: [
             { questionId: testQuestions[0].id, value: 'false' },
-            { questionId: testQuestions[2].id, value: 'PhD' },
+            { questionId: testQuestions[2].id, value: ['PhD'] },
           ],
         },
         vacancyId,
@@ -914,7 +914,9 @@ describe('VacancySubmissionService', () => {
 
     it('should throw BadRequestException when value for dropdown question is not one of the allowed options', async () => {
       const filter: RecruitingFilterDto = {
-        answers: [{ questionId: testQuestions[2].id, value: 'InvalidOption' }],
+        answers: [
+          { questionId: testQuestions[2].id, value: ['InvalidOption'] },
+        ],
       };
 
       try {
@@ -926,7 +928,7 @@ describe('VacancySubmissionService', () => {
         expect.fail('Should have thrown a BadRequestException but did not');
       } catch (e: any) {
         expect(e.status).to.equal(400);
-        expect(e.response.message).to.equal(
+        expect(e.response.message).to.include(
           `Value for question ${testQuestions[2].id} must be one of: High School, Bachelor, Master, PhD`,
         );
       }
@@ -1034,7 +1036,7 @@ describe('VacancySubmissionService', () => {
           comment: 'Second submission in tenant',
           answers: [
             { questionId: testQuestions[0].id, value: 'false' },
-            { questionId: testQuestions[2].id, value: 'PhD' },
+            { questionId: testQuestions[2].id, value: ['PhD'] },
           ],
         },
         testVacancies[1].id,
@@ -1141,7 +1143,9 @@ describe('VacancySubmissionService', () => {
 
     it('should throw BadRequestException when value for dropdown question is not one of the allowed options within tenant filter', async () => {
       const filter: RecruitingFilterDto = {
-        answers: [{ questionId: testQuestions[2].id, value: 'InvalidOption' }],
+        answers: [
+          { questionId: testQuestions[2].id, value: ['InvalidOption'] },
+        ],
       };
 
       try {
@@ -1152,7 +1156,7 @@ describe('VacancySubmissionService', () => {
         expect.fail('Should have thrown a BadRequestException but did not');
       } catch (e: any) {
         expect(e.status).to.equal(400);
-        expect(e.response.message).to.equal(
+        expect(e.response.message).to.include(
           `Value for question ${testQuestions[2].id} must be one of: High School, Bachelor, Master, PhD`,
         );
       }

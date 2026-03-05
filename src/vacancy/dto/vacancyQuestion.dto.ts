@@ -3,5 +3,5 @@ export class VacancyQuestionDto {
   questionId: string;
   isRequired: boolean;
   priority: number;
-  expectedValue?: string;
+  expectedValue?: string | string[];
 }

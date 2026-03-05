@@ -440,6 +440,11 @@ export class VacancySubmissionService {
     questionMatch: VacancyQuestionDetailedDto | QuestionDto,
   ) {
     if (questionMatch.type === QuestionType.boolean && answer.value) {
+      if (Array.isArray(answer.value)) {
+        throw new BadRequestException(
+          `Question '${questionMatch.label}' - (ID: ${answer.questionId}) requires a boolean value ('true' or 'false'), not an array`,
+        );
+      }
       const isInvalidBool = answer.value !== 'true' && answer.value !== 'false';
 
       if (isInvalidBool) {
@@ -449,15 +454,30 @@ export class VacancySubmissionService {
       }
     }
 
+    if (questionMatch.type === QuestionType.text && answer.value) {
+      if (Array.isArray(answer.value)) {
+        throw new BadRequestException(
+          `Question '${questionMatch.label}' - (ID: ${answer.questionId}) requires a text value, not an array`,
+        );
+      }
+    }
+
     if (
       questionMatch.type === QuestionType.dropdown &&
       questionMatch.answerOptions?.length &&
       answer.value
     ) {
-      if (!questionMatch.answerOptions.includes(answer.value)) {
+      if (!Array.isArray(answer.value)) {
         throw new BadRequestException(
-          `Value for question ${answer.questionId} must be one of: ${questionMatch.answerOptions.join(', ')}`,
+          `Value for question ${answer.questionId} must be an array of strings`,
         );
+      }
+      for (const val of answer.value) {
+        if (!questionMatch.answerOptions.includes(val)) {
+          throw new BadRequestException(
+            `Value for question ${answer.questionId} must be one of: ${questionMatch.answerOptions.join(', ')}. Received: '${val}'`,
+          );
+        }
       }
     }
   }
@@ -533,6 +553,9 @@ export class VacancySubmissionService {
    * Text questions are excluded from scoring.
    * Questions without expectedValue are excluded from scoring.
    * Returns 0 if no scorable questions exist.
+   * For dropdown questions with multiple expected values, partial score is given based on
+   * how many expected values are matched. When all expected values are matched, +1 bonus point
+   * is added to the total score for each extra selected option (not weighted, added directly).
    */
 
   calculateMatchScore(
@@ -546,21 +569,56 @@ export class VacancySubmissionService {
 
     if (scorableQuestions.length === 0) return 0;
 
-    const answerMap = new Map(answers.map((a) => [a.questionId, a.value]));
+    const answerMap = new Map<string, string | string[]>(
+      answers.map((a) => [a.questionId, a.value]),
+    );
 
     let weightedSum = 0;
     let weightTotal = 0;
+    let bonusPoints = 0;
 
     for (const vq of scorableQuestions) {
       const weight = vq.priority > 0 ? 1 / vq.priority : 1;
       const candidateAnswer = answerMap.get(vq.questionId);
-      const isMatch = candidateAnswer === vq.expectedValue ? 1 : 0;
+
+      let isMatch: number;
+
+      if (
+        vq.type === QuestionType.dropdown &&
+        Array.isArray(vq.expectedValue)
+      ) {
+        const expected = vq.expectedValue;
+        const candidateAnswerValues: string[] = Array.isArray(candidateAnswer)
+          ? candidateAnswer
+          : [];
+
+        const matchCount = candidateAnswerValues.filter((vcAnswerValue) =>
+          expected.includes(vcAnswerValue),
+        ).length;
+
+        isMatch = matchCount / expected.length;
+
+        // All expectedValues matched — +1 bonus point per extra selected option
+        if (matchCount === expected.length) {
+          const extraOptions = (vq.answerOptions || []).filter(
+            (answerOption) => !expected.includes(answerOption),
+          );
+
+          const bonusCount = candidateAnswerValues.filter((vcAnswerValue) =>
+            extraOptions.includes(vcAnswerValue),
+          ).length;
+
+          bonusPoints += bonusCount;
+        }
+      } else {
+        isMatch = candidateAnswer === vq.expectedValue ? 1 : 0;
+      }
 
       weightedSum += weight * isMatch;
       weightTotal += weight;
     }
 
-    const score = (weightedSum / weightTotal) * 100;
+    const score = (weightedSum / weightTotal) * 100 + bonusPoints;
     return Math.round(score * 100) / 100; // round to 2 decimal places
   }
 

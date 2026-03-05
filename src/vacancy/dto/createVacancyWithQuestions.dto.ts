@@ -34,6 +34,5 @@ export class CreateVacancyQuestionInlineDto {
   priority?: number;
 
   @IsOptional()
-  @IsString()
-  expectedValue?: string;
+  expectedValue?: string | string[];
 }

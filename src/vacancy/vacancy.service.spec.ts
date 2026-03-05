@@ -350,7 +350,7 @@ describe('VacancyService', () => {
             answerOptions: ['Node.js', 'Python', 'Java'],
             isRequired: false,
             priority: 2,
-            expectedValue: 'Node.js',
+            expectedValue: ['Node.js'],
           },
         ],
       };
@@ -373,7 +373,7 @@ describe('VacancyService', () => {
         (q) => q.label === 'Preferred stack',
       );
       expect(dropdownQ!.priority).to.equal(2);
-      expect(dropdownQ!.expectedValue).to.equal('Node.js');
+      expect(dropdownQ!.expectedValue).to.deep.equal(['Node.js']);
     });
 
     it('should throw 400 when inline boolean question has invalid expectedValue', async () => {
@@ -418,7 +418,7 @@ describe('VacancyService', () => {
                 type: QuestionType.dropdown,
                 answerOptions: ['Kyiv', 'Lviv', 'Odesa'],
                 isRequired: true,
-                expectedValue: 'Berlin',
+                expectedValue: ['Berlin'],
               },
             ],
           },
@@ -844,7 +844,7 @@ describe('VacancyService', () => {
           testQuestions[2].id, // dropdown with ['High School', 'Bachelor', 'Master', 'PhD']
           {
             isRequired: false,
-            expectedValue: 'InvalidOption',
+            expectedValue: ['InvalidOption'],
           },
         );
         expect.fail('Should have thrown a BAD_REQUEST error but did not');
@@ -887,11 +887,11 @@ describe('VacancyService', () => {
         testQuestions[2].id,
         {
           isRequired: false,
-          expectedValue: 'Bachelor',
+          expectedValue: ['Bachelor'],
         },
       );
 
-      expect(result.expectedValue).to.equal('Bachelor');
+      expect(result.expectedValue).to.deep.equal(['Bachelor']);
     });
   });
 

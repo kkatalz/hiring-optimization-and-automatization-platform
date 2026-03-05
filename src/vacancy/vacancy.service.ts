@@ -335,15 +335,20 @@ export class VacancyService {
   /**
    * Validates the expectedValue.
    * For boolean questions, expectedValue must be 'true' or 'false'.
-   * For dropdown questions, expectedValue must be one of the defined
+   * For dropdown questions, expectedValue must be from answerOptions
    */
   private validateExpectedValue(
-    expectedValue: string,
+    expectedValue: string | string[],
     questionType: QuestionType,
     answerOptions: string[] | undefined,
     questionLabel: string,
   ): void {
     if (questionType === QuestionType.boolean) {
+      if (Array.isArray(expectedValue)) {
+        throw new BadRequestException(
+          `Expected value for boolean question '${questionLabel}' must be a string ('true' or 'false'), not an array.`,
+        );
+      }
       if (expectedValue !== 'true' && expectedValue !== 'false') {
         throw new BadRequestException(
           `Expected value for boolean question '${questionLabel}' must be 'true' or 'false', but received: '${expectedValue}'.`,
@@ -352,16 +357,24 @@ export class VacancyService {
     }
 
     if (questionType === QuestionType.dropdown) {
-      if (!answerOptions?.length && expectedValue) {
+      if (!Array.isArray(expectedValue)) {
+        throw new BadRequestException(
+          `Expected value for dropdown question '${questionLabel}' must be an array of strings.`,
+        );
+      }
+
+      if (!answerOptions?.length) {
         throw new BadRequestException(
           `Question '${questionLabel}' does not have defined answer options, so expected value cannot be provided.`,
         );
       }
 
-      if (!answerOptions?.includes(expectedValue)) {
-        throw new BadRequestException(
-          `Expected value for dropdown question '${questionLabel}' must be one of: ${answerOptions?.join(', ')}. Received: '${expectedValue}'.`,
-        );
+      for (const val of expectedValue) {
+        if (!answerOptions.includes(val)) {
+          throw new BadRequestException(
+            `Expected value for dropdown question '${questionLabel}' must be one of: ${answerOptions.join(', ')}. Received: '${val}'.`,
+          );
+        }
       }
     }
   }

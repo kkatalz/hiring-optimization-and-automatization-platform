@@ -15,8 +15,7 @@ export class QuestionAnswerAllRequiredDto {
   questionId: string;
 
   @IsNotEmpty()
-  @IsString()
-  value: string;
+  value: string | string[];
 }
 
 export class CreateVacancySubmissionDto {

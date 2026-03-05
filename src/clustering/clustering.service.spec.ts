@@ -97,14 +97,14 @@ const clusteringVacancyQuestions: VacancyQuestion[] = [
     questionId: testQuestions[2].id, // dropdown: "What is your education level?"
     isRequired: false,
     priority: 1,
-    expectedValue: 'Bachelor',
+    expectedValue: ['Bachelor'],
     vacancy: clusteringVacancy,
     question: testQuestions[2],
   },
 ];
 
 const clusteringAnswers: SubmissionAnswer[] = [
-  // Submission 1: license = true, level = PhD
+  // Submission 1: license = true, level = ['PhD']
   {
     id: 'ee000000-eeee-eeee-eeee-000000000001',
     submissionId: clusteringSubmissions[0].id,
@@ -117,11 +117,11 @@ const clusteringAnswers: SubmissionAnswer[] = [
     id: 'ee000000-eeee-eeee-eeee-000000000002',
     submissionId: clusteringSubmissions[0].id,
     questionId: testQuestions[2].id,
-    value: 'PhD',
+    value: ['PhD'],
     submission: clusteringSubmissions[0],
     question: testQuestions[2],
   },
-  // Submission 2: license = true, level = Master
+  // Submission 2: license = true, level = ['Master']
   {
     id: 'ee000000-eeee-eeee-eeee-000000000003',
     submissionId: clusteringSubmissions[1].id,
@@ -134,11 +134,11 @@ const clusteringAnswers: SubmissionAnswer[] = [
     id: 'ee000000-eeee-eeee-eeee-000000000004',
     submissionId: clusteringSubmissions[1].id,
     questionId: testQuestions[2].id,
-    value: 'Master',
+    value: ['Master'],
     submission: clusteringSubmissions[1],
     question: testQuestions[2],
   },
-  // Submission 3: license = false, level = High School
+  // Submission 3: license = false, level = ['High School']
   {
     id: 'ee000000-eeee-eeee-eeee-000000000005',
     submissionId: clusteringSubmissions[2].id,
@@ -151,7 +151,7 @@ const clusteringAnswers: SubmissionAnswer[] = [
     id: 'ee000000-eeee-eeee-eeee-000000000006',
     submissionId: clusteringSubmissions[2].id,
     questionId: testQuestions[2].id,
-    value: 'High School',
+    value: ['High School'],
     submission: clusteringSubmissions[2],
     question: testQuestions[2],
   },
@@ -231,7 +231,7 @@ describe('ClusteringService', () => {
         questionId: testQuestions[2].id,
         isRequired: false,
         priority: 1,
-        expectedValue: 'Bachelor',
+        expectedValue: ['Bachelor'],
         label: 'What is your education level?',
         type: QuestionType.dropdown,
         answerOptions: ['High School', 'Bachelor', 'Master', 'PhD'],
@@ -241,11 +241,11 @@ describe('ClusteringService', () => {
     const allTags = ['React', 'Node', 'Python', 'SQL'];
     const salaryRange: SalaryRange = { min: 20_000, max: 100_000 };
 
-    it('should build correct vector for candidate with boolean=true, dropdown=PhD, salary=50000, tags=[React,SQL]', () => {
+    it('should build correct vector for candidate with boolean=true, dropdown=[PhD], salary=50000, tags=[React,SQL]', () => {
       const submission = {
         answers: [
           { questionId: testQuestions[0].id, value: 'true' },
-          { questionId: testQuestions[2].id, value: 'PhD' },
+          { questionId: testQuestions[2].id, value: ['PhD'] },
         ],
         expectedSalary: 50_000,
         tags: ['React', 'SQL'],
@@ -261,26 +261,29 @@ describe('ClusteringService', () => {
       // boolean: 1 * (1/3) = 0.333...
       expect(vector[0]).to.be.closeTo(1 / 3, 0.001);
 
-      // dropdown: PhD index=3, value = 3/(4-1) = 1.0, weighted = 1.0 * (1/1) = 1.0
-      expect(vector[1]).to.be.closeTo(1.0, 0.001);
+      // dropdown multi-hot (priority 1, weight 1): High School=0, Bachelor=0, Master=0, PhD=1
+      expect(vector[1]).to.equal(0); // High School
+      expect(vector[2]).to.equal(0); // Bachelor
+      expect(vector[3]).to.equal(0); // Master
+      expect(vector[4]).to.equal(1); // PhD
 
       // salary: (50000-20000)/(100000-20000) = 0.375
-      expect(vector[2]).to.be.closeTo(0.375, 0.001);
+      expect(vector[5]).to.be.closeTo(0.375, 0.001);
 
       // tags: React=1, Node=0, Python=0, SQL=1
-      expect(vector[3]).to.equal(1);
-      expect(vector[4]).to.equal(0);
-      expect(vector[5]).to.equal(0);
       expect(vector[6]).to.equal(1);
+      expect(vector[7]).to.equal(0);
+      expect(vector[8]).to.equal(0);
+      expect(vector[9]).to.equal(1);
 
-      expect(vector).to.have.lengthOf(7);
+      expect(vector).to.have.lengthOf(10);
     });
 
-    it('should build correct vector for candidate with boolean=false, dropdown=High School, salary=20000, tags=[Python]', () => {
+    it('should build correct vector for candidate with boolean=false, dropdown=[High School], salary=20000, tags=[Python]', () => {
       const submission = {
         answers: [
           { questionId: testQuestions[0].id, value: 'false' },
-          { questionId: testQuestions[2].id, value: 'High School' },
+          { questionId: testQuestions[2].id, value: ['High School'] },
         ],
         expectedSalary: 20_000,
         tags: ['Python'],
@@ -295,15 +298,18 @@ describe('ClusteringService', () => {
 
       // boolean: 0 * (1/3) = 0
       expect(vector[0]).to.equal(0);
-      // dropdown: High School index=0, value = 0/(4-1) = 0, weighted = 0 * 1 = 0
-      expect(vector[1]).to.equal(0);
+      // dropdown multi-hot (weight 1): High School=1, Bachelor=0, Master=0, PhD=0
+      expect(vector[1]).to.equal(1); // High School
+      expect(vector[2]).to.equal(0); // Bachelor
+      expect(vector[3]).to.equal(0); // Master
+      expect(vector[4]).to.equal(0); // PhD
       // salary: (20000-20000)/(100000-20000) = 0
-      expect(vector[2]).to.equal(0);
+      expect(vector[5]).to.equal(0);
       // tags: React=0, Node=0, Python=1, SQL=0
-      expect(vector[3]).to.equal(0);
-      expect(vector[4]).to.equal(0);
-      expect(vector[5]).to.equal(1);
       expect(vector[6]).to.equal(0);
+      expect(vector[7]).to.equal(0);
+      expect(vector[8]).to.equal(1);
+      expect(vector[9]).to.equal(0);
     });
 
     it('should use default values when answers are missing', () => {
@@ -322,15 +328,18 @@ describe('ClusteringService', () => {
 
       // boolean missing: default 0, weighted = 0 * (1/3) = 0
       expect(vector[0]).to.equal(0);
-      // dropdown missing: default 0.5, weighted = 0.5 * (1/1) = 0.5
-      expect(vector[1]).to.be.closeTo(0.5, 0.001);
+      // dropdown missing: multi-hot all 0 (no selection)
+      expect(vector[1]).to.equal(0); // High School
+      expect(vector[2]).to.equal(0); // Bachelor
+      expect(vector[3]).to.equal(0); // Master
+      expect(vector[4]).to.equal(0); // PhD
       // salary null: default 0
-      expect(vector[2]).to.equal(0);
-      // tags all 0
-      expect(vector[3]).to.equal(0);
-      expect(vector[4]).to.equal(0);
       expect(vector[5]).to.equal(0);
+      // tags all 0
       expect(vector[6]).to.equal(0);
+      expect(vector[7]).to.equal(0);
+      expect(vector[8]).to.equal(0);
+      expect(vector[9]).to.equal(0);
     });
 
     it('should handle equal min/max salary range', () => {
@@ -350,7 +359,8 @@ describe('ClusteringService', () => {
       );
 
       // When min === max and salary is not null, use 0.5
-      expect(vector[2]).to.equal(0.5);
+      // salary is at index 5 now (1 boolean + 4 dropdown multi-hot)
+      expect(vector[5]).to.equal(0.5);
     });
 
     it('should skip text questions', () => {
@@ -372,7 +382,7 @@ describe('ClusteringService', () => {
         answers: [
           { questionId: testQuestions[1].id, value: 'I am great' },
           { questionId: testQuestions[0].id, value: 'true' },
-          { questionId: testQuestions[2].id, value: 'Bachelor' },
+          { questionId: testQuestions[2].id, value: ['Bachelor'] },
         ],
         expectedSalary: 50_000,
         tags: ['React'],
@@ -385,8 +395,8 @@ describe('ClusteringService', () => {
         questionsWithText,
       );
 
-      // Vector should still be 7 elements (text is skipped)
-      expect(vector).to.have.lengthOf(7);
+      // Vector should be 10 elements (text is skipped, 1 boolean + 4 dropdown multi-hot + 1 salary + 4 tags)
+      expect(vector).to.have.lengthOf(10);
     });
   });
 
