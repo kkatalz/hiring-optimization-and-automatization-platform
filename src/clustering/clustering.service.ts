@@ -37,7 +37,7 @@ export class ClusteringService {
   ): number[] {
     const vector: number[] = [];
 
-    const answerMap = new Map(
+    const answerMap = new Map<string, string | string[]>(
       (submission.answers || []).map((a) => [a.questionId, a.value]),
     );
 
@@ -54,14 +54,14 @@ export class ClusteringService {
       } else if (vq.type === QuestionType.dropdown) {
         const options = vq.answerOptions || [];
 
-        if (options.length <= 1) {
-          const value = answer != null ? 1 : 0.5;
-          vector.push(value * weight);
-        } else {
-          // If there are multiple options (2 and more)
-          const index = answer != null ? options.indexOf(answer) : -1;
-          const value = index >= 0 ? index / (options.length - 1) : 0.5;
-          vector.push(value * weight);
+        // Wrap answer into array if it's a single string. Return [] if no answer provided.
+        const selected: string[] = Array.isArray(answer)
+          ? answer
+          : answer
+            ? [answer]
+            : [];
+        for (const opt of options) {
+          vector.push(selected.includes(opt) ? 1 * weight : 0);
         }
       }
     }
