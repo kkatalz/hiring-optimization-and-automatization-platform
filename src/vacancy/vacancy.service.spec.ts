@@ -532,7 +532,7 @@ describe('VacancyService', () => {
       expect(questionsAfter.length).to.equal(questionsBefore.length);
     });
 
-    it('should recalculate matchScore when vacancy questions expectedValue changes', async () => {
+    it('should recalculate matchScore when expectedValue in vacancy questions changes', async () => {
       // vacancy[1] has a submission with answer 'true' for question[0] (boolean, expectedValue 'true')
       // and question[2] (dropdown, expectedValue 'Bachelor') has no answer
       // Initial score: (1/1 * 1 + 1/2 * 0) / (1/1 + 1/2) * 100 = 66.67
@@ -561,7 +561,6 @@ describe('VacancyService', () => {
       const submission = await submissionRepository.findOne({
         where: { id: testVacancySubmissions[0].id },
       });
-
       expect(submission!.matchScore).to.equal(0);
     });
 
@@ -603,7 +602,7 @@ describe('VacancyService', () => {
 
       // question[0]: weight = 1/3, isMatch = 1 (answer 'true' === expected 'true')
       // question[2]: weight = 1/2, isMatch = 0 (no answer)
-      // Score = (1/3) / (1/3 + 1/2) * 100 = 0.3333 / 0.8333 * 100 = 40
+      // Score = (1/3*1 + 1/2*0) / (1/3 + 1/2) * 100 = 40
       const submission = await submissionRepository.findOne({
         where: { id: testVacancySubmissions[0].id },
       });
