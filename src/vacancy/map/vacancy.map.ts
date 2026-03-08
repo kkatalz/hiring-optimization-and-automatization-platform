@@ -10,6 +10,7 @@ export const vacancyToVacancyDto = ({
   createdById,
   timeCommitment,
   languageRequirements,
+  requiredYearsOfExperience,
   tags,
   submissions,
   vacancyQuestions,
@@ -24,6 +25,7 @@ export const vacancyToVacancyDto = ({
     submissions,
     timeCommitment,
     languageRequirements,
+    requiredYearsOfExperience,
     tags,
     vacancyQuestions,
   };

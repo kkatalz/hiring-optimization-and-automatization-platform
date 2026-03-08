@@ -43,6 +43,9 @@ export class Vacancy {
   @Column({ type: 'jsonb', name: 'language_requirements', nullable: true })
   languageRequirements?: LanguageProficiency[];
 
+  @Column({ name: 'required_years_of_experience', type: 'int', nullable: true })
+  requiredYearsOfExperience?: number;
+
   @Column({ type: 'jsonb', default: [] })
   tags?: string[];
 
