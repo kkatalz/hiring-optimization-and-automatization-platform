@@ -347,6 +347,146 @@ describe('VacancySubmissionService', () => {
       expect(result.matchScore).to.be.a('number');
     });
 
+    // --- matchScore multi-dimension integration tests ---
+    // These tests verify that the create flow passes tags, languages,
+    // experience and salary to calculateMatchScore.
+    // vacancy[0] has questions: q0 (bool, priority 1, expected 'true'),
+    //   q2 (dropdown, priority 2, expected ['Bachelor']), salary '1000-1100 USD'
+    // user[5] → candidateProfile[0]: yearsOfExperience: 2, languages: [en/NATIVE]
+
+    it('should include language scoring in matchScore when vacancy has languageRequirements', async () => {
+      const vacancyId = testVacancies[0].id;
+      const userId = testUsers[5].id;
+
+      await vacancyRepository.update(vacancyId, {
+        languageRequirements: [{ code: 'en', level: LanguageLevel.B2 }],
+      });
+
+      // All questions match + candidate en/NATIVE exceeds required en/B2
+      // Questions: ratio=1, weight=60 | Languages: ratio=1, weight=15, bonus=+3 (NATIVE−B2)
+      // base = (60+15)/75*100 = 100, bonus = 3, total = 103
+      const result = await service.create(
+        {
+          comment: 'Language test',
+          answers: [
+            { questionId: testQuestions[0].id, value: 'true' },
+            { questionId: testQuestions[2].id, value: ['Bachelor'] },
+          ],
+        },
+        vacancyId,
+        userId,
+      );
+
+      expect(result.matchScore).to.equal(103);
+    });
+
+    it('should include tag scoring in matchScore when vacancy has tags', async () => {
+      const vacancyId = testVacancies[0].id;
+      const userId = testUsers[5].id;
+
+      await vacancyRepository.update(vacancyId, {
+        tags: ['zoo', 'animals'],
+      });
+
+      // All questions match, but only 1/2 vacancy tags matched
+      // Questions: ratio=1, weight=60 | Tags: ratio=0.5, weight=15
+      // base = (60+7.5)/75*100 = 90, total = 90
+      const result = await service.create(
+        {
+          comment: 'Tags test',
+          tags: ['zoo'],
+          answers: [
+            { questionId: testQuestions[0].id, value: 'true' },
+            { questionId: testQuestions[2].id, value: ['Bachelor'] },
+          ],
+        },
+        vacancyId,
+        userId,
+      );
+
+      expect(result.matchScore).to.equal(90);
+    });
+
+    it('should include salary scoring in matchScore when submission has expectedSalary', async () => {
+      const vacancyId = testVacancies[0].id;
+      const userId = testUsers[5].id;
+
+      // vacancy[0] salary = '1000-1100 USD', expectedSalary = 1050 → within budget
+      // Questions: ratio=1, weight=60 | Salary: ratio=1, weight=5, bonus=(1100−1050)/(1100−1000)*3=1.5
+      // base = (60+5)/65*100 = 100, bonus = 1.5, total = 101.5
+      const result = await service.create(
+        {
+          comment: 'Salary test',
+          expectedSalary: 1050,
+          answers: [
+            { questionId: testQuestions[0].id, value: 'true' },
+            { questionId: testQuestions[2].id, value: ['Bachelor'] },
+          ],
+        },
+        vacancyId,
+        userId,
+      );
+
+      expect(result.matchScore).to.equal(101.5);
+    });
+
+    it('should include experience scoring in matchScore when vacancy has requiredYearsOfExperience', async () => {
+      const vacancyId = testVacancies[0].id;
+      const userId = testUsers[5].id;
+
+      await vacancyRepository.update(vacancyId, {
+        requiredYearsOfExperience: 4,
+      });
+
+      // All questions match, candidate has 2/4 required years
+      // Questions: ratio=1, weight=60 | Experience: ratio=0.5, weight=5
+      // base = (60+2.5)/65*100 = 96.15, total = 96.15
+      const result = await service.create(
+        {
+          comment: 'Experience test',
+          answers: [
+            { questionId: testQuestions[0].id, value: 'true' },
+            { questionId: testQuestions[2].id, value: ['Bachelor'] },
+          ],
+        },
+        vacancyId,
+        userId,
+      );
+
+      expect(result.matchScore).to.equal(96.15);
+    });
+
+    it('should combine all scoring dimensions in matchScore', async () => {
+      const vacancyId = testVacancies[0].id;
+      const userId = testUsers[5].id;
+
+      await vacancyRepository.update(vacancyId, {
+        languageRequirements: [{ code: 'en', level: LanguageLevel.B2 }],
+        tags: ['zoo', 'animals'],
+        requiredYearsOfExperience: 2,
+      });
+
+      // All questions match, all tags match, en/NATIVE≥B2, 2/2 yrs, salary 1050 in 1000-1100
+      // Questions: ratio=1, w=60 | Tags: ratio=1, w=15 | Languages: ratio=1, w=15, bonus=3
+      // Experience: ratio=1, w=5 | Salary: ratio=1, w=5, bonus=1.5
+      // totalWeight=100, base=100, bonus=4.5, total=104.5
+      const result = await service.create(
+        {
+          comment: 'All dimensions',
+          tags: ['zoo', 'animals'],
+          expectedSalary: 1050,
+          answers: [
+            { questionId: testQuestions[0].id, value: 'true' },
+            { questionId: testQuestions[2].id, value: ['Bachelor'] },
+          ],
+        },
+        vacancyId,
+        userId,
+      );
+
+      expect(result.matchScore).to.equal(104.5);
+    });
+
     it('should throw BadRequestException when instead of boolean value for boolean question, another value is provided', async () => {
       // vacancy[0] is linked to testQuestions[0] (boolean, required) and testQuestions[2] (dropdown)
       const vacancyId = testVacancies[0].id;
