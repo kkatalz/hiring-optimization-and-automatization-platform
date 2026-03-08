@@ -421,7 +421,7 @@ describe('VacancySubmissionService', () => {
     }
   });
 
-  it('should throw BadRequestException if submission contains tags that do not exist on the applied vacancy', async () => {
+  it('should allow submission with custom tags as long as at least one matches vacancy tags', async () => {
     const vacancyTags = ['zoo', 'animals'];
     await vacancyRepository.update(testVacancies[1].id, { tags: vacancyTags });
 
@@ -429,18 +429,43 @@ describe('VacancySubmissionService', () => {
       where: { id: testVacancies[1].id },
     });
 
-    const submissionInvalidTags = ['zoo', 'invalidTag'];
+    const submissionTags = ['zoo', 'customTag'];
     const CreateVacancySubmissionDto: CreateVacancySubmissionDto = {
       comment: 'Looking forward to this opportunity!',
-      tags: submissionInvalidTags,
-      answers: [{ questionId: testQuestions[0].id, value: 'true' }],
+      tags: submissionTags,
+      answers: [
+        { questionId: testQuestions[0].id, value: 'true' },
+        { questionId: testQuestions[2].id, value: ['Bachelor'] },
+      ],
     };
 
     const userId = testUsers[5].id;
 
-    const invalidTags = submissionInvalidTags.filter(
-      (tag) => !vacancyTags.includes(tag),
+    const result: VacancySubmissionDto = await service.create(
+      CreateVacancySubmissionDto,
+      vacancy.id,
+      userId,
     );
+
+    expect(result.tags).to.deep.equal(submissionTags);
+  });
+
+  it('should throw BadRequestException if no submission tags match vacancy tags', async () => {
+    const vacancyTags = ['zoo', 'animals'];
+    await vacancyRepository.update(testVacancies[1].id, { tags: vacancyTags });
+
+    const vacancy = await vacancyRepository.findOneOrFail({
+      where: { id: testVacancies[1].id },
+    });
+
+    const submissionTags = ['invalidTag1', 'invalidTag2'];
+    const CreateVacancySubmissionDto: CreateVacancySubmissionDto = {
+      comment: 'Looking forward to this opportunity!',
+      tags: submissionTags,
+      answers: [{ questionId: testQuestions[0].id, value: 'true' }],
+    };
+
+    const userId = testUsers[5].id;
 
     try {
       await service.create(CreateVacancySubmissionDto, vacancy.id, userId);
@@ -448,7 +473,7 @@ describe('VacancySubmissionService', () => {
     } catch (e) {
       expect(e.response).to.deep.equal({
         statusCode: 400,
-        message: `Invalid tags: ${invalidTags.join(', ')}. Allowed tags are: ${vacancyTags.join(', ')}.`,
+        message: `At least one of your tags must match the vacancy's required tags: ${vacancyTags.join(', ')}.`,
         error: 'Bad Request',
       });
     }
