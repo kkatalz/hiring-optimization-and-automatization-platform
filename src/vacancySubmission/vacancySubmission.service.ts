@@ -5,6 +5,7 @@ import {
   HttpStatus,
   Inject,
   Injectable,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { VacancySubmission } from '../entities/vacancySubmission';
@@ -34,9 +35,19 @@ import { SubmissionAnswer } from '../entities/submissionAnswers';
 import { VacancyQuestionDetailedDto } from '../vacancy/dto/vacancyQuestionDetailed.dto';
 import { QuestionDto } from '../question/dto/question.dto';
 import { QuestionAnswerAllRequiredDto } from './dto/createVacancySubmission.dto';
+import {
+  LanguageLevelRank,
+  LanguageProficiency,
+} from '../entities/hiring.enum';
+import {
+  MatchScoreOptions,
+  ScoreResult,
+} from './types/matchingScore.interface';
 
 @Injectable()
 export class VacancySubmissionService {
+  private readonly logger = new Logger(VacancySubmissionService.name);
+
   constructor(
     @InjectRepository(VacancySubmission)
     private readonly vacancySubmissionRepository: Repository<VacancySubmission>,
@@ -106,13 +117,23 @@ export class VacancySubmissionService {
       vacancy,
     );
 
-    // Calculate match score based on answers vs expected values
+    // Calculate match score based on answers, tags, languages, experience, salary
     const allVacancyQuestions =
       await this.vacancyService.findAllQuestionsByVacancyId(vacancy.id);
 
     const matchScore = this.calculateMatchScore(
       createVacancySubmissionDto.answers || [],
       allVacancyQuestions,
+      {
+        candidateLanguages: candidate.languages,
+        candidateYearsOfExperience: candidate.yearsOfExperience,
+        vacancyLanguageRequirements: vacancy.languageRequirements,
+        vacancyRequiredYearsOfExperience: vacancy.requiredYearsOfExperience,
+        vacancyTags: vacancy.tags,
+        vacancySalary: vacancy.salary,
+        submissionTags: createVacancySubmissionDto.tags,
+        expectedSalary: createVacancySubmissionDto.expectedSalary,
+      },
     );
 
     return await this.dataSource.transaction(
@@ -540,38 +561,88 @@ export class VacancySubmissionService {
     const vacancyTagSet = new Set(vacancyTags);
     const hasAtLeastOneMatch = submissionTags.some((tag) =>
       vacancyTagSet.has(tag),
-      );
+    );
 
     if (!hasAtLeastOneMatch) {
-        throw new BadRequestException(
+      throw new BadRequestException(
         `At least one of your tags must match the vacancy's required tags: ${vacancyTags.join(', ')}.`,
-        );
-      }
+      );
     }
   }
 
   /**
-   * Calculates match score using weighted priority formula.
-   * Calculated only based on non-text questions that have expectedValue defined (boolean and dropdown).
-   * Score = sum((1/priority)*xi) / sum(1/pi) * 100, where xi = 1 if answer matches expected value, 0 otherwise.
-   * Text questions are excluded from scoring.
-   * Questions without expectedValue are excluded from scoring.
-   * Returns 0 if no scorable questions exist.
-   * For dropdown questions with multiple expected values, partial score is given based on
-   * how many expected values are matched. When all expected values are matched, +1 bonus point
-   * is added to the total score for each extra selected option (not weighted, added directly).
+   * Calculates match score normalized to 100 when all requirements are met.
+   * Only exceeds 100 when candidate brings extras (higher language level,
+   * extra languages, extra tags, extra experience years, lower salary).
+   *
+   * Component weights (dynamically distributed among applicable dimensions):
+   *   Questions: 60, Tags: 15, Languages: 15, Experience: 5, Salary: 5
+   *
+   * Base score = sum(ratio * weight) / sum(applicableWeights) * 100
+   *   → all requirements met = exactly 100
+   *
+   * Bonuses (added on top, push above 100):
+   *   - Dropdown: +1 per extra selected option beyond expected
+   *   - Tags: +1 per extra custom tag beyond vacancy's list
+   *   - Languages: +1 per level above required, +1 per extra language (max +3)
+   *   - Experience: +1 per extra year (max +5)
+   *   - Salary: up to +3 for being below budget max
    */
-
   calculateMatchScore(
     answers: QuestionAnswerAllRequiredDto[],
     vacancyQuestions: VacancyQuestionDetailedDto[],
+    options?: MatchScoreOptions,
   ): number {
-    // Only score non-text questions that have an expectedValue
-    const scorableQuestions = vacancyQuestions.filter(
-      (vq) => vq.type !== QuestionType.text && vq.expectedValue != null,
+    const results = [
+      this.scoreQuestions(answers, vacancyQuestions),
+      this.scoreTags(options?.vacancyTags, options?.submissionTags),
+      this.scoreLanguages(
+        options?.vacancyLanguageRequirements,
+        options?.candidateLanguages,
+      ),
+      this.scoreExperience(
+        options?.vacancyRequiredYearsOfExperience,
+        options?.candidateYearsOfExperience,
+      ),
+      this.scoreSalary(options?.vacancySalary, options?.expectedSalary),
+    ].filter((r): r is ScoreResult => r !== null);
+
+    // totalWeight is the sum of weights for all applicable scoring dimensions
+    const totalWeight = results.reduce((sum, r) => sum + r.weight, 0);
+
+    if (totalWeight === 0) {
+      this.logger.log('MatchScore: 0 (no applicable scoring dimensions)');
+      return 0;
+    }
+
+    // baseScore is the weighted average of how well the candidate meets the requirements, normalized to 100
+    // Example: if only questions and tags are applicable (weight 75 total) and candidate meets them at 80% ratio,
+    // baseScore = (0.8*60 + 0.8*15)/75*100 = 80.
+    const baseScore =
+      (results.reduce((sum, r) => sum + r.ratio * r.weight, 0) / totalWeight) *
+      100;
+
+    const bonusPoints = results.reduce((sum, r) => sum + r.bonus, 0);
+
+    const totalScore = baseScore + bonusPoints;
+
+    const logDetails = results.map((r) => r.log).join(' | ');
+    this.logger.log(
+      `MatchScore: base=${baseScore.toFixed(2)}/100 + bonuses=${bonusPoints.toFixed(2)} = ${totalScore.toFixed(2)} [${logDetails}]`,
     );
 
-    if (scorableQuestions.length === 0) return 0;
+    return Math.round(totalScore * 100) / 100;
+  }
+
+  /** Questions component (weight: 60). Scores boolean and dropdown questions with expectedValue. */
+  private scoreQuestions(
+    answers: QuestionAnswerAllRequiredDto[],
+    vacancyQuestions: VacancyQuestionDetailedDto[],
+  ): ScoreResult | null {
+    const scorable = vacancyQuestions.filter(
+      (vq) => vq.type !== QuestionType.text && vq.expectedValue != null,
+    );
+    if (scorable.length === 0) return null;
 
     const answerMap = new Map<string, string | string[]>(
       answers.map((a) => [a.questionId, a.value]),
@@ -579,9 +650,9 @@ export class VacancySubmissionService {
 
     let weightedSum = 0;
     let weightTotal = 0;
-    let bonusPoints = 0;
+    let bonus = 0;
 
-    for (const vq of scorableQuestions) {
+    for (const vq of scorable) {
       const weight = vq.priority > 0 ? 1 / vq.priority : 1;
       const candidateAnswer = answerMap.get(vq.questionId);
 
@@ -592,27 +663,19 @@ export class VacancySubmissionService {
         Array.isArray(vq.expectedValue)
       ) {
         const expected = vq.expectedValue;
-        const candidateAnswerValues: string[] = Array.isArray(candidateAnswer)
+        const values: string[] = Array.isArray(candidateAnswer)
           ? candidateAnswer
           : [];
 
-        const matchCount = candidateAnswerValues.filter((vcAnswerValue) =>
-          expected.includes(vcAnswerValue),
-        ).length;
-
+        const matchCount = values.filter((v) => expected.includes(v)).length;
         isMatch = matchCount / expected.length;
 
-        // All expectedValues matched — +1 bonus point per extra selected option
+        // Bonus: +1 for each additional option selected beyond expected
         if (matchCount === expected.length) {
           const extraOptions = (vq.answerOptions || []).filter(
-            (answerOption) => !expected.includes(answerOption),
+            (o) => !expected.includes(o),
           );
-
-          const bonusCount = candidateAnswerValues.filter((vcAnswerValue) =>
-            extraOptions.includes(vcAnswerValue),
-          ).length;
-
-          bonusPoints += bonusCount;
+          bonus += values.filter((v) => extraOptions.includes(v)).length;
         }
       } else {
         isMatch = candidateAnswer === vq.expectedValue ? 1 : 0;
@@ -622,8 +685,162 @@ export class VacancySubmissionService {
       weightTotal += weight;
     }
 
-    const score = (weightedSum / weightTotal) * 100 + bonusPoints;
-    return Math.round(score * 100) / 100; // round to 2 decimal places
+    const ratio = weightedSum / weightTotal;
+    return {
+      ratio,
+      weight: 60,
+      bonus,
+      log: `Questions: ${(ratio * 100).toFixed(1)}% match (bonus: +${bonus})`,
+    };
+  }
+
+  /** Tags component (weight: 15). All vacancy tags are required; extra custom tags earn bonus. */
+  private scoreTags(
+    vacancyTags?: string[],
+    submissionTags?: string[],
+  ): ScoreResult | null {
+    if (!vacancyTags?.length) return null;
+
+    const vacancyTagSet = new Set(vacancyTags);
+    const matchedCount =
+      submissionTags?.filter((t) => vacancyTagSet.has(t)).length ?? 0;
+    const ratio = matchedCount / vacancyTags.length;
+
+    const extraCount = (submissionTags || []).filter(
+      (t) => !vacancyTagSet.has(t),
+    ).length;
+
+    return {
+      ratio,
+      weight: 15,
+      bonus: extraCount,
+      log: `Tags: ${matchedCount}/${vacancyTags.length} required (bonus: +${extraCount} extra)`,
+    };
+  }
+
+  /** Languages component (weight: 15). +1 per level above required, +1 per extra language (max +3). */
+  private scoreLanguages(
+    requirements?: LanguageProficiency[],
+    candidateLangs?: LanguageProficiency[],
+  ): ScoreResult | null {
+    if (!requirements?.length) return null;
+
+    let metCount = 0;
+    let levelBonus = 0;
+
+    for (const req of requirements) {
+      const match = candidateLangs?.find((cl) => {
+        if (req.code && cl.code !== req.code) return false;
+        if (req.level) {
+          if (!cl.level) return false;
+          if (
+            LanguageLevelRank.indexOf(cl.level) <
+            LanguageLevelRank.indexOf(req.level)
+          )
+            return false;
+        }
+        return true;
+      });
+
+      if (match) {
+        metCount++;
+        if (req.level && match.level) {
+          const diff =
+            LanguageLevelRank.indexOf(match.level) -
+            LanguageLevelRank.indexOf(req.level);
+          if (diff > 0) levelBonus += diff;
+        }
+      }
+    }
+
+    const ratio = metCount / requirements.length;
+
+    const requiredCodes = new Set(
+      requirements.map((r) => r.code).filter(Boolean),
+    );
+    const extraLangBonus = Math.min(
+      (candidateLangs || []).filter(
+        (cl) => cl.code && !requiredCodes.has(cl.code),
+      ).length,
+      3,
+    );
+
+    return {
+      ratio,
+      weight: 15,
+      bonus: levelBonus + extraLangBonus,
+      log: `Languages: ${metCount}/${requirements.length} required (levelBonus: +${levelBonus}, extraLangs: +${extraLangBonus})`,
+    };
+  }
+
+  /** Experience component (weight: 5). +1 per extra year above required (max +5). */
+  private scoreExperience(
+    requiredYears?: number,
+    candidateYears?: number,
+  ): ScoreResult | null {
+    if (requiredYears == null || requiredYears <= 0 || candidateYears == null)
+      return null;
+
+    const ratio = Math.min(candidateYears, requiredYears) / requiredYears;
+    const bonus = Math.min(Math.max(0, candidateYears - requiredYears), 5);
+
+    return {
+      ratio,
+      weight: 5,
+      bonus,
+      log: `Experience: ${candidateYears}/${requiredYears} yrs (bonus: +${bonus})`,
+    };
+  }
+
+  /** Salary component (weight: 5). Within budget = met. Bonus up to +3 for being below max.
+   * More detailed logic:
+   * - 100 (ratio = 1): candidate's expectedSalary <= range.max — they're within budget
+   * - 0 (ratio = 0): candidate's expectedSalary > range.max — over budget, no partial credit
+   * - Bonus (pushes above 100): if candidate asks for less than range.max, up to +3 points proportional to how far below
+   *  max they are: (max - expected) / (max - min) * 3. If min === max and candidate is below, flat +2.
+   * So it's binary pass/fail against the budget ceiling, with a bonus rewarding cheaper candidates. There's no partial
+   *  score for being slightly over budget — it's either 0 or full.
+   */
+  private scoreSalary(
+    vacancySalary?: string,
+    expectedSalary?: number | null,
+  ): ScoreResult | null {
+    const range = this.parseSalaryRange(vacancySalary);
+    if (!range || expectedSalary == null) return null;
+
+    const ratio = expectedSalary <= range.max ? 1 : 0;
+
+    let bonus = 0;
+    if (expectedSalary < range.max) {
+      if (range.max === range.min) {
+        bonus = 2;
+      } else {
+        bonus = Math.min(
+          3,
+          ((range.max - expectedSalary) / (range.max - range.min)) * 3,
+        );
+      }
+    }
+
+    return {
+      ratio,
+      weight: 5,
+      bonus,
+      log: `Salary: ${ratio ? 'within' : 'over'} budget (expected: ${expectedSalary}, range: ${range.min}-${range.max}, bonus: +${bonus.toFixed(2)})`,
+    };
+  }
+
+  private parseSalaryRange(
+    salary?: string,
+  ): { min: number; max: number } | null {
+    if (!salary) return null;
+    const nums = salary
+      .match(/[\d,]+\.?\d*/g)
+      ?.map((s) => parseFloat(s.replace(/,/g, '')))
+      .filter((n) => !isNaN(n));
+    if (!nums?.length) return null;
+    if (nums.length === 1) return { min: nums[0], max: nums[0] };
+    return { min: Math.min(...nums), max: Math.max(...nums) };
   }
 
   async findOneById(id: string): Promise<VacancySubmission> {
