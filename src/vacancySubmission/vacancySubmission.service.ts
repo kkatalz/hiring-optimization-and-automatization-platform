@@ -97,11 +97,8 @@ export class VacancySubmissionService {
     // Allow to create submission only if candidate hasn't already applied
     await this.validateCandidateHasNotAlreadyApplied(vacancyId, candidate);
 
-    // Validate that Submission has only allowed tags in Vacancy
-    this.validateSubmissionHasOnlyAllowedTags(
-      createVacancySubmissionDto,
-      vacancy,
-    );
+    // Validate that at least one submission tag matches vacancy tags
+    this.validateSubmissionTags(createVacancySubmissionDto, vacancy);
 
     // Check that candidate responded to each required question in Vacancy
     await this.validateRequiredQuestionsAnswered(
@@ -527,20 +524,27 @@ export class VacancySubmissionService {
     }
   }
 
-  private validateSubmissionHasOnlyAllowedTags(
+  /**
+   * Validates that at least one submission tag matches a vacancy tag.
+   * Candidates can add their own custom tags beyond the vacancy's list.
+   */
+  private validateSubmissionTags(
     createVacancySubmissionDto: CreateVacancySubmissionDto,
     vacancy: VacancyDto,
   ): void {
-    if (createVacancySubmissionDto.tags) {
-      const allowedTags = new Set(vacancy.tags);
+    const submissionTags = createVacancySubmissionDto.tags;
+    const vacancyTags = vacancy.tags;
 
-      const invalidTags = createVacancySubmissionDto.tags.filter(
-        (tag) => !allowedTags.has(tag),
+    if (!submissionTags?.length || !vacancyTags?.length) return;
+
+    const vacancyTagSet = new Set(vacancyTags);
+    const hasAtLeastOneMatch = submissionTags.some((tag) =>
+      vacancyTagSet.has(tag),
       );
 
-      if (invalidTags.length) {
+    if (!hasAtLeastOneMatch) {
         throw new BadRequestException(
-          `Invalid tags: ${invalidTags.join(', ')}. Allowed tags are: ${vacancy.tags?.join(', ')}.`,
+        `At least one of your tags must match the vacancy's required tags: ${vacancyTags.join(', ')}.`,
         );
       }
     }
