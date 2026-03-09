@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { UserDto } from '../user/dto/user.dto';
 import { LanguageProficiency, TimeCommitment } from './hiring.enum';
+import { CustomWeights } from '../vacancySubmission/types/matchingScore.interface';
 import { User } from './user';
 import { VacancyQuestion } from './vacancyQuestion';
 import { VacancySubmission } from './vacancySubmission';
@@ -48,6 +49,9 @@ export class Vacancy {
 
   @Column({ type: 'jsonb', default: [] })
   tags?: string[];
+
+  @Column({ type: 'jsonb', name: 'custom_weights', nullable: true })
+  customWeights?: CustomWeights;
 
   @Column({
     name: 'needs_reclustering',
