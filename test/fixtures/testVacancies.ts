@@ -1,4 +1,4 @@
-import { LanguageLevel, TimeCommitment } from '../../src/entities/hiring.enum';
+import { TimeCommitment } from '../../src/entities/hiring.enum';
 import { Vacancy } from '../../src/entities/vacancy';
 import { testTenants } from './testTenants';
 import { testUsers } from './testUsers';
@@ -28,10 +28,6 @@ export const testVacancies: Vacancy[] = [
     needsReclustering: false,
     submissions: [submissionSeeds[0]],
     timeCommitment: TimeCommitment.FULL_TIME,
-    languageRequirements: [
-      { code: 'en', level: LanguageLevel.B2 },
-      { code: 'de', level: LanguageLevel.A1 },
-    ],
   },
 ];
 

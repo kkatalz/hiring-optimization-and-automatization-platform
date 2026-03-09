@@ -427,19 +427,34 @@ export class VacancyService {
 
     const vacancy = await this.vacancyRepository.findOne({
       where: { id: vacancyId },
-      relations: ['submissions', 'submissions.answers'],
+      relations: [
+        'submissions',
+        'submissions.answers',
+        'submissions.candidateProfile',
+      ],
     });
 
     if (!vacancy?.submissions?.length) return;
 
     for (const submission of vacancy.submissions) {
-      if (submission.answers?.length) {
-        submission.matchScore =
-          this.vacancySubmissionService.calculateMatchScore(
-            submission.answers,
-            allVacancyQuestions,
-          );
-      }
+      submission.matchScore = this.vacancySubmissionService.calculateMatchScore(
+        submission.answers || [],
+        allVacancyQuestions,
+        {
+          candidateLanguages: submission.candidateProfile?.languages,
+          candidateYearsOfExperience:
+            submission.candidateProfile?.yearsOfExperience,
+          vacancyLanguageRequirements: vacancy.languageRequirements,
+          vacancyRequiredYearsOfExperience: vacancy.requiredYearsOfExperience,
+          vacancyTags: vacancy.tags,
+          vacancySalary: vacancy.salary,
+          submissionTags: submission.tags,
+          expectedSalary:
+            submission.expectedSalary != null
+              ? Number(submission.expectedSalary)
+              : null,
+        },
+      );
     }
 
     await this.vacancyRepository.manager.save(vacancy.submissions);
