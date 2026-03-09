@@ -470,13 +470,13 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore(answers, allQuestions, options);
 
-      // questions: 0% * 60/100 = 0
-      // tags: 1/3 * 15/100 = 5
-      // languages: 0/1 * 15/100 = 0
-      // experience: 3/10 * 5/100 = 1.5
-      // salary: 0 * 5/100 = 0
-      // totalWeight = 100, base = (0 + 5 + 0 + 1.5 + 0)/100*100 = 6.5
-      expect(score).to.equal(6.5);
+      // questions: 0% * 50/100 = 0
+      // tags: 1/3 * 12/100 = 4
+      // languages: 0/1 * 8/100 = 0
+      // experience: 3/10 * 20/100 = 6
+      // salary: 0 * 10/100 = 0
+      // totalWeight = 100, base = (0 + 4 + 0 + 6 + 0)/100*100 = 10
+      expect(score).to.equal(10);
     });
   });
 
@@ -489,8 +489,8 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore(answers, questions);
 
-      // Only questions (weight 60), totalWeight = 60
-      // base = (1 * 60) / 60 * 100 = 100
+      // Only questions (weight 50), totalWeight = 50
+      // base = (1 * 50) / 50 * 100 = 100
       expect(score).to.equal(100);
     });
 
@@ -502,8 +502,8 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore([], [], options);
 
-      // Only tags (weight 15), totalWeight = 15
-      // base = (1 * 15) / 15 * 100 = 100
+      // Only tags (weight 12), totalWeight = 12
+      // base = (1 * 12) / 12 * 100 = 100
       expect(score).to.equal(100);
     });
 
@@ -517,8 +517,8 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore(answers, questions, options);
 
-      // questions weight=60, tags weight=15, totalWeight=75
-      // base = (1*60 + 1*15) / 75 * 100 = 100
+      // questions weight=50, tags weight=12, totalWeight=62
+      // base = (1*50 + 1*12) / 62 * 100 = 100
       expect(score).to.equal(100);
     });
 
@@ -533,9 +533,9 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore(answers, questions, options);
 
-      // totalWeight = 60 + 15 = 75
-      // base = (1*60 + 0*15) / 75 * 100 = 80
-      expect(score).to.equal(80);
+      // totalWeight = 50 + 12 = 62
+      // base = (1*50 + 0*12) / 62 * 100 = 80.65
+      expect(score).to.equal(80.65);
     });
 
     it('should return 0 when no applicable dimensions exist', () => {
@@ -635,6 +635,112 @@ describe('calculateMatchScore (unit)', () => {
       const score = service.calculateMatchScore([], [], options);
 
       // base = 100, levelBonus = +3 (NATIVE is index 6, B2 is index 3)
+      expect(score).to.equal(103);
+    });
+  });
+
+  // --- Custom dimension weights ---
+
+  describe('custom dimension weights', () => {
+    it('should auto-normalize with custom weights (questions=3, experience=2)', () => {
+      // Only questions and experience are applicable
+      const questions = [boolQuestion('q1', 'true')];
+      const answers = [answer('q1', 'true')];
+      const options: MatchScoreOptions = {
+        vacancyRequiredYearsOfExperience: 10,
+        candidateYearsOfExperience: 5, // 50% ratio
+        customWeights: { questions: 3, experience: 2 },
+      };
+
+      const score = service.calculateMatchScore(answers, questions, options);
+
+      // questions: ratio=1, weight=3 → 1*3 = 3
+      // experience: ratio=0.5, weight=2 → 0.5*2 = 1
+      // totalWeight = 5, base = (3 + 1) / 5 * 100 = 80
+      expect(score).to.equal(80);
+    });
+
+    it('should use defaults for unspecified weights', () => {
+      // Only set questions weight; tags should use default 12
+      const questions = [boolQuestion('q1', 'true')];
+      const answers = [answer('q1', 'true')];
+      const options: MatchScoreOptions = {
+        vacancyTags: ['React', 'Node'],
+        submissionTags: ['React', 'Node'],
+        customWeights: { questions: 30 }, // tags not specified → default 12
+      };
+
+      const score = service.calculateMatchScore(answers, questions, options);
+
+      // questions: ratio=1, weight=30 → 30
+      // tags: ratio=1, weight=12 → 12
+      // totalWeight = 42, base = 42/42*100 = 100
+      expect(score).to.equal(100);
+    });
+
+    it('should effectively disable a dimension when weight is 0', () => {
+      // Questions match 100%, experience 0%, but experience weight = 0
+      const questions = [boolQuestion('q1', 'true')];
+      const answers = [answer('q1', 'true')];
+      const options: MatchScoreOptions = {
+        vacancyRequiredYearsOfExperience: 10,
+        candidateYearsOfExperience: 0,
+        customWeights: { questions: 60, experience: 0 },
+      };
+
+      const score = service.calculateMatchScore(answers, questions, options);
+
+      // experience weight=0 → its ScoreResult still returned with weight=0
+      // questions: ratio=1, weight=60
+      // experience: ratio=0, weight=0 → contributes 0 to both numerator and denominator
+      // totalWeight = 60, base = 60/60*100 = 100
+      expect(score).to.equal(100);
+    });
+
+    it('should respect all custom weights proportionally', () => {
+      const questions = [boolQuestion('q1', 'true')];
+      const answers = [answer('q1', 'true')]; // 100% questions
+      const options: MatchScoreOptions = {
+        vacancyTags: ['React', 'Node'],
+        submissionTags: [], // 0% tags
+        vacancyLanguageRequirements: [{ code: 'en', level: LanguageLevel.B2 }],
+        candidateLanguages: [{ code: 'en', level: LanguageLevel.B2 }], // 100% languages
+        vacancyRequiredYearsOfExperience: 4,
+        candidateYearsOfExperience: 2, // 50% experience
+        vacancySalary: '1000-2000 USD',
+        expectedSalary: 2000, // 100% salary, no bonus
+        customWeights: {
+          questions: 10,
+          tags: 10,
+          languages: 10,
+          experience: 10,
+          salary: 10,
+        },
+      };
+
+      const score = service.calculateMatchScore(answers, questions, options);
+
+      // All weights equal at 10, totalWeight = 50
+      // questions: 1*10 = 10, tags: 0*10 = 0, languages: 1*10 = 10,
+      // experience: 0.5*10 = 5, salary: 1*10 = 10
+      // base = (10 + 0 + 10 + 5 + 10) / 50 * 100 = 70
+      expect(score).to.equal(70);
+    });
+
+    it('should still apply bonuses with custom weights', () => {
+      const questions = [boolQuestion('q1', 'true')];
+      const answers = [answer('q1', 'true')];
+      const options: MatchScoreOptions = {
+        vacancyRequiredYearsOfExperience: 3,
+        candidateYearsOfExperience: 6, // +3 bonus (capped at 5)
+        customWeights: { questions: 10, experience: 10 },
+      };
+
+      const score = service.calculateMatchScore(answers, questions, options);
+
+      // questions: ratio=1, weight=10
+      // experience: ratio=1, weight=10, bonus=3
+      // totalWeight = 20, base = (10 + 10)/20*100 = 100, + bonus 3
       expect(score).to.equal(103);
     });
   });

@@ -14,6 +14,7 @@ import {
 } from '../../entities/hiring.enum';
 import { Type } from 'class-transformer';
 import { VacancyQuestionDto } from './vacancyQuestion.dto';
+import { CustomWeights } from '../../vacancySubmission/types/matchingScore.interface';
 
 export class VacancyDto {
   id: string;
@@ -60,6 +61,11 @@ export class VacancyDto {
   @IsArray()
   @IsString({ each: true })
   tags?: string[];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CustomWeights)
+  customWeights?: CustomWeights;
 
   @IsOptional()
   @IsArray()

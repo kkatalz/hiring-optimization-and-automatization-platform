@@ -40,6 +40,7 @@ import {
   LanguageProficiency,
 } from '../entities/hiring.enum';
 import {
+  CustomWeights,
   MatchScoreOptions,
   ScoreResult,
 } from './types/matchingScore.interface';
@@ -133,6 +134,7 @@ export class VacancySubmissionService {
         vacancySalary: vacancy.salary,
         submissionTags: createVacancySubmissionDto.tags,
         expectedSalary: createVacancySubmissionDto.expectedSalary,
+        customWeights: vacancy.customWeights,
       },
     );
 
@@ -575,8 +577,8 @@ export class VacancySubmissionService {
    * Only exceeds 100 when candidate brings extras (higher language level,
    * extra languages, extra tags, extra experience years, lower salary).
    *
-   * Component weights (dynamically distributed among applicable dimensions):
-   *   Questions: 60, Tags: 15, Languages: 15, Experience: 5, Salary: 5
+   * Component weights (can be dynamically distributed among applicable dimensions).
+   * By default, they are set to: Questions: 50, Tags: 12, Languages: 8, Experience: 20, Salary: 10
    *
    * Base score = sum(ratio * weight) / sum(applicableWeights) * 100
    *   → all requirements met = exactly 100
@@ -593,18 +595,32 @@ export class VacancySubmissionService {
     vacancyQuestions: VacancyQuestionDetailedDto[],
     options?: MatchScoreOptions,
   ): number {
+    const w: Required<CustomWeights> = {
+      questions: options?.customWeights?.questions ?? 50,
+      tags: options?.customWeights?.tags ?? 12,
+      languages: options?.customWeights?.languages ?? 8,
+      experience: options?.customWeights?.experience ?? 20,
+      salary: options?.customWeights?.salary ?? 10,
+    };
+
     const results = [
-      this.scoreQuestions(answers, vacancyQuestions),
-      this.scoreTags(options?.vacancyTags, options?.submissionTags),
+      this.scoreQuestions(answers, vacancyQuestions, w.questions),
+      this.scoreTags(options?.vacancyTags, options?.submissionTags, w.tags),
       this.scoreLanguages(
         options?.vacancyLanguageRequirements,
         options?.candidateLanguages,
+        w.languages,
       ),
       this.scoreExperience(
         options?.vacancyRequiredYearsOfExperience,
         options?.candidateYearsOfExperience,
+        w.experience,
       ),
-      this.scoreSalary(options?.vacancySalary, options?.expectedSalary),
+      this.scoreSalary(
+        options?.vacancySalary,
+        options?.expectedSalary,
+        w.salary,
+      ),
     ].filter((r): r is ScoreResult => r !== null);
 
     // totalWeight is the sum of weights for all applicable scoring dimensions
@@ -634,10 +650,11 @@ export class VacancySubmissionService {
     return Math.round(totalScore * 100) / 100;
   }
 
-  /** Questions component (weight: 60). Scores boolean and dropdown questions with expectedValue. */
+  /** Questions component (weight: 50 if not set otherwise). Scores boolean and dropdown questions with expectedValue. */
   private scoreQuestions(
     answers: QuestionAnswerAllRequiredDto[],
     vacancyQuestions: VacancyQuestionDetailedDto[],
+    weight: number,
   ): ScoreResult | null {
     const scorable = vacancyQuestions.filter(
       (vq) => vq.type !== QuestionType.text && vq.expectedValue != null,
@@ -688,16 +705,17 @@ export class VacancySubmissionService {
     const ratio = weightedSum / weightTotal;
     return {
       ratio,
-      weight: 60,
+      weight,
       bonus,
       log: `Questions: ${(ratio * 100).toFixed(1)}% match (bonus: +${bonus})`,
     };
   }
 
-  /** Tags component (weight: 15). All vacancy tags are required; extra custom tags earn bonus. */
+  /** Tags component (weight: 12 if not set otherwise). All vacancy tags are required; extra custom tags earn bonus. */
   private scoreTags(
     vacancyTags?: string[],
     submissionTags?: string[],
+    weight?: number,
   ): ScoreResult | null {
     if (!vacancyTags?.length) return null;
 
@@ -712,16 +730,17 @@ export class VacancySubmissionService {
 
     return {
       ratio,
-      weight: 15,
+      weight: weight ?? 12,
       bonus: extraCount,
       log: `Tags: ${matchedCount}/${vacancyTags.length} required (bonus: +${extraCount} extra)`,
     };
   }
 
-  /** Languages component (weight: 15). +1 per level above required, +1 per extra language (max +3). */
+  /** Languages component (weight: 8 if not set otherwise). +1 per level above required, +1 per extra language (max +3). */
   private scoreLanguages(
     requirements?: LanguageProficiency[],
     candidateLangs?: LanguageProficiency[],
+    weight?: number,
   ): ScoreResult | null {
     if (!requirements?.length) return null;
 
@@ -767,16 +786,17 @@ export class VacancySubmissionService {
 
     return {
       ratio,
-      weight: 15,
+      weight: weight ?? 8,
       bonus: levelBonus + extraLangBonus,
       log: `Languages: ${metCount}/${requirements.length} required (levelBonus: +${levelBonus}, extraLangs: +${extraLangBonus})`,
     };
   }
 
-  /** Experience component (weight: 5). +1 per extra year above required (max +5). */
+  /** Experience component (weight: 20 if not set otherwise). +1 per extra year above required (max +5). */
   private scoreExperience(
     requiredYears?: number,
     candidateYears?: number,
+    weight?: number,
   ): ScoreResult | null {
     if (requiredYears == null || requiredYears <= 0 || candidateYears == null)
       return null;
@@ -786,13 +806,13 @@ export class VacancySubmissionService {
 
     return {
       ratio,
-      weight: 5,
+      weight: weight ?? 20,
       bonus,
       log: `Experience: ${candidateYears}/${requiredYears} yrs (bonus: +${bonus})`,
     };
   }
 
-  /** Salary component (weight: 5). Within budget = met. Bonus up to +3 for being below max.
+  /** Salary component. Within budget = met. Bonus up to +3 for being below max.
    * More detailed logic:
    * - 100 (ratio = 1): candidate's expectedSalary <= range.max — they're within budget
    * - 0 (ratio = 0): candidate's expectedSalary > range.max — over budget, no partial credit
@@ -804,6 +824,7 @@ export class VacancySubmissionService {
   private scoreSalary(
     vacancySalary?: string,
     expectedSalary?: number | null,
+    weight?: number,
   ): ScoreResult | null {
     const range = this.parseSalaryRange(vacancySalary);
     if (!range || expectedSalary == null) return null;
@@ -824,11 +845,16 @@ export class VacancySubmissionService {
 
     return {
       ratio,
-      weight: 5,
+      weight: weight ?? 10,
       bonus,
       log: `Salary: ${ratio ? 'within' : 'over'} budget (expected: ${expectedSalary}, range: ${range.min}-${range.max}, bonus: +${bonus.toFixed(2)})`,
     };
   }
+
+  /**
+   * If salary is a range like "50k-70k" or "50,000 - 70,000", extract min and max as numbers.
+   * If it's a single value like "60k", treat it as min=max=60,000.
+   */
 
   private parseSalaryRange(
     salary?: string,

@@ -12,6 +12,7 @@ export const vacancyToVacancyDto = ({
   languageRequirements,
   requiredYearsOfExperience,
   tags,
+  customWeights,
   submissions,
   vacancyQuestions,
 }: Vacancy): VacancyDto => {
@@ -27,6 +28,7 @@ export const vacancyToVacancyDto = ({
     languageRequirements,
     requiredYearsOfExperience,
     tags,
+    customWeights,
     vacancyQuestions,
   };
 };

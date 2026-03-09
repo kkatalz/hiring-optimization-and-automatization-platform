@@ -1,4 +1,32 @@
+import { IsNumber, IsOptional, Min } from 'class-validator';
 import { LanguageProficiency } from '../../entities/hiring.enum';
+
+export class CustomWeights {
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  questions?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  tags?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  languages?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  experience?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  salary?: number;
+}
 
 export interface ScoreResult {
   ratio: number;
@@ -16,4 +44,5 @@ export interface MatchScoreOptions {
   vacancySalary?: string;
   submissionTags?: string[];
   expectedSalary?: number | null;
+  customWeights?: CustomWeights;
 }
