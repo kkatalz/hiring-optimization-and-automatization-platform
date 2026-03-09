@@ -363,8 +363,8 @@ describe('VacancySubmissionService', () => {
       });
 
       // All questions match + candidate en/NATIVE exceeds required en/B2
-      // Questions: ratio=1, weight=60 | Languages: ratio=1, weight=15, bonus=+3 (NATIVE−B2)
-      // base = (60+15)/75*100 = 100, bonus = 3, total = 103
+      // Questions: ratio=1, weight=50 | Languages: ratio=1, weight=8, bonus=+3 (NATIVE−B2)
+      // base = (50+8)/58*100 = 100, bonus = 3, total = 103
       const result = await service.create(
         {
           comment: 'Language test',
@@ -389,8 +389,8 @@ describe('VacancySubmissionService', () => {
       });
 
       // All questions match, but only 1/2 vacancy tags matched
-      // Questions: ratio=1, weight=60 | Tags: ratio=0.5, weight=15
-      // base = (60+7.5)/75*100 = 90, total = 90
+      // Questions: ratio=1, weight=50 | Tags: ratio=0.5, weight=12
+      // base = (50+6)/62*100 = 90.32, total = 90.32
       const result = await service.create(
         {
           comment: 'Tags test',
@@ -404,7 +404,7 @@ describe('VacancySubmissionService', () => {
         userId,
       );
 
-      expect(result.matchScore).to.equal(90);
+      expect(result.matchScore).to.equal(90.32);
     });
 
     it('should include salary scoring in matchScore when submission has expectedSalary', async () => {
@@ -412,8 +412,8 @@ describe('VacancySubmissionService', () => {
       const userId = testUsers[5].id;
 
       // vacancy[0] salary = '1000-1100 USD', expectedSalary = 1050 → within budget
-      // Questions: ratio=1, weight=60 | Salary: ratio=1, weight=5, bonus=(1100−1050)/(1100−1000)*3=1.5
-      // base = (60+5)/65*100 = 100, bonus = 1.5, total = 101.5
+      // Questions: ratio=1, weight=50 | Salary: ratio=1, weight=10, bonus=(1100−1050)/(1100−1000)*3=1.5
+      // base = (50+10)/60*100 = 100, bonus = 1.5, total = 101.5
       const result = await service.create(
         {
           comment: 'Salary test',
@@ -439,8 +439,8 @@ describe('VacancySubmissionService', () => {
       });
 
       // All questions match, candidate has 2/4 required years
-      // Questions: ratio=1, weight=60 | Experience: ratio=0.5, weight=5
-      // base = (60+2.5)/65*100 = 96.15, total = 96.15
+      // Questions: ratio=1, weight=50 | Experience: ratio=0.5, weight=20
+      // base = (50+10)/70*100 = 85.71, total = 85.71
       const result = await service.create(
         {
           comment: 'Experience test',
@@ -453,7 +453,7 @@ describe('VacancySubmissionService', () => {
         userId,
       );
 
-      expect(result.matchScore).to.equal(96.15);
+      expect(result.matchScore).to.equal(85.71);
     });
 
     it('should combine all scoring dimensions in matchScore', async () => {
@@ -467,8 +467,8 @@ describe('VacancySubmissionService', () => {
       });
 
       // All questions match, all tags match, en/NATIVE≥B2, 2/2 yrs, salary 1050 in 1000-1100
-      // Questions: ratio=1, w=60 | Tags: ratio=1, w=15 | Languages: ratio=1, w=15, bonus=3
-      // Experience: ratio=1, w=5 | Salary: ratio=1, w=5, bonus=1.5
+      // Questions: ratio=1, w=50 | Tags: ratio=1, w=12 | Languages: ratio=1, w=8, bonus=3
+      // Experience: ratio=1, w=20 | Salary: ratio=1, w=10, bonus=1.5
       // totalWeight=100, base=100, bonus=4.5, total=104.5
       const result = await service.create(
         {

@@ -61,7 +61,7 @@ export class VacancySubmissionController {
 
   /**
    * Filter submissions by Candidate fields: minYearsOfExperience, maxYearsOfExperience, countries, cities, languages
-   * Sort by submissionDate (createdAt), expectedSalary, recruiterRating
+   * Sort by submissionDate (createdAt), expectedSalary, recruiterRating, matchScore.
    */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Post('get/filter/within/tenant')
@@ -86,7 +86,7 @@ export class VacancySubmissionController {
    * Super admin can view all submissions across all tenants.
    * Admin and recruiter can only view submissions within their own tenant.
    * Filter submissions by Candidate fields: minYearsOfExperience, maxYearsOfExperience, countries, cities, languages.
-   * Sort by submissionDate (createdAt), expectedSalary, recruiterRating.
+   * Sort by submissionDate (createdAt), expectedSalary, recruiterRating, matchScore.
    */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Post('get/filter/within/vacancy/:vacancyId')
