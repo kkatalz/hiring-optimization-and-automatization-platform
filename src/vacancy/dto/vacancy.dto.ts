@@ -63,6 +63,8 @@ export class VacancyDto {
   tags?: string[];
 
   @IsOptional()
+  @ValidateNested()
+  @Type(() => CustomWeights)
   customWeights?: CustomWeights;
 
   @IsOptional()
