@@ -578,7 +578,7 @@ export class VacancySubmissionService {
    * extra languages, extra tags, extra experience years, lower salary).
    *
    * Component weights (can be dynamically distributed among applicable dimensions).
-   * Be default are set to: Questions: 50, Tags: 12, Languages: 8, Experience: 20, Salary: 10
+   * By default, they are set to: Questions: 50, Tags: 12, Languages: 8, Experience: 20, Salary: 10
    *
    * Base score = sum(ratio * weight) / sum(applicableWeights) * 100
    *   → all requirements met = exactly 100
