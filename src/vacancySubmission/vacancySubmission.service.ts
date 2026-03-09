@@ -603,12 +603,6 @@ export class VacancySubmissionService {
       salary: options?.customWeights?.salary ?? 10,
     };
 
-    console.log('Candidates languages:', options?.candidateLanguages);
-    console.log(
-      'Vacancy language requirements:',
-      options?.vacancyLanguageRequirements,
-    );
-
     const results = [
       this.scoreQuestions(answers, vacancyQuestions, w.questions),
       this.scoreTags(options?.vacancyTags, options?.submissionTags, w.tags),
