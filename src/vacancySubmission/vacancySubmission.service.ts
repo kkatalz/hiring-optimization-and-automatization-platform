@@ -638,7 +638,9 @@ export class VacancySubmissionService {
     }
 
     // baseScore is the weighted average of how well the candidate meets the requirements, normalized to 100
-    // Example: if only questions and tags are applicable (weight 75 total) and candidate meets them at 80% ratio,
+    // Example (default weights): if only questions (w=50) and tags (w=12) are applicable (totalWeight=62)
+    // and candidate meets them at 80% ratio, baseScore = (0.8*50 + 0.8*12)/62*100 = 80.
+    // With custom weights (e.g. questions=60, tags=15, totalWeight=75):
     // baseScore = (0.8*60 + 0.8*15)/75*100 = 80.
     const baseScore =
       (results.reduce((sum, r) => sum + r.ratio * r.weight, 0) / totalWeight) *
