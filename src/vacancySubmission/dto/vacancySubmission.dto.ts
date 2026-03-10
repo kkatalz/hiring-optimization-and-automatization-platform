@@ -11,7 +11,7 @@ import { CandidateProfileDto } from '../../candidateProfile/dto/candidateProfile
 import { VacancySubmissionStatus } from '../../entities/statuses.enum';
 import { QuestionAnswerFilterEntry } from '../../recruiting/recruitingFilter.dto';
 import { Type } from 'class-transformer';
-import { SentenceScore } from '../../sapling/sapling.service';
+import { SentenceScore } from '../../sapling/types/scores.interface';
 
 export class VacancySubmissionDto {
   id: string;

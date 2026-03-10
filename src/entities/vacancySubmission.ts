@@ -13,7 +13,7 @@ import { VacancySubmissionStatus } from './statuses.enum';
 import { SubmissionAnswer } from './submissionAnswers';
 import { Vacancy } from './vacancy';
 import { ColumnNumericTransformer } from '../utils/convertStringToNumberTransformer';
-import { SentenceScore } from '../sapling/sapling.service';
+import { SentenceScore } from '../sapling/types/scores.interface';
 
 @Entity({ name: 'vacancy_submissions' })
 export class VacancySubmission {

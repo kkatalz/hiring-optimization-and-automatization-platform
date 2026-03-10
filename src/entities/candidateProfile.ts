@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { VacancySubmission } from './vacancySubmission';
 import { ColumnNumericTransformer } from '../utils/convertStringToNumberTransformer';
-import { SentenceScore } from '../sapling/sapling.service';
+import { SentenceScore } from '../sapling/types/scores.interface';
 
 @Entity({ name: 'candidate_profiles' })
 export class CandidateProfile {

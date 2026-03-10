@@ -1,7 +1,7 @@
 import { VacancySubmission } from '../../entities/vacancySubmission';
 import { LanguageProficiency } from '../../entities/hiring.enum';
 import { UserRole } from '../../entities/role.enum';
-import { SentenceScore } from '../../sapling/sapling.service';
+import { SentenceScore } from '../../sapling/types/scores.interface';
 
 export class CandidateProfileDto {
   userId: string;
