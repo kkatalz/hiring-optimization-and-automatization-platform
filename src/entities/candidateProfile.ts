@@ -9,6 +9,8 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { VacancySubmission } from './vacancySubmission';
+import { ColumnNumericTransformer } from '../utils/convertStringToNumberTransformer';
+import { SentenceScore } from '../sapling/sapling.service';
 
 @Entity({ name: 'candidate_profiles' })
 export class CandidateProfile {
@@ -26,6 +28,22 @@ export class CandidateProfile {
 
   @Column({ type: 'jsonb', nullable: false })
   languages: LanguageProficiency[];
+
+  @Column({ type: 'text', nullable: true })
+  resume?: string;
+
+  @Column({
+    name: 'resume_ai_score',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+    transformer: new ColumnNumericTransformer(),
+  })
+  resumeAiScore?: number | null;
+
+  @Column({ name: 'resume_ai_sentence_scores', type: 'jsonb', nullable: true })
+  resumeAiSentenceScores?: SentenceScore[] | null;
 
   @Column({ name: 'user_id', type: 'uuid', nullable: false })
   userId?: string;

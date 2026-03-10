@@ -15,6 +15,9 @@ export const candidateToCandidateProfileDto = (
     country: candidateProfile?.country,
     city: candidateProfile?.city,
     languages: candidateProfile?.languages,
+    resume: candidateProfile?.resume,
+    resumeAiScore: candidateProfile?.resumeAiScore ?? null,
+    resumeAiSentenceScores: candidateProfile?.resumeAiSentenceScores ?? null,
     submissions: candidateProfile?.submissions,
   };
 };

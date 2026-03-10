@@ -36,4 +36,8 @@ export class UpdateCandidateProfileDto {
   @ValidateNested({ each: true })
   @Type(() => LanguageProficiency)
   languages?: LanguageProficiency[];
+
+  @IsOptional()
+  @IsString()
+  resume?: string;
 }

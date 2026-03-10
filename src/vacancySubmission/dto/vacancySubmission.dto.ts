@@ -11,6 +11,7 @@ import { CandidateProfileDto } from '../../candidateProfile/dto/candidateProfile
 import { VacancySubmissionStatus } from '../../entities/statuses.enum';
 import { QuestionAnswerFilterEntry } from '../../recruiting/recruitingFilter.dto';
 import { Type } from 'class-transformer';
+import { SentenceScore } from '../../sapling/sapling.service';
 
 export class VacancySubmissionDto {
   id: string;
@@ -18,6 +19,24 @@ export class VacancySubmissionDto {
   @IsOptional()
   @IsString()
   comment?: string;
+
+  @IsOptional()
+  @IsNumber()
+  commentAiScore?: number | null;
+
+  @IsOptional()
+  commentAiSentenceScores?: SentenceScore[] | null;
+
+  @IsOptional()
+  @IsString()
+  resume?: string;
+
+  @IsOptional()
+  @IsNumber()
+  resumeAiScore?: number | null;
+
+  @IsOptional()
+  resumeAiSentenceScores?: SentenceScore[] | null;
 
   @IsOptional()
   @IsString()
