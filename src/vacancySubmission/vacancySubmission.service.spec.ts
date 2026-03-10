@@ -18,6 +18,7 @@ import {
 } from '../../test/fixtures/testVacancySubmissions';
 import { CreateVacancySubmissionDto } from './dto/createVacancySubmission.dto';
 import { expect } from 'chai';
+import * as sinon from 'sinon';
 import { VacancySubmissionDto } from './dto/vacancySubmission.dto';
 import { nonExistentUUIDId } from '../../test/utils';
 import { Vacancy } from '../entities/vacancy';
@@ -40,6 +41,7 @@ import { CandidateProfileService } from '../candidateProfile/candidateProfile.se
 import { LanguageLevel } from '../entities/hiring.enum';
 import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
 import { testSubmissionAnswers } from '../../test/fixtures/testSubmissionAnswers';
+import { SaplingService } from '../sapling/sapling.service';
 
 describe('VacancySubmissionService', () => {
   let service: VacancySubmissionService;
@@ -70,6 +72,10 @@ describe('VacancySubmissionService', () => {
         CandidateProfileService,
         TenantService,
         AuthService,
+        {
+          provide: SaplingService,
+          useValue: { detectAiContent: sinon.stub().resolves(null) },
+        },
       ],
     }).compile();
 
