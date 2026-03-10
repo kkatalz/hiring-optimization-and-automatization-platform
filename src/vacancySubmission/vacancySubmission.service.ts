@@ -44,6 +44,7 @@ import {
   MatchScoreOptions,
   ScoreResult,
 } from './types/matchingScore.interface';
+import { SaplingService } from '../sapling/sapling.service';
 
 @Injectable()
 export class VacancySubmissionService {
@@ -65,6 +66,8 @@ export class VacancySubmissionService {
     private readonly profileService: CandidateProfileService,
 
     private readonly questionService: QuestionService,
+
+    private readonly saplingService: SaplingService,
 
     private dataSource: DataSource,
   ) {}
@@ -138,6 +141,10 @@ export class VacancySubmissionService {
       },
     );
 
+    const aiResult = await this.saplingService.detectAiContent(
+      createVacancySubmissionDto.comment,
+    );
+
     return await this.dataSource.transaction(
       async (transactionalEntityManager) => {
         const vacancySubmission = this.vacancySubmissionRepository.create({
@@ -146,6 +153,8 @@ export class VacancySubmissionService {
           tenantId: vacancy.tenantId,
           candidateId: candidate.id,
           matchScore,
+          commentAiScore: aiResult?.score ?? null,
+          commentAiSentenceScores: aiResult?.sentenceScores ?? null,
           vacancy: vacancy,
           candidateProfile: candidate,
         });
@@ -867,6 +876,42 @@ export class VacancySubmissionService {
     if (!nums?.length) return null;
     if (nums.length === 1) return { min: nums[0], max: nums[0] };
     return { min: Math.min(...nums), max: Math.max(...nums) };
+  }
+
+  async parseResumeFile(
+    submissionId: string,
+    file: Express.Multer.File,
+  ): Promise<VacancySubmissionDto> {
+    const submission = await this.findOneById(submissionId);
+    const ext = file.originalname.split('.').pop()?.toLowerCase();
+
+    let extractedText: string | null = null;
+
+    if (ext === 'pdf') {
+      extractedText = await this.saplingService.extractTextFromPdf(
+        file.buffer,
+        file.originalname,
+      );
+    } else if (ext === 'docx') {
+      extractedText = await this.saplingService.extractTextFromDocx(
+        file.buffer,
+        file.originalname,
+      );
+    } else {
+      throw new BadRequestException(
+        'Unsupported file type. Only PDF and DOCX are allowed.',
+      );
+    }
+
+    if (extractedText) {
+      submission.resume = extractedText;
+      const aiResult = await this.saplingService.detectAiContent(extractedText);
+      submission.resumeAiScore = aiResult?.score ?? null;
+      submission.resumeAiSentenceScores = aiResult?.sentenceScores ?? null;
+    }
+
+    const saved = await this.vacancySubmissionRepository.save(submission);
+    return vacancySubmToVacancySubmDto(saved);
   }
 
   async findOneById(id: string): Promise<VacancySubmission> {

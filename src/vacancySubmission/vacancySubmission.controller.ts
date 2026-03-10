@@ -1,13 +1,18 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Param,
   ParseUUIDPipe,
   Patch,
   Post,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthUser } from '../decorators/authUser.dto';
 import { Roles } from '../decorators/roles.decorator';
 import { UserRole } from '../entities/role.enum';
@@ -20,12 +25,14 @@ import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
 import { VacancyService } from '../vacancy/vacancy.service';
 import { extractUserTenantId } from '../utils/extractUserTenantId';
 import { SubmissionRatingDto } from './dto/submissionRating.dto';
+import { CandidateProfileService } from '../candidateProfile/candidateProfile.service';
 
 @Controller('vacanciesSubmissions')
 export class VacancySubmissionController {
   constructor(
     private readonly vacancySubmissionService: VacancySubmissionService,
     private readonly vacancyService: VacancyService,
+    private readonly candidateProfileService: CandidateProfileService,
   ) {}
 
   @Roles(UserRole.admin, UserRole.recruiter)
@@ -166,6 +173,43 @@ export class VacancySubmissionController {
 
     return await this.vacancySubmissionService.removeRecruiterRating(
       submissionId,
+    );
+  }
+
+  @Roles(UserRole.candidate)
+  @Patch(':submissionId/parse-resume-file')
+  @UseInterceptors(FileInterceptor('file'))
+  async parseResumeFile(
+    @AuthUser() requester: UserDto,
+    @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<VacancySubmissionDto> {
+    // Verify the submission belongs to the requesting candidate
+    const submission =
+      await this.vacancySubmissionService.findOneById(submissionId);
+    const candidateProfile =
+      await this.candidateProfileService.findCandidateByUserId(requester.id);
+
+    if (submission.candidateId !== candidateProfile.id) {
+      throw new ForbiddenException(
+        'Candidates can upload resumes only for their own submissions.',
+      );
+    }
+
+    if (!file) {
+      throw new BadRequestException('File is required.');
+    }
+
+    const ext = file.originalname.split('.').pop()?.toLowerCase();
+    if (ext !== 'pdf' && ext !== 'docx') {
+      throw new BadRequestException(
+        'Unsupported file type. Only PDF and DOCX are allowed.',
+      );
+    }
+
+    return await this.vacancySubmissionService.parseResumeFile(
+      submissionId,
+      file,
     );
   }
 

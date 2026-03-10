@@ -3,12 +3,17 @@ import {
   Controller,
   ForbiddenException,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Patch,
   Post,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthUser } from '../decorators/authUser.dto';
 import { Roles } from '../decorators/roles.decorator';
 import { UserRole } from '../entities/role.enum';
@@ -68,6 +73,37 @@ export class CandidateProfileController {
   ): Promise<CandidateProfileDto> {
     return await this.candidateProfileService.createCandidate(
       createCandidateDto,
+    );
+  }
+
+  @Roles(UserRole.candidate)
+  @Patch(':userId/parse-resume-file')
+  @UseInterceptors(FileInterceptor('file'))
+  async parseResumeFile(
+    @AuthUser() requester: UserDto,
+    @Param('userId', new ParseUUIDPipe()) candidateId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<CandidateProfileDto> {
+    if (requester.id !== candidateId) {
+      throw new ForbiddenException(
+        'Candidates can upload resumes only for their own profiles.',
+      );
+    }
+
+    if (!file)
+      throw new HttpException('File is required.', HttpStatus.BAD_REQUEST);
+
+    const extension = file.originalname.split('.').pop()?.toLowerCase();
+    if (extension !== 'pdf' && extension !== 'docx') {
+      throw new HttpException(
+        'Unsupported file type. Only PDF and DOCX are allowed.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return await this.candidateProfileService.parseResumeFile(
+      candidateId,
+      file,
     );
   }
 

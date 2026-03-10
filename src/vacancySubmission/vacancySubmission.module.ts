@@ -9,6 +9,7 @@ import { QuestionModule } from '../question/question.module';
 import { SubmissionAnswer } from '../entities/submissionAnswers';
 import { Vacancy } from '../entities/vacancy';
 import { VacancyModule } from '../vacancy/vacancy.module';
+import { SaplingModule } from '../sapling/sapling.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { VacancyModule } from '../vacancy/vacancy.module';
     UserModule,
     CandidateProfileModule,
     QuestionModule,
+    SaplingModule,
   ],
   controllers: [VacancySubmissionController],
   providers: [VacancySubmissionService],
