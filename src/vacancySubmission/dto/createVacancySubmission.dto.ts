@@ -37,4 +37,8 @@ export class CreateVacancySubmissionDto {
   @IsOptional()
   @IsNumber()
   expectedSalary?: number;
+
+  @IsOptional()
+  @IsString()
+  resume?: string;
 }

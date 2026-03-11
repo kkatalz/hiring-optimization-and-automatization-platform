@@ -16,6 +16,7 @@ import {
   filterByCountriesCities,
   filterByLanguages,
 } from '../utils/filterSubmissionsAndCandidateProfiles';
+import { SaplingService } from '../sapling/sapling.service';
 
 @Injectable()
 export class CandidateProfileService {
@@ -28,6 +29,7 @@ export class CandidateProfileService {
 
     private readonly userService: UserService,
     private readonly authService: AuthService,
+    private readonly saplingService: SaplingService,
   ) {}
 
   async findAllCandidateSubmissionsByCandidateId(
@@ -111,11 +113,18 @@ export class CandidateProfileService {
 
     const savedCandidate = await this.userRepository.save(newCandidate);
 
+    const aiResult = await this.saplingService.detectAiContent(
+      createCandidateDto.resume,
+    );
+
     const candidateProfile = this.candidateProfileRepository.create({
       yearsOfExperience: createCandidateDto.yearsOfExperience,
       country: createCandidateDto.country,
       city: createCandidateDto.city,
       languages: createCandidateDto.languages,
+      resume: createCandidateDto.resume,
+      resumeAiScore: aiResult?.score ?? null,
+      resumeAiSentenceScores: aiResult?.sentenceScores ?? null,
       user: savedCandidate,
     });
 
@@ -139,7 +148,7 @@ export class CandidateProfileService {
 
     const candidateProfile = user.candidateProfile;
 
-    const { ...candidateFields } = updateCandidateProfileDto;
+    const { resume, ...candidateFields } = updateCandidateProfileDto;
 
     // Populate candidateProfile entity
     Object.keys(candidateFields).forEach((key) => {
@@ -147,6 +156,16 @@ export class CandidateProfileService {
         candidateProfile[key] = candidateFields[key];
       }
     });
+
+    if (resume !== undefined) {
+      candidateProfile.resume = resume;
+
+      const aiResult = await this.saplingService.detectAiContent(resume);
+
+      candidateProfile.resumeAiScore = aiResult?.score ?? null;
+      candidateProfile.resumeAiSentenceScores =
+        aiResult?.sentenceScores ?? null;
+    }
 
     const updatedCandidateProfile =
       await this.candidateProfileRepository.save(candidateProfile);
@@ -165,6 +184,50 @@ export class CandidateProfileService {
     );
 
     return candidateToCandidateProfileDto(updatedWithUser);
+  }
+
+  async parseResumeFile(
+    candidateId: string,
+    file: Express.Multer.File,
+    extension: string,
+  ): Promise<CandidateProfileDto> {
+    const user = await this.userService.findById(candidateId);
+
+    if (!user.candidateProfile) {
+      throw new HttpException(
+        'User associated with given candidate profile not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const candidateProfile = user.candidateProfile;
+
+    const extractedText =
+      await this.saplingService.extractTextFromResumeDependingOnExtension(
+        file,
+        extension,
+      );
+
+    if (extractedText) {
+      candidateProfile.resume = extractedText;
+
+      const aiResult = await this.saplingService.detectAiContent(extractedText);
+
+      candidateProfile.resumeAiScore = aiResult?.score ?? null;
+      candidateProfile.resumeAiSentenceScores =
+        aiResult?.sentenceScores ?? null;
+    } else {
+      throw new HttpException(
+        'Failed to extract text from resume. Please upload a valid PDF or DOCX file.',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    await this.candidateProfileRepository.save(candidateProfile);
+
+    const updated = await this.findProfileById(candidateProfile.id);
+
+    return candidateToCandidateProfileDto(updated);
   }
 
   async findCandidateByUserId(userId: string): Promise<CandidateProfile> {

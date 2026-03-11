@@ -44,6 +44,7 @@ import {
   MatchScoreOptions,
   ScoreResult,
 } from './types/matchingScore.interface';
+import { SaplingService } from '../sapling/sapling.service';
 
 @Injectable()
 export class VacancySubmissionService {
@@ -65,6 +66,8 @@ export class VacancySubmissionService {
     private readonly profileService: CandidateProfileService,
 
     private readonly questionService: QuestionService,
+
+    private readonly saplingService: SaplingService,
 
     private dataSource: DataSource,
   ) {}
@@ -138,6 +141,11 @@ export class VacancySubmissionService {
       },
     );
 
+    const [commentAiResult, resumeAiResult] = await Promise.all([
+      this.saplingService.detectAiContent(createVacancySubmissionDto.comment),
+      this.saplingService.detectAiContent(createVacancySubmissionDto.resume),
+    ]);
+
     return await this.dataSource.transaction(
       async (transactionalEntityManager) => {
         const vacancySubmission = this.vacancySubmissionRepository.create({
@@ -146,6 +154,10 @@ export class VacancySubmissionService {
           tenantId: vacancy.tenantId,
           candidateId: candidate.id,
           matchScore,
+          commentAiScore: commentAiResult?.score ?? null,
+          commentAiSentenceScores: commentAiResult?.sentenceScores ?? null,
+          resumeAiScore: resumeAiResult?.score ?? null,
+          resumeAiSentenceScores: resumeAiResult?.sentenceScores ?? null,
           vacancy: vacancy,
           candidateProfile: candidate,
         });
@@ -694,6 +706,25 @@ export class VacancySubmissionService {
           );
           bonus += values.filter((v) => extraOptions.includes(v)).length;
         }
+      } else if (
+        vq.type === QuestionType.dropdown &&
+        typeof vq.expectedValue === 'string'
+      ) {
+        const values: string[] = Array.isArray(candidateAnswer)
+          ? candidateAnswer
+          : candidateAnswer
+            ? [candidateAnswer]
+            : [];
+
+        isMatch = values.includes(vq.expectedValue) ? 1 : 0;
+
+        // Bonus: +1 for each additional option selected beyond the single expected
+        if (isMatch) {
+          const extraOptions = (vq.answerOptions || []).filter(
+            (o) => o !== vq.expectedValue,
+          );
+          bonus += values.filter((v) => extraOptions.includes(v)).length;
+        }
       } else {
         isMatch = candidateAnswer === vq.expectedValue ? 1 : 0;
       }
@@ -867,6 +898,45 @@ export class VacancySubmissionService {
     if (!nums?.length) return null;
     if (nums.length === 1) return { min: nums[0], max: nums[0] };
     return { min: Math.min(...nums), max: Math.max(...nums) };
+  }
+
+  async parseResumeFile(
+    submissionId: string,
+    file: Express.Multer.File,
+    extension: string,
+  ): Promise<VacancySubmissionDto> {
+    const submission = await this.findOneById(submissionId);
+
+    const extractedText =
+      await this.saplingService.extractTextFromResumeDependingOnExtension(
+        file,
+        extension,
+      );
+
+    if (!extractedText) {
+      throw new HttpException(
+        'Failed to extract text from resume file due to an internal error. Please try again later.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    if (
+      typeof extractedText === 'string' &&
+      extractedText.trim().length === 0
+    ) {
+      throw new BadRequestException(
+        'No readable text was found in the uploaded resume. Please upload a file with selectable text (for example, a non-scanned PDF or DOCX).',
+      );
+    }
+
+    submission.resume = extractedText;
+    const aiResult = await this.saplingService.detectAiContent(extractedText);
+
+    submission.resumeAiScore = aiResult?.score ?? null;
+    submission.resumeAiSentenceScores = aiResult?.sentenceScores ?? null;
+
+    const saved = await this.vacancySubmissionRepository.save(submission);
+    return vacancySubmToVacancySubmDto(saved);
   }
 
   async findOneById(id: string): Promise<VacancySubmission> {

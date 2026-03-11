@@ -3,6 +3,7 @@ import {
   IsEmail,
   IsInt,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Min,
   ValidateNested,
@@ -45,4 +46,8 @@ export class CreateCandidateProfileDto {
   @ValidateNested({ each: true })
   @Type(() => LanguageProficiency)
   languages?: LanguageProficiency[];
+
+  @IsOptional()
+  @IsString()
+  resume?: string;
 }

@@ -31,6 +31,7 @@ import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
 import { testVacancies } from '../../test/fixtures/testVacancies';
 import { testVacancySubmissions } from '../../test/fixtures/testVacancySubmissions';
 import { Tenant } from '../entities/tenant';
+import { SaplingService } from '../sapling/sapling.service';
 
 describe('CandidateProfileService', () => {
   let candidateProfileService: CandidateProfileService;
@@ -44,7 +45,14 @@ describe('CandidateProfileService', () => {
         TypeOrmModule.forFeature([Tenant, User, CandidateProfile]),
         AuthModule,
       ],
-      providers: [CandidateProfileService, UserService],
+      providers: [
+        CandidateProfileService,
+        UserService,
+        {
+          provide: SaplingService,
+          useValue: { detectAiContent: sinon.stub().resolves(null) },
+        },
+      ],
     }).compile();
 
     candidateProfileService = module.get<CandidateProfileService>(

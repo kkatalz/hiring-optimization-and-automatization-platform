@@ -35,6 +35,7 @@ import { nonExistentUUIDId } from '../../test/utils';
 import { UserModule } from '../user/user.module';
 import { QuestionModule } from '../question/question.module';
 import { CandidateProfileModule } from '../candidateProfile/candidateProfile.module';
+import { SaplingService } from '../sapling/sapling.service';
 import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfiles';
 import { QuestionType } from '../entities/question.enum';
 import { Question } from '../entities/question';
@@ -60,7 +61,11 @@ describe('VacancyService', () => {
         QuestionModule,
         CandidateProfileModule,
       ],
-      providers: [VacancyService, VacancySubmissionService],
+      providers: [
+        VacancyService,
+        VacancySubmissionService,
+        { provide: SaplingService, useValue: { detectAiContent: () => null } },
+      ],
     }).compile();
 
     service = module.get<VacancyService>(VacancyService);

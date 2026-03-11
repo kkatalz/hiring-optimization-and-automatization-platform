@@ -13,6 +13,7 @@ import { VacancySubmissionStatus } from './statuses.enum';
 import { SubmissionAnswer } from './submissionAnswers';
 import { Vacancy } from './vacancy';
 import { ColumnNumericTransformer } from '../utils/convertStringToNumberTransformer';
+import { SentenceScore } from '../sapling/types/scores.interface';
 
 @Entity({ name: 'vacancy_submissions' })
 export class VacancySubmission {
@@ -21,6 +22,35 @@ export class VacancySubmission {
 
   @Column({ type: 'text', nullable: true })
   comment?: string;
+
+  @Column({
+    name: 'comment_ai_score',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+    transformer: new ColumnNumericTransformer(),
+  })
+  commentAiScore?: number | null;
+
+  @Column({ name: 'comment_ai_sentence_scores', type: 'jsonb', nullable: true })
+  commentAiSentenceScores?: SentenceScore[] | null;
+
+  @Column({ type: 'text', nullable: true })
+  resume?: string;
+
+  @Column({
+    name: 'resume_ai_score',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+    transformer: new ColumnNumericTransformer(),
+  })
+  resumeAiScore?: number | null;
+
+  @Column({ name: 'resume_ai_sentence_scores', type: 'jsonb', nullable: true })
+  resumeAiSentenceScores?: SentenceScore[] | null;
 
   @Column({ name: 'vacancy_id', type: 'uuid', nullable: false })
   vacancyId: string;

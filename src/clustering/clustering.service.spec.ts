@@ -26,6 +26,7 @@ import { UserService } from '../user/user.service';
 import { CandidateProfileService } from '../candidateProfile/candidateProfile.service';
 import { TenantService } from '../tenant/tenant.service';
 import { AuthService } from '../auth/auth.service';
+import { SaplingService } from '../sapling/sapling.service';
 import { QuestionType } from '../entities/question.enum';
 import { VacancySubmissionStatus } from '../entities/statuses.enum';
 import { VacancyQuestionDetailedDto } from '../vacancy/dto/vacancyQuestionDetailed.dto';
@@ -186,6 +187,7 @@ describe('ClusteringService', () => {
         CandidateProfileService,
         TenantService,
         AuthService,
+        { provide: SaplingService, useValue: { detectAiContent: () => null } },
       ],
     }).compile();
 

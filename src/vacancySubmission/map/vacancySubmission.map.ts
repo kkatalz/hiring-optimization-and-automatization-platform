@@ -5,6 +5,11 @@ import { candidateToCandidateProfileDto } from '../../candidateProfile/map/candi
 export const vacancySubmToVacancySubmDto = ({
   id,
   comment,
+  commentAiScore,
+  commentAiSentenceScores,
+  resume,
+  resumeAiScore,
+  resumeAiSentenceScores,
   vacancyId,
   tenantId,
   candidateId,
@@ -22,6 +27,11 @@ export const vacancySubmToVacancySubmDto = ({
   return {
     id,
     comment,
+    commentAiScore: commentAiScore ?? null,
+    commentAiSentenceScores: commentAiSentenceScores ?? null,
+    resume,
+    resumeAiScore: resumeAiScore ?? null,
+    resumeAiSentenceScores: resumeAiSentenceScores ?? null,
     vacancyId,
     tenantId,
     candidateId,
