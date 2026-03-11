@@ -709,6 +709,25 @@ export class VacancySubmissionService {
           );
           bonus += values.filter((v) => extraOptions.includes(v)).length;
         }
+      } else if (
+        vq.type === QuestionType.dropdown &&
+        typeof vq.expectedValue === 'string'
+      ) {
+        const values: string[] = Array.isArray(candidateAnswer)
+          ? candidateAnswer
+          : candidateAnswer
+            ? [candidateAnswer]
+            : [];
+
+        isMatch = values.includes(vq.expectedValue) ? 1 : 0;
+
+        // Bonus: +1 for each additional option selected beyond the single expected
+        if (isMatch) {
+          const extraOptions = (vq.answerOptions || []).filter(
+            (o) => o !== vq.expectedValue,
+          );
+          bonus += values.filter((v) => extraOptions.includes(v)).length;
+        }
       } else {
         isMatch = candidateAnswer === vq.expectedValue ? 1 : 0;
       }
