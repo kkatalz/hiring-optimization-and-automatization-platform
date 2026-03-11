@@ -881,31 +881,20 @@ export class VacancySubmissionService {
   async parseResumeFile(
     submissionId: string,
     file: Express.Multer.File,
+    extension: string,
   ): Promise<VacancySubmissionDto> {
     const submission = await this.findOneById(submissionId);
-    const ext = file.originalname.split('.').pop()?.toLowerCase();
 
-    let extractedText: string | null = null;
-
-    if (ext === 'pdf') {
-      extractedText = await this.saplingService.extractTextFromPdf(
-        file.buffer,
-        file.originalname,
+    const extractedText =
+      await this.saplingService.extractTextFromResumeDependingOnExtension(
+        file,
+        extension,
       );
-    } else if (ext === 'docx') {
-      extractedText = await this.saplingService.extractTextFromDocx(
-        file.buffer,
-        file.originalname,
-      );
-    } else {
-      throw new BadRequestException(
-        'Unsupported file type. Only PDF and DOCX are allowed.',
-      );
-    }
 
     if (extractedText) {
       submission.resume = extractedText;
       const aiResult = await this.saplingService.detectAiContent(extractedText);
+
       submission.resumeAiScore = aiResult?.score ?? null;
       submission.resumeAiSentenceScores = aiResult?.sentenceScores ?? null;
     }

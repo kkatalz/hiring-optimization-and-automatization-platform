@@ -189,6 +189,7 @@ export class CandidateProfileService {
   async parseResumeFile(
     candidateId: string,
     file: Express.Multer.File,
+    extension: string,
   ): Promise<CandidateProfileDto> {
     const user = await this.userService.findById(candidateId);
 
@@ -200,26 +201,12 @@ export class CandidateProfileService {
     }
 
     const candidateProfile = user.candidateProfile;
-    const extension = file.originalname.split('.').pop()?.toLowerCase();
 
-    let extractedText: string | null = null;
-
-    if (extension === 'pdf') {
-      extractedText = await this.saplingService.extractTextFromPdf(
-        file.buffer,
-        file.originalname,
+    const extractedText =
+      await this.saplingService.extractTextFromResumeDependingOnExtension(
+        file,
+        extension,
       );
-    } else if (extension === 'docx') {
-      extractedText = await this.saplingService.extractTextFromDocx(
-        file.buffer,
-        file.originalname,
-      );
-    } else {
-      throw new HttpException(
-        'Unsupported file type. Only PDF and DOCX are allowed.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
 
     if (extractedText) {
       candidateProfile.resume = extractedText;

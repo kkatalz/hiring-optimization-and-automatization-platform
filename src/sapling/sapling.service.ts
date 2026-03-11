@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { AiDetectionResult, SentenceScore } from './types/scores.interface';
 
 @Injectable()
@@ -66,6 +66,31 @@ export class SaplingService {
       this.logger.warn(`Sapling API call failed: ${error.message}`);
       return null;
     }
+  }
+
+  async extractTextFromResumeDependingOnExtension(
+    file: Express.Multer.File,
+    extension: string,
+  ): Promise<string | null> {
+    let extractedText: string | null = null;
+
+    if (extension === 'pdf') {
+      extractedText = await this.extractTextFromPdf(
+        file.buffer,
+        file.originalname,
+      );
+    } else if (extension === 'docx') {
+      extractedText = await this.extractTextFromDocx(
+        file.buffer,
+        file.originalname,
+      );
+    } else {
+      throw new BadRequestException(
+        'Unsupported file type. Only PDF and DOCX are allowed.',
+      );
+    }
+
+    return extractedText;
   }
 
   async extractTextFromPdf(

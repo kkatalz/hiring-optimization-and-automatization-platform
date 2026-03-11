@@ -104,6 +104,7 @@ export class CandidateProfileController {
     return await this.candidateProfileService.parseResumeFile(
       candidateId,
       file,
+      extension,
     );
   }
 
