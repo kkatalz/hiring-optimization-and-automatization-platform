@@ -216,6 +216,11 @@ export class CandidateProfileService {
       candidateProfile.resumeAiScore = aiResult?.score ?? null;
       candidateProfile.resumeAiSentenceScores =
         aiResult?.sentenceScores ?? null;
+    } else {
+      throw new HttpException(
+        'Failed to extract text from resume. Please upload a valid PDF or DOCX file.',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     }
 
     await this.candidateProfileRepository.save(candidateProfile);
