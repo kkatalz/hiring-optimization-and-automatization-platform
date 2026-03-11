@@ -9,6 +9,11 @@ export class SaplingService {
   async detectAiContent(
     text: string | undefined,
   ): Promise<AiDetectionResult | null> {
+    if (!text) {
+      this.logger.warn('No text provided for AI detection');
+      return null;
+    }
+
     if (!this.apiKey) {
       this.logger.warn('SAPLING_API_KEY is not set, skipping AI detection');
       return null;
@@ -89,8 +94,17 @@ export class SaplingService {
 
     try {
       const formData = new FormData();
-      formData.append('key', this.apiKey);
+
       formData.append('file', new Blob([new Uint8Array(buffer)]), filename);
+
+      const jsonParams = JSON.stringify({
+        key: this.apiKey,
+      });
+
+      formData.append(
+        'jsonParams',
+        new Blob([jsonParams], { type: 'application/json' }),
+      );
 
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 15000);
@@ -107,8 +121,9 @@ export class SaplingService {
       clearTimeout(timeout);
 
       if (!response.ok) {
+        const text = await response.text().catch(() => '');
         this.logger.warn(
-          `Sapling ${endpoint} API returned status ${response.status}`,
+          `Sapling ${endpoint} API returned status ${response.status}: ${text}`,
         );
         return null;
       }
