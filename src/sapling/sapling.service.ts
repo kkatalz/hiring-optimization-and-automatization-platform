@@ -116,7 +116,9 @@ export class SaplingService {
   ): Promise<string | null> {
     if (!this.apiKey) {
       this.logger.warn('SAPLING_API_KEY is not set, skipping text extraction');
-      return null;
+      throw new BadRequestException(
+        'Text extraction service is unavailable. Sapling api key is missing.',
+      );
     }
 
     try {

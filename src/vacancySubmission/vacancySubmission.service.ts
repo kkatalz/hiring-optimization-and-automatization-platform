@@ -141,13 +141,10 @@ export class VacancySubmissionService {
       },
     );
 
-    const commentAiResult = await this.saplingService.detectAiContent(
-      createVacancySubmissionDto.comment,
-    );
-
-    const resumeAiResult = await this.saplingService.detectAiContent(
-      createVacancySubmissionDto.resume,
-    );
+    const [commentAiResult, resumeAiResult] = await Promise.all([
+      this.saplingService.detectAiContent(createVacancySubmissionDto.comment),
+      this.saplingService.detectAiContent(createVacancySubmissionDto.resume),
+    ]);
 
     return await this.dataSource.transaction(
       async (transactionalEntityManager) => {
@@ -918,8 +915,17 @@ export class VacancySubmissionService {
 
     if (!extractedText) {
       throw new HttpException(
-        'Failed to extract text from resume file. Please try again later.',
-        HttpStatus.SERVICE_UNAVAILABLE,
+        'Failed to extract text from resume file due to an internal error. Please try again later.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    if (
+      typeof extractedText === 'string' &&
+      extractedText.trim().length === 0
+    ) {
+      throw new BadRequestException(
+        'No readable text was found in the uploaded resume. Please upload a file with selectable text (for example, a non-scanned PDF or DOCX).',
       );
     }
 
