@@ -4,26 +4,33 @@ import { AiDetectionResult, SentenceScore } from './types/scores.interface';
 @Injectable()
 export class SaplingService {
   private readonly logger = new Logger(SaplingService.name);
-  private readonly apiKey = process.env.SAPLING_API_KEY;
+
+  private get apiKey(): string | undefined {
+    return process.env.SAPLING_API_KEY;
+  }
 
   async detectAiContent(
     text: string | undefined,
   ): Promise<AiDetectionResult | null> {
     if (!text) {
       this.logger.warn('No text provided for AI detection');
-      return null;
+      throw new BadRequestException('No text provided for AI detection');
     }
 
     if (!this.apiKey) {
       this.logger.warn('SAPLING_API_KEY is not set, skipping AI detection');
-      return null;
+      throw new BadRequestException(
+        'Text extraction service is unavailable. Sapling api key is missing.',
+      );
     }
 
     if (!text || text.length < 50) {
       this.logger.warn(
         `Text is too short for AI detection (length: ${text?.length ?? 0})`,
       );
-      return null;
+      throw new BadRequestException(
+        'Text is too short for AI detection. Minimum length is 50 characters.',
+      );
     }
 
     try {
@@ -40,7 +47,7 @@ export class SaplingService {
 
         if (!response.ok) {
           this.logger.warn(`Sapling API returned status ${response.status}`);
-          return null;
+          throw new Error(`Sapling API error: ${response.status}`);
         }
 
         const data = await response.json();
