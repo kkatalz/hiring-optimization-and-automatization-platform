@@ -11,9 +11,7 @@ import {
   Post,
   Query,
   UploadedFile,
-  UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthUser } from '../decorators/authUser.dto';
 import { Roles } from '../decorators/roles.decorator';
 import { UserRole } from '../entities/role.enum';
@@ -24,6 +22,7 @@ import { CreateCandidateProfileDto } from './dto/createCandidateProfile.dto';
 import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
 import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
 import { validateTenantAccess } from '../utils/validate';
+import { UploadResume } from '../utils/upload-resume.decorator';
 
 @Controller('candidatesProfiles')
 export class CandidateProfileController {
@@ -78,7 +77,7 @@ export class CandidateProfileController {
 
   @Roles(UserRole.candidate)
   @Patch(':userId/parse-resume-file')
-  @UseInterceptors(FileInterceptor('file'))
+  @UploadResume()
   async parseResumeFile(
     @AuthUser() requester: UserDto,
     @Param('userId', new ParseUUIDPipe()) candidateId: string,
