@@ -30,38 +30,40 @@ export class SaplingService {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
 
-      const response = await fetch('https://api.sapling.ai/api/v1/aidetect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: this.apiKey, text, sent_scores: true }),
-        signal: controller.signal,
-      });
+      try {
+        const response = await fetch('https://api.sapling.ai/api/v1/aidetect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: this.apiKey, text, sent_scores: true }),
+          signal: controller.signal,
+        });
 
-      clearTimeout(timeout);
+        if (!response.ok) {
+          this.logger.warn(`Sapling API returned status ${response.status}`);
+          return null;
+        }
 
-      if (!response.ok) {
-        this.logger.warn(`Sapling API returned status ${response.status}`);
-        return null;
-      }
+        const data = await response.json();
+        const rawScore = data?.score;
 
-      const data = await response.json();
-      const rawScore = data?.score;
+        if (rawScore == null) {
+          this.logger.warn('Sapling response missing score');
+          return null;
+        }
 
-      if (rawScore == null) {
-        this.logger.warn('Sapling response missing score');
-        return null;
-      }
+        const score = Math.round(rawScore * 100 * 100) / 100;
 
-      const score = Math.round(rawScore * 100 * 100) / 100;
-
-      const sentenceScores: SentenceScore[] = (data.sentence_scores ?? []).map(
-        (entry: { sentence: string; score: number }) => ({
+        const sentenceScores: SentenceScore[] = (
+          data.sentence_scores ?? []
+        ).map((entry: { sentence: string; score: number }) => ({
           sentence: entry.sentence,
           score: Math.round(entry.score * 100 * 100) / 100,
-        }),
-      );
+        }));
 
-      return { score, sentenceScores };
+        return { score, sentenceScores };
+      } finally {
+        clearTimeout(timeout);
+      }
     } catch (error) {
       this.logger.warn(`Sapling API call failed: ${error.message}`);
       return null;
@@ -134,27 +136,29 @@ export class SaplingService {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 15000);
 
-      const response = await fetch(
-        `https://api.sapling.ai/api/v1/ingest/${endpoint}`,
-        {
-          method: 'POST',
-          body: formData,
-          signal: controller.signal,
-        },
-      );
-
-      clearTimeout(timeout);
-
-      if (!response.ok) {
-        const text = await response.text().catch(() => '');
-        this.logger.warn(
-          `Sapling ${endpoint} API returned status ${response.status}: ${text}`,
+      try {
+        const response = await fetch(
+          `https://api.sapling.ai/api/v1/ingest/${endpoint}`,
+          {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal,
+          },
         );
-        return null;
-      }
 
-      const data = await response.json();
-      return data?.text ?? null;
+        if (!response.ok) {
+          const text = await response.text().catch(() => '');
+          this.logger.warn(
+            `Sapling ${endpoint} API returned status ${response.status}: ${text}`,
+          );
+          return null;
+        }
+
+        const data = await response.json();
+        return data?.text ?? null;
+      } finally {
+        clearTimeout(timeout);
+      }
     } catch (error) {
       this.logger.warn(`Sapling ${endpoint} call failed: ${error.message}`);
       return null;
