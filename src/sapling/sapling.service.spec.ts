@@ -1,7 +1,10 @@
-import { expect } from 'chai';
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import { SaplingService } from './sapling.service';
 import { BadRequestException } from '@nestjs/common';
+
+chai.use(chaiAsPromised);
 
 describe.only('SaplingService', () => {
   let service: SaplingService;
@@ -25,63 +28,46 @@ describe.only('SaplingService', () => {
 
       const freshService = new SaplingService();
 
-      try {
-        await freshService.detectAiContent(
+      await expect(
+        freshService.detectAiContent(
           'This is a long enough text to pass the minimum character threshold for AI detection.',
-        );
+        ),
+      ).to.be.rejectedWith(
+        BadRequestException,
+        'Text extraction service is unavailable. Sapling api key is missing.',
+      );
 
-        expect.fail(
-          'Expected detectAiContent to throw an error when SAPLING_API_KEY is not set',
-        );
-      } catch (error) {
-        if (error.message?.includes('Expected detectAiContent')) throw error;
-        expect(error).to.be.instanceOf(BadRequestException);
-        expect(error.message).to.equal(
-          'Text extraction service is unavailable. Sapling api key is missing.',
-        );
-      } finally {
-        process.env.SAPLING_API_KEY = original;
-      }
+      process.env.SAPLING_API_KEY = original;
     });
 
     it('should throw BadRequestException for text shorter than 50 characters', async () => {
-      const freshService = new SaplingService();
-
       sinon.stub(process, 'env').value({
         ...process.env,
         SAPLING_API_KEY: 'test-key',
       });
 
-      try {
-        await freshService.detectAiContent('Short text');
-        expect.fail(
-          'Expected detectAiContent to throw an error for short text',
-        );
-      } catch (error) {
-        expect(error).to.be.instanceOf(BadRequestException);
-      }
+      const freshService = new SaplingService();
+
+      await expect(
+        freshService.detectAiContent('Short text'),
+      ).to.be.rejectedWith(BadRequestException);
     });
 
     it('should throw BadRequestException for empty text', async () => {
       const freshService = new SaplingService();
 
-      try {
-        await freshService.detectAiContent('');
-        expect.fail(
-          'Expected detectAiContent to throw an error for empty text',
-        );
-      } catch (error) {
-        expect(error).to.be.instanceOf(BadRequestException);
-      }
+      await expect(freshService.detectAiContent('')).to.be.rejectedWith(
+        BadRequestException,
+      );
     });
 
     it('should send correct request format to Sapling API', async () => {
-      const freshService = new SaplingService();
-
       sinon.stub(process, 'env').value({
         ...process.env,
         SAPLING_API_KEY: 'test-key',
       });
+
+      const freshService = new SaplingService();
 
       const mockResponse = {
         ok: true,
@@ -116,12 +102,12 @@ describe.only('SaplingService', () => {
     });
 
     it('should return AI score and sentence scores on successful API response', async () => {
-      const freshService = new SaplingService();
-
       sinon.stub(process, 'env').value({
         ...process.env,
         SAPLING_API_KEY: 'test-key',
       });
+
+      const freshService = new SaplingService();
 
       const mockResponse = {
         ok: true,
@@ -149,12 +135,12 @@ describe.only('SaplingService', () => {
     });
 
     it('should throw new Error when API returns non-ok status', async () => {
-      const freshService = new SaplingService();
-
       sinon.stub(process, 'env').value({
         ...process.env,
         SAPLING_API_KEY: 'test-key',
       });
+
+      const freshService = new SaplingService();
 
       const mockResponse = {
         ok: false,
@@ -163,25 +149,20 @@ describe.only('SaplingService', () => {
 
       sinon.stub(global, 'fetch').resolves(mockResponse as any);
 
-      try {
-        await freshService.detectAiContent(
-          'This is a sufficiently long text that exceeds the fifty character minimum threshold for AI detection analysis.',
-        );
-        expect.fail(
-          'Expected detectAiContent to throw an error for non-ok API status',
-        );
-      } catch (error) {
-        expect(error).to.be.instanceOf(Error);
-      }
+      const result = await freshService.detectAiContent(
+        'This is a sufficiently long text that exceeds the fifty character minimum threshold for AI detection analysis.',
+      );
+
+      expect(result).to.equal(null);
     });
 
     it('should return null when fetch throws (e.g., timeout)', async () => {
-      const freshService = new SaplingService();
-
       sinon.stub(process, 'env').value({
         ...process.env,
         SAPLING_API_KEY: 'test-key',
       });
+
+      const freshService = new SaplingService();
 
       sinon.stub(global, 'fetch').rejects(new Error('AbortError'));
 
@@ -193,12 +174,12 @@ describe.only('SaplingService', () => {
     });
 
     it('should round the score to 2 decimal places', async () => {
-      const freshService = new SaplingService();
-
       sinon.stub(process, 'env').value({
         ...process.env,
         SAPLING_API_KEY: 'test-key',
       });
+
+      const freshService = new SaplingService();
 
       const mockResponse = {
         ok: true,
@@ -218,12 +199,12 @@ describe.only('SaplingService', () => {
     });
 
     it('should handle empty sentence_scores array', async () => {
-      const freshService = new SaplingService();
-
       sinon.stub(process, 'env').value({
         ...process.env,
         SAPLING_API_KEY: 'test-key',
       });
+
+      const freshService = new SaplingService();
 
       const mockResponse = {
         ok: true,
@@ -244,12 +225,12 @@ describe.only('SaplingService', () => {
     });
 
     it('should handle missing sentence_scores in response', async () => {
-      const freshService = new SaplingService();
-
       sinon.stub(process, 'env').value({
         ...process.env,
         SAPLING_API_KEY: 'test-key',
       });
+
+      const freshService = new SaplingService();
 
       const mockResponse = {
         ok: true,
@@ -276,33 +257,23 @@ describe.only('SaplingService', () => {
 
       const freshService = new SaplingService();
 
-      try {
-        await freshService.extractTextFromPdf(
-          Buffer.from('fake-pdf'),
-          'test.pdf',
-        );
+      await expect(
+        freshService.extractTextFromPdf(Buffer.from('fake-pdf'), 'test.pdf'),
+      ).to.be.rejectedWith(
+        BadRequestException,
+        'Text extraction service is unavailable. Sapling api key is missing.',
+      );
 
-        expect.fail(
-          'Expected extractTextFromPdf to throw an error when SAPLING_API_KEY is not set',
-        );
-      } catch (error) {
-        if (error.message?.includes('Expected extractTextFromPdf')) throw error;
-        expect(error).to.be.instanceOf(BadRequestException);
-        expect(error.message).to.equal(
-          'Text extraction service is unavailable. Sapling api key is missing.',
-        );
-      } finally {
-        process.env.SAPLING_API_KEY = original;
-      }
+      process.env.SAPLING_API_KEY = original;
     });
 
     it('should return extracted text on success', async () => {
-      const freshService = new SaplingService();
-
       sinon.stub(process, 'env').value({
         ...process.env,
         SAPLING_API_KEY: 'test-key',
       });
+
+      const freshService = new SaplingService();
 
       const mockResponse = {
         ok: true,
@@ -320,12 +291,12 @@ describe.only('SaplingService', () => {
     });
 
     it('should return null on API error', async () => {
-      const freshService = new SaplingService();
-
       sinon.stub(process, 'env').value({
         ...process.env,
         SAPLING_API_KEY: 'test-key',
       });
+
+      const freshService = new SaplingService();
 
       sinon.stub(global, 'fetch').resolves({ ok: false, status: 500 } as any);
 
@@ -345,34 +316,23 @@ describe.only('SaplingService', () => {
 
       const freshService = new SaplingService();
 
-      try {
-        await freshService.extractTextFromDocx(
-          Buffer.from('fake-docx'),
-          'test.docx',
-        );
+      await expect(
+        freshService.extractTextFromDocx(Buffer.from('fake-docx'), 'test.docx'),
+      ).to.be.rejectedWith(
+        BadRequestException,
+        'Text extraction service is unavailable. Sapling api key is missing.',
+      );
 
-        expect.fail(
-          'Expected extractTextFromDocx to throw an error when SAPLING_API_KEY is not set',
-        );
-      } catch (error) {
-        if (error.message?.includes('Expected extractTextFromDocx'))
-          throw error;
-        expect(error).to.be.instanceOf(BadRequestException);
-        expect(error.message).to.equal(
-          'Text extraction service is unavailable. Sapling api key is missing.',
-        );
-      } finally {
-        process.env.SAPLING_API_KEY = original;
-      }
+      process.env.SAPLING_API_KEY = original;
     });
 
     it('should return extracted text on success', async () => {
-      const freshService = new SaplingService();
-
       sinon.stub(process, 'env').value({
         ...process.env,
         SAPLING_API_KEY: 'test-key',
       });
+
+      const freshService = new SaplingService();
 
       const mockResponse = {
         ok: true,
@@ -390,12 +350,12 @@ describe.only('SaplingService', () => {
     });
 
     it('should return null on fetch error', async () => {
-      const freshService = new SaplingService();
-
       sinon.stub(process, 'env').value({
         ...process.env,
         SAPLING_API_KEY: 'test-key',
       });
+
+      const freshService = new SaplingService();
 
       sinon.stub(global, 'fetch').rejects(new Error('Network error'));
 
