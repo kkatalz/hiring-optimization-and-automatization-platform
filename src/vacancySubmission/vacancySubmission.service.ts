@@ -916,13 +916,18 @@ export class VacancySubmissionService {
         extension,
       );
 
-    if (extractedText) {
-      submission.resume = extractedText;
-      const aiResult = await this.saplingService.detectAiContent(extractedText);
-
-      submission.resumeAiScore = aiResult?.score ?? null;
-      submission.resumeAiSentenceScores = aiResult?.sentenceScores ?? null;
+    if (!extractedText) {
+      throw new HttpException(
+        'Failed to extract text from resume file. Please try again later.',
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
     }
+
+    submission.resume = extractedText;
+    const aiResult = await this.saplingService.detectAiContent(extractedText);
+
+    submission.resumeAiScore = aiResult?.score ?? null;
+    submission.resumeAiSentenceScores = aiResult?.sentenceScores ?? null;
 
     const saved = await this.vacancySubmissionRepository.save(submission);
     return vacancySubmToVacancySubmDto(saved);
