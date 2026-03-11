@@ -141,8 +141,12 @@ export class VacancySubmissionService {
       },
     );
 
-    const aiResult = await this.saplingService.detectAiContent(
+    const commentAiResult = await this.saplingService.detectAiContent(
       createVacancySubmissionDto.comment,
+    );
+
+    const resumeAiResult = await this.saplingService.detectAiContent(
+      createVacancySubmissionDto.resume,
     );
 
     return await this.dataSource.transaction(
@@ -153,8 +157,10 @@ export class VacancySubmissionService {
           tenantId: vacancy.tenantId,
           candidateId: candidate.id,
           matchScore,
-          commentAiScore: aiResult?.score ?? null,
-          commentAiSentenceScores: aiResult?.sentenceScores ?? null,
+          commentAiScore: commentAiResult?.score ?? null,
+          commentAiSentenceScores: commentAiResult?.sentenceScores ?? null,
+          resumeAiScore: resumeAiResult?.score ?? null,
+          resumeAiSentenceScores: resumeAiResult?.sentenceScores ?? null,
           vacancy: vacancy,
           candidateProfile: candidate,
         });
