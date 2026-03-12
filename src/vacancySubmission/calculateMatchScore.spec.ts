@@ -678,22 +678,69 @@ describe('calculateMatchScore (unit)', () => {
       expect(score).to.equal(100);
     });
 
-    it('should effectively disable a dimension when weight is 0', () => {
-      // Questions match 100%, experience 0%, but experience weight = 0
+    it('should effectively disable a dimension when weight is 0 (no bonus leak)', () => {
+      // Experience would produce ratio=1 and bonus=+5 (capped), but weight=0 should exclude it entirely
       const questions = [boolQuestion('q1', 'true')];
       const answers = [answer('q1', 'true')];
       const options: MatchScoreOptions = {
-        vacancyRequiredYearsOfExperience: 10,
-        candidateYearsOfExperience: 0,
+        vacancyRequiredYearsOfExperience: 3,
+        candidateYearsOfExperience: 10, // would give +5 bonus if not excluded
         customWeights: { questions: 60, experience: 0 },
       };
 
       const score = service.calculateMatchScore(answers, questions, options);
 
-      // experience weight=0 → its ScoreResult still returned with weight=0
-      // questions: ratio=1, weight=60
-      // experience: ratio=0, weight=0 → contributes 0 to both numerator and denominator
-      // totalWeight = 60, base = 60/60*100 = 100
+      // experience weight=0 → dimension skipped entirely (no ratio, no bonus)
+      // questions: ratio=1, weight=60 → base = 60/60*100 = 100, no bonuses
+      expect(score).to.equal(100);
+    });
+
+    it('should exclude languages entirely when languages weight is 0', () => {
+      const questions = [boolQuestion('q1', 'true')];
+      const answers = [answer('q1', 'true')];
+      const options: MatchScoreOptions = {
+        vacancyLanguageRequirements: [{ code: 'en', level: LanguageLevel.B2 }],
+        candidateLanguages: [
+          { code: 'en', level: LanguageLevel.C2 }, // would give +2 level bonus
+          { code: 'fr', level: LanguageLevel.A1 }, // would give +1 extra lang bonus
+        ],
+        customWeights: { questions: 50, languages: 0 },
+      };
+
+      const score = service.calculateMatchScore(answers, questions, options);
+
+      // languages weight=0 → skipped, no bonus leak
+      // questions: ratio=1, weight=50 → base = 100
+      expect(score).to.equal(100);
+    });
+
+    it('should exclude tags entirely when tags weight is 0', () => {
+      const questions = [boolQuestion('q1', 'true')];
+      const answers = [answer('q1', 'true')];
+      const options: MatchScoreOptions = {
+        vacancyTags: ['React', 'Node'],
+        submissionTags: ['React', 'Node', 'Vue', 'Docker'], // would give +2 extra tag bonus
+        customWeights: { questions: 50, tags: 0 },
+      };
+
+      const score = service.calculateMatchScore(answers, questions, options);
+
+      // tags weight=0 → skipped, no bonus leak
+      expect(score).to.equal(100);
+    });
+
+    it('should exclude salary entirely when salary weight is 0', () => {
+      const questions = [boolQuestion('q1', 'true')];
+      const answers = [answer('q1', 'true')];
+      const options: MatchScoreOptions = {
+        vacancySalary: '1000-2000 USD',
+        expectedSalary: 1000, // would give +3 salary bonus
+        customWeights: { questions: 50, salary: 0 },
+      };
+
+      const score = service.calculateMatchScore(answers, questions, options);
+
+      // salary weight=0 → skipped, no bonus leak
       expect(score).to.equal(100);
     });
 
