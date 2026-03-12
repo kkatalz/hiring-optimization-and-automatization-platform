@@ -77,7 +77,7 @@ export class VacancySubmissionService {
   ): Promise<VacancySubmission[]> {
     const submissions = await this.vacancySubmissionRepository.find({
       where: { vacancyId },
-      relations: ['answers'],
+      relations: ['answers', 'candidateProfile'],
     });
 
     return submissions;

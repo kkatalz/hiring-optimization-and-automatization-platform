@@ -35,6 +35,7 @@ import { testTenants } from '../../test/fixtures/testTenants';
 import { testUsers } from '../../test/fixtures/testUsers';
 import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfiles';
 import { testQuestions } from '../../test/fixtures/testQuestions';
+import { LanguageLevel, LanguageProficiency } from '../entities/hiring.enum';
 
 // ── Clustering-specific fixtures ──
 
@@ -48,6 +49,11 @@ const clusteringVacancy: Vacancy = {
   createdById: testUsers[0].id,
   needsReclustering: false,
   tags: ['React', 'Node', 'Python', 'SQL'],
+  languageRequirements: [
+    { code: 'en', level: LanguageLevel.B2 },
+    { code: 'de', level: LanguageLevel.A2 },
+  ],
+  requiredYearsOfExperience: 10,
 };
 
 const clusteringSubmissions: VacancySubmission[] = [
@@ -56,6 +62,7 @@ const clusteringSubmissions: VacancySubmission[] = [
     vacancyId: CLUSTERING_VACANCY_ID,
     tenantId: testTenants[0].id,
     candidateId: testCandidatesProfiles[0].id,
+    candidateProfile: testCandidatesProfiles[0],
     status: VacancySubmissionStatus.pending,
     tags: ['React', 'SQL'],
     expectedSalary: 50_000,
@@ -66,6 +73,7 @@ const clusteringSubmissions: VacancySubmission[] = [
     vacancyId: CLUSTERING_VACANCY_ID,
     tenantId: testTenants[0].id,
     candidateId: testCandidatesProfiles[1].id,
+    candidateProfile: testCandidatesProfiles[1],
     status: VacancySubmissionStatus.pending,
     tags: ['React', 'Node'],
     expectedSalary: 55_000,
@@ -76,6 +84,7 @@ const clusteringSubmissions: VacancySubmission[] = [
     vacancyId: CLUSTERING_VACANCY_ID,
     tenantId: testTenants[0].id,
     candidateId: testCandidatesProfiles[0].id,
+    candidateProfile: testCandidatesProfiles[0],
     status: VacancySubmissionStatus.pending,
     tags: ['Python'],
     expectedSalary: 20_000,
@@ -242,6 +251,11 @@ describe('ClusteringService', () => {
 
     const allTags = ['React', 'Node', 'Python', 'SQL'];
     const salaryRange: SalaryRange = { min: 20_000, max: 100_000 };
+    const langReqs: LanguageProficiency[] = [
+      { code: 'en', level: LanguageLevel.B2 },
+      { code: 'de', level: LanguageLevel.A2 },
+    ];
+    const requiredYears = 10;
 
     it('should build correct vector for candidate with boolean=true, dropdown=[PhD], salary=50000, tags=[React,SQL]', () => {
       const submission = {
@@ -251,6 +265,10 @@ describe('ClusteringService', () => {
         ],
         expectedSalary: 50_000,
         tags: ['React', 'SQL'],
+        candidateProfile: {
+          yearsOfExperience: 5,
+          languages: [{ code: 'en', level: LanguageLevel.C1 }],
+        },
       } as unknown as VacancySubmission;
 
       const vector = service.buildFeatureVector(
@@ -258,6 +276,8 @@ describe('ClusteringService', () => {
         allTags,
         salaryRange,
         vacancyQuestions,
+        langReqs,
+        requiredYears,
       );
 
       // boolean: 1 * (1/3) = 0.333...
@@ -278,7 +298,14 @@ describe('ClusteringService', () => {
       expect(vector[8]).to.equal(0);
       expect(vector[9]).to.equal(1);
 
-      expect(vector).to.have.lengthOf(10);
+      // experience: min(5,10)/10 = 0.5
+      expect(vector[10]).to.be.closeTo(0.5, 0.001);
+
+      // languages: en C1 >= B2 → 1, de not present → 0
+      expect(vector[11]).to.equal(1);
+      expect(vector[12]).to.equal(0);
+
+      expect(vector).to.have.lengthOf(13);
     });
 
     it('should build correct vector for candidate with boolean=false, dropdown=[High School], salary=20000, tags=[Python]', () => {
@@ -289,6 +316,10 @@ describe('ClusteringService', () => {
         ],
         expectedSalary: 20_000,
         tags: ['Python'],
+        candidateProfile: {
+          yearsOfExperience: 3,
+          languages: [{ code: 'de', level: LanguageLevel.B1 }],
+        },
       } as unknown as VacancySubmission;
 
       const vector = service.buildFeatureVector(
@@ -296,6 +327,8 @@ describe('ClusteringService', () => {
         allTags,
         salaryRange,
         vacancyQuestions,
+        langReqs,
+        requiredYears,
       );
 
       // boolean: 0 * (1/3) = 0
@@ -312,6 +345,13 @@ describe('ClusteringService', () => {
       expect(vector[7]).to.equal(0);
       expect(vector[8]).to.equal(1);
       expect(vector[9]).to.equal(0);
+
+      // experience: min(3,10)/10 = 0.3
+      expect(vector[10]).to.be.closeTo(0.3, 0.001);
+
+      // languages: en not present → 0, de B1 >= A2 → 1
+      expect(vector[11]).to.equal(0);
+      expect(vector[12]).to.equal(1);
     });
 
     it('should use default values when answers are missing', () => {
@@ -326,6 +366,8 @@ describe('ClusteringService', () => {
         allTags,
         salaryRange,
         vacancyQuestions,
+        langReqs,
+        requiredYears,
       );
 
       // boolean missing: default 0, weighted = 0 * (1/3) = 0
@@ -342,6 +384,13 @@ describe('ClusteringService', () => {
       expect(vector[7]).to.equal(0);
       expect(vector[8]).to.equal(0);
       expect(vector[9]).to.equal(0);
+
+      // experience: no candidateProfile → 0/10 = 0
+      expect(vector[10]).to.equal(0);
+
+      // languages: no candidateProfile → 0, 0
+      expect(vector[11]).to.equal(0);
+      expect(vector[12]).to.equal(0);
     });
 
     it('should handle equal min/max salary range', () => {
@@ -363,6 +412,159 @@ describe('ClusteringService', () => {
       // When min === max and salary is not null, use 0.5
       // salary is at index 5 now (1 boolean + 4 dropdown multi-hot)
       expect(vector[5]).to.equal(0.5);
+    });
+
+    // ── Experience encoding ──
+
+    it('should encode experience as ratio capped at 1.0', () => {
+      // 5 years vs 10 required → 0.5
+      const sub5yrs = {
+        answers: [],
+        expectedSalary: null,
+        tags: [],
+        candidateProfile: { yearsOfExperience: 5, languages: [] },
+      } as unknown as VacancySubmission;
+
+      const vec5 = service.buildFeatureVector(
+        sub5yrs,
+        [],
+        { min: 0, max: 0 },
+        [],
+        [],
+        10,
+      );
+      // salary(1) + experience(1) = index 1
+      expect(vec5[1]).to.be.closeTo(0.5, 0.001);
+
+      // 15 years vs 10 required → capped at 1.0
+      const sub15yrs = {
+        answers: [],
+        expectedSalary: null,
+        tags: [],
+        candidateProfile: { yearsOfExperience: 15, languages: [] },
+      } as unknown as VacancySubmission;
+
+      const vec15 = service.buildFeatureVector(
+        sub15yrs,
+        [],
+        { min: 0, max: 0 },
+        [],
+        [],
+        10,
+      );
+      expect(vec15[1]).to.be.closeTo(1.0, 0.001);
+    });
+
+    // ── Language encoding ──
+
+    it('should encode language match as 1 when candidate meets or exceeds required level', () => {
+      const submission = {
+        answers: [],
+        expectedSalary: null,
+        tags: [],
+        candidateProfile: {
+          yearsOfExperience: 0,
+          languages: [
+            { code: 'en', level: LanguageLevel.B2 }, // exactly meets B2
+            { code: 'de', level: LanguageLevel.C1 }, // exceeds A2
+          ],
+        },
+      } as unknown as VacancySubmission;
+
+      const vector = service.buildFeatureVector(
+        submission,
+        [],
+        { min: 0, max: 0 },
+        [],
+        [
+          { code: 'en', level: LanguageLevel.B2 },
+          { code: 'de', level: LanguageLevel.A2 },
+        ],
+        0,
+      );
+      // salary(1) + lang en(1) + lang de(1) — no experience since requiredYears=0
+      expect(vector[1]).to.equal(1); // en meets
+      expect(vector[2]).to.equal(1); // de exceeds
+    });
+
+    it('should encode language match as 0 when candidate does not meet required level', () => {
+      const submission = {
+        answers: [],
+        expectedSalary: null,
+        tags: [],
+        candidateProfile: {
+          yearsOfExperience: 0,
+          languages: [{ code: 'en', level: LanguageLevel.A1 }],
+        },
+      } as unknown as VacancySubmission;
+
+      const vector = service.buildFeatureVector(
+        submission,
+        [],
+        { min: 0, max: 0 },
+        [],
+        [{ code: 'en', level: LanguageLevel.B2 }],
+        0,
+      );
+      // salary(1) + lang en(1)
+      expect(vector[1]).to.equal(0); // A1 < B2
+    });
+
+    // ── Full vector length ──
+
+    it('should produce vector with correct length including experience and language dimensions', () => {
+      const submission = {
+        answers: [
+          { questionId: testQuestions[0].id, value: 'true' },
+          { questionId: testQuestions[2].id, value: ['PhD'] },
+        ],
+        expectedSalary: 50_000,
+        tags: ['React'],
+        candidateProfile: {
+          yearsOfExperience: 5,
+          languages: [{ code: 'en', level: LanguageLevel.C1 }],
+        },
+      } as unknown as VacancySubmission;
+
+      const vector = service.buildFeatureVector(
+        submission,
+        allTags,
+        salaryRange,
+        vacancyQuestions,
+        langReqs,
+        requiredYears,
+      );
+
+      // 1 boolean + 4 dropdown + 1 salary + 4 tags + 1 experience + 2 languages = 13
+      expect(vector).to.have.lengthOf(13);
+    });
+
+    // ── Missing data defaults ──
+
+    it('should default to 0 when candidateProfile has no experience or languages', () => {
+      const submission = {
+        answers: [],
+        expectedSalary: null,
+        tags: [],
+        candidateProfile: undefined,
+      } as unknown as VacancySubmission;
+
+      const vector = service.buildFeatureVector(
+        submission,
+        [],
+        { min: 0, max: 0 },
+        [],
+        langReqs,
+        requiredYears,
+      );
+
+      // salary(1) + experience(1) + 2 languages = 4
+      expect(vector).to.have.lengthOf(4);
+      // experience: 0/10 = 0
+      expect(vector[1]).to.equal(0);
+      // languages: both 0
+      expect(vector[2]).to.equal(0);
+      expect(vector[3]).to.equal(0);
     });
 
     it('should skip text questions', () => {
@@ -388,6 +590,10 @@ describe('ClusteringService', () => {
         ],
         expectedSalary: 50_000,
         tags: ['React'],
+        candidateProfile: {
+          yearsOfExperience: 5,
+          languages: [{ code: 'en', level: LanguageLevel.C1 }],
+        },
       } as unknown as VacancySubmission;
 
       const vector = service.buildFeatureVector(
@@ -395,10 +601,12 @@ describe('ClusteringService', () => {
         allTags,
         salaryRange,
         questionsWithText,
+        langReqs,
+        requiredYears,
       );
 
-      // Vector should be 10 elements (text is skipped, 1 boolean + 4 dropdown multi-hot + 1 salary + 4 tags)
-      expect(vector).to.have.lengthOf(10);
+      // Vector should be 13 elements (text is skipped, 1 boolean + 4 dropdown multi-hot + 1 salary + 4 tags + 1 experience + 2 languages)
+      expect(vector).to.have.lengthOf(13);
     });
   });
 

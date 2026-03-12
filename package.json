@@ -99,6 +99,9 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "transformIgnorePatterns": [
+      "node_modules/(?!(ml-kmeans|ml-distance-euclidean|ml-nearest-vector|ml-array-rescale|ml-array-min|ml-array-max|is-any-array)/)"
+    ]
   }
 }

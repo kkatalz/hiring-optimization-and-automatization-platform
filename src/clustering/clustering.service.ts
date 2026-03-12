@@ -12,6 +12,10 @@ import { VacancyService } from '../vacancy/vacancy.service';
 import mlKmeans from 'ml-kmeans';
 import { SalaryRange } from './types/salaryRange.interface';
 import { VacancySubmissionService } from '../vacancySubmission/vacancySubmission.service';
+import {
+  LanguageProficiency,
+  LanguageLevelRank,
+} from '../entities/hiring.enum';
 
 @Injectable()
 export class ClusteringService {
@@ -34,6 +38,8 @@ export class ClusteringService {
     allVacancyTags: string[],
     salaryRange: SalaryRange,
     vacancyQuestions: VacancyQuestionDetailedDto[],
+    vacancyLanguageRequirements?: LanguageProficiency[],
+    vacancyRequiredYearsOfExperience?: number,
   ): number[] {
     const vector: number[] = [];
 
@@ -88,6 +94,40 @@ export class ClusteringService {
       vector.push((submission.tags || []).includes(tag) ? 1 : 0);
     }
 
+    // Experience — ratio encoding (weight = 1)
+    if (
+      vacancyRequiredYearsOfExperience != null &&
+      vacancyRequiredYearsOfExperience > 0
+    ) {
+      const candidateYears =
+        submission.candidateProfile?.yearsOfExperience ?? 0;
+      vector.push(
+        Math.min(candidateYears, vacancyRequiredYearsOfExperience) /
+          vacancyRequiredYearsOfExperience,
+      );
+    }
+
+    // Languages — binary encoding per requirement (weight = 1 each)
+    if (vacancyLanguageRequirements?.length) {
+      const candidateLangs = submission.candidateProfile?.languages || [];
+
+      for (const req of vacancyLanguageRequirements) {
+        const met = candidateLangs.some((cl) => {
+          if (req.code && cl.code !== req.code) return false;
+          if (req.level) {
+            if (!cl.level) return false;
+            if (
+              LanguageLevelRank.indexOf(cl.level) <
+              LanguageLevelRank.indexOf(req.level)
+            )
+              return false;
+          }
+          return true;
+        });
+        vector.push(met ? 1 : 0);
+      }
+    }
+
     return vector;
   }
 
@@ -109,7 +149,14 @@ export class ClusteringService {
     const salaryRange = this.calculateSalaryRange(submissions);
 
     const vectors = submissions.map((s) =>
-      this.buildFeatureVector(s, allVacancyTags, salaryRange, vacancyQuestions),
+      this.buildFeatureVector(
+        s,
+        allVacancyTags,
+        salaryRange,
+        vacancyQuestions,
+        vacancy.languageRequirements,
+        vacancy.requiredYearsOfExperience,
+      ),
     );
 
     // If vectors are empty (no features), skip clustering
