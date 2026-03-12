@@ -668,7 +668,7 @@ export class VacancySubmissionService {
     const weightDistribution = results
       .map(
         (r) =>
-          `${r.log.split(':')[0]}: ${((r.weight / totalWeight) * 100).toFixed(1)}%`,
+          `${r.dimension}: ${((r.weight / totalWeight) * 100).toFixed(1)}%`,
       )
       .join(', ');
     const logDetails = results.map((r) => r.log).join(' | ');
@@ -752,6 +752,7 @@ export class VacancySubmissionService {
 
     const ratio = weightedSum / weightTotal;
     return {
+      dimension: 'Questions',
       ratio,
       weight,
       bonus,
@@ -777,6 +778,7 @@ export class VacancySubmissionService {
     ).length;
 
     return {
+      dimension: 'Tags',
       ratio,
       weight: weight ?? 12,
       bonus: extraCount,
@@ -833,6 +835,7 @@ export class VacancySubmissionService {
     );
 
     return {
+      dimension: 'Languages',
       ratio,
       weight: weight ?? 8,
       bonus: levelBonus + extraLangBonus,
@@ -853,6 +856,7 @@ export class VacancySubmissionService {
     const bonus = Math.min(Math.max(0, candidateYears - requiredYears), 5);
 
     return {
+      dimension: 'Experience',
       ratio,
       weight: weight ?? 20,
       bonus,
@@ -892,6 +896,7 @@ export class VacancySubmissionService {
     }
 
     return {
+      dimension: 'Salary',
       ratio,
       weight: weight ?? 10,
       bonus,

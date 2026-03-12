@@ -29,6 +29,7 @@ export class CustomWeights {
 }
 
 export interface ScoreResult {
+  dimension: string;
   ratio: number;
   weight: number;
   bonus: number;
