@@ -147,7 +147,16 @@ export class VacancyService {
 
     await this.vacancyRepository.save(vacancy);
 
-    if (updateVacancyDto.vacancyQuestions) {
+    const fieldsThatAffectMatchScore = [
+      updateVacancyDto.vacancyQuestions,
+      updateVacancyDto.tags,
+      updateVacancyDto.languageRequirements,
+      updateVacancyDto.requiredYearsOfExperience,
+      updateVacancyDto.salary,
+      updateVacancyDto.customWeights,
+    ];
+
+    if (fieldsThatAffectMatchScore.some((field) => field !== undefined)) {
       await this.recalculateSubmissionMatchScores(vacancyId);
     }
 
@@ -453,6 +462,7 @@ export class VacancyService {
             submission.expectedSalary != null
               ? Number(submission.expectedSalary)
               : null,
+          customWeights: vacancy.customWeights,
         },
       );
     }

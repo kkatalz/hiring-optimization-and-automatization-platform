@@ -615,24 +615,35 @@ export class VacancySubmissionService {
       salary: options?.customWeights?.salary ?? 10,
     };
 
+    // When weight for property is 0, matchScore will not include it.
     const results = [
-      this.scoreQuestions(answers, vacancyQuestions, w.questions),
-      this.scoreTags(options?.vacancyTags, options?.submissionTags, w.tags),
-      this.scoreLanguages(
-        options?.vacancyLanguageRequirements,
-        options?.candidateLanguages,
-        w.languages,
-      ),
-      this.scoreExperience(
-        options?.vacancyRequiredYearsOfExperience,
-        options?.candidateYearsOfExperience,
-        w.experience,
-      ),
-      this.scoreSalary(
-        options?.vacancySalary,
-        options?.expectedSalary,
-        w.salary,
-      ),
+      w.questions > 0
+        ? this.scoreQuestions(answers, vacancyQuestions, w.questions)
+        : null,
+      w.tags > 0
+        ? this.scoreTags(options?.vacancyTags, options?.submissionTags, w.tags)
+        : null,
+      w.languages > 0
+        ? this.scoreLanguages(
+            options?.vacancyLanguageRequirements,
+            options?.candidateLanguages,
+            w.languages,
+          )
+        : null,
+      w.experience > 0
+        ? this.scoreExperience(
+            options?.vacancyRequiredYearsOfExperience,
+            options?.candidateYearsOfExperience,
+            w.experience,
+          )
+        : null,
+      w.salary > 0
+        ? this.scoreSalary(
+            options?.vacancySalary,
+            options?.expectedSalary,
+            w.salary,
+          )
+        : null,
     ].filter((r): r is ScoreResult => r !== null);
 
     // totalWeight is the sum of weights for all applicable scoring dimensions
@@ -654,9 +665,15 @@ export class VacancySubmissionService {
 
     const totalScore = baseScore + bonusPoints;
 
+    const weightDistribution = results
+      .map(
+        (r) =>
+          `${r.dimension}: ${((r.weight / totalWeight) * 100).toFixed(1)}%`,
+      )
+      .join(', ');
     const logDetails = results.map((r) => r.log).join(' | ');
     this.logger.log(
-      `MatchScore: base=${baseScore.toFixed(2)}/100 + bonuses=${bonusPoints.toFixed(2)} = ${totalScore.toFixed(2)} [${logDetails}]`,
+      `MatchScore: base=${baseScore.toFixed(2)}/100 + bonuses=${bonusPoints.toFixed(2)} = ${totalScore.toFixed(2)} | Weight distribution: [${weightDistribution}] | ${logDetails}`,
     );
 
     return Math.round(totalScore * 100) / 100;
@@ -735,10 +752,11 @@ export class VacancySubmissionService {
 
     const ratio = weightedSum / weightTotal;
     return {
+      dimension: 'Questions',
       ratio,
       weight,
       bonus,
-      log: `Questions: ${(ratio * 100).toFixed(1)}% match (bonus: +${bonus})`,
+      log: `Questions: ${(ratio * 100).toFixed(1)}% match (bonus: +${bonus} with provided weight - ${weight})`,
     };
   }
 
@@ -760,10 +778,11 @@ export class VacancySubmissionService {
     ).length;
 
     return {
+      dimension: 'Tags',
       ratio,
       weight: weight ?? 12,
       bonus: extraCount,
-      log: `Tags: ${matchedCount}/${vacancyTags.length} required (bonus: +${extraCount} extra)`,
+      log: `Tags: ${matchedCount}/${vacancyTags.length} required (bonus: +${extraCount} extra) with provided weight - ${weight}`,
     };
   }
 
@@ -816,10 +835,11 @@ export class VacancySubmissionService {
     );
 
     return {
+      dimension: 'Languages',
       ratio,
       weight: weight ?? 8,
       bonus: levelBonus + extraLangBonus,
-      log: `Languages: ${metCount}/${requirements.length} required (levelBonus: +${levelBonus}, extraLangs: +${extraLangBonus})`,
+      log: `Languages: ${metCount}/${requirements.length} required (levelBonus: +${levelBonus}, extraLangs: +${extraLangBonus}) with provided weight - ${weight}`,
     };
   }
 
@@ -836,10 +856,11 @@ export class VacancySubmissionService {
     const bonus = Math.min(Math.max(0, candidateYears - requiredYears), 5);
 
     return {
+      dimension: 'Experience',
       ratio,
       weight: weight ?? 20,
       bonus,
-      log: `Experience: ${candidateYears}/${requiredYears} yrs (bonus: +${bonus})`,
+      log: `Experience: ${candidateYears}/${requiredYears} yrs (bonus: +${bonus} with provided weight - ${weight})`,
     };
   }
 
@@ -875,10 +896,11 @@ export class VacancySubmissionService {
     }
 
     return {
+      dimension: 'Salary',
       ratio,
       weight: weight ?? 10,
       bonus,
-      log: `Salary: ${ratio ? 'within' : 'over'} budget (expected: ${expectedSalary}, range: ${range.min}-${range.max}, bonus: +${bonus.toFixed(2)})`,
+      log: `Salary: ${ratio ? 'within' : 'over'} budget (expected: ${expectedSalary}, range: ${range.min}-${range.max}, bonus: +${bonus.toFixed(2)} with provided weight - ${weight})`,
     };
   }
 

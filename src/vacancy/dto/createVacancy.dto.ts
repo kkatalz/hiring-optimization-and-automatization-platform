@@ -1,9 +1,11 @@
 import {
   IsArray,
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
+  Min,
   ValidateNested,
 } from 'class-validator';
 import {
@@ -36,6 +38,12 @@ export class CreateVacancyDto {
   @ValidateNested({ each: true })
   @Type(() => LanguageProficiency)
   languageRequirements?: LanguageProficiency[];
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  requiredYearsOfExperience?: number;
 
   @IsOptional()
   @IsArray()
