@@ -153,6 +153,7 @@ export class VacancyService {
       updateVacancyDto.languageRequirements,
       updateVacancyDto.requiredYearsOfExperience,
       updateVacancyDto.salary,
+      updateVacancyDto.customWeights,
     ];
 
     if (fieldsThatAffectMatchScore.some((field) => field !== undefined)) {
