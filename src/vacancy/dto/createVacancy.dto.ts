@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  Min,
   ValidateNested,
 } from 'class-validator';
 import {
@@ -40,6 +41,8 @@ export class CreateVacancyDto {
 
   @IsOptional()
   @IsInt()
+  @Type(() => Number)
+  @Min(0)
   requiredYearsOfExperience?: number;
 
   @IsOptional()
