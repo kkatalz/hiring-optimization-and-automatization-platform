@@ -663,6 +663,46 @@ describe('VacancyService', () => {
       expect(submission!.matchScore).to.equal(0);
     });
 
+    it('should set needsReclustering to true when match-score-affecting fields are updated', async () => {
+      const vacancyId = testVacancies[1].id;
+
+      const updateDto: UpdateVacancyDto = {
+        name: testVacancies[1].name,
+        description: testVacancies[1].description,
+        vacancyQuestions: [
+          {
+            questionId: testQuestions[0].id,
+            label: testQuestions[0].label,
+            type: testQuestions[0].type,
+            isRequired: true,
+            priority: 1,
+            expectedValue: 'false',
+          },
+        ],
+      };
+
+      await service.update(vacancyId, updateDto);
+
+      const vacancy = await vacancyRepository.findOne({
+        where: { id: vacancyId },
+      });
+      expect(vacancy!.needsReclustering).to.equal(true);
+    });
+
+    it('should not set needsReclustering when only basic fields are updated', async () => {
+      const vacancyId = testVacancies[1].id;
+
+      await service.update(vacancyId, {
+        name: 'Updated name only',
+        description: 'Updated desc only',
+      });
+
+      const vacancy = await vacancyRepository.findOne({
+        where: { id: vacancyId },
+      });
+      expect(vacancy!.needsReclustering).to.equal(false);
+    });
+
     it('should not recalculate matchScore when only basic fields are updated', async () => {
       const vacancyId = testVacancies[1].id;
 
