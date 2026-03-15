@@ -154,13 +154,20 @@ export class VacancyService {
       updateVacancyDto.customWeights,
     ];
 
+    const shouldRecalculateMatchScores = fieldsThatAffectMatchScore.some(
+      (field) => field !== undefined,
+    );
+
     // Recluster submissions and recalculate match scores if any of the fields that affect match score were updated
-    if (fieldsThatAffectMatchScore.some((field) => field !== undefined)) {
-      await this.recalculateSubmissionMatchScores(vacancyId);
+    if (shouldRecalculateMatchScores) {
       vacancy.needsReclustering = true;
     }
 
     await this.vacancyRepository.save(vacancy);
+
+    if (shouldRecalculateMatchScores) {
+      await this.recalculateSubmissionMatchScores(vacancyId);
+    }
 
     return this.getPopulatedVacancy(vacancyId);
   }
