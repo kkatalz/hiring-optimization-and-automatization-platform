@@ -32,7 +32,10 @@ export class ClusteringService {
     private readonly vacancySubmissionService: VacancySubmissionService,
   ) {}
 
-  /** Builds a feature vector for a given vacancy submission */
+  /** Builds a feature vector for a given vacancy submission
+   * (e.g. [0.5, 1, 0, 0, 0.8, 1, 0, 1]) based on order:
+   * [question_features..., salary, tag_features..., experience, language_features...]
+   */
   buildFeatureVector(
     submission: VacancySubmission,
     allVacancyTags: string[],

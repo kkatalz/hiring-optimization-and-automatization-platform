@@ -134,7 +134,7 @@ export class VacancyService {
     vacancyId: string,
     updateVacancyDto: UpdateVacancyDto,
   ): Promise<VacancyDto> {
-    const vacancy: VacancyDto =
+    const vacancy: Vacancy =
       await this.findVacancyByIdWithSubmissionsAndAnswers(vacancyId);
 
     Object.keys(updateVacancyDto).forEach((key) => {
@@ -145,8 +145,6 @@ export class VacancyService {
 
     this.applyVacancyQuestionUpdates(updateVacancyDto, vacancy);
 
-    await this.vacancyRepository.save(vacancy);
-
     const fieldsThatAffectMatchScore = [
       updateVacancyDto.vacancyQuestions,
       updateVacancyDto.tags,
@@ -156,7 +154,18 @@ export class VacancyService {
       updateVacancyDto.customWeights,
     ];
 
-    if (fieldsThatAffectMatchScore.some((field) => field !== undefined)) {
+    const shouldRecalculateMatchScores = fieldsThatAffectMatchScore.some(
+      (field) => field !== undefined,
+    );
+
+    // Recluster submissions and recalculate match scores if any of the fields that affect match score were updated
+    if (shouldRecalculateMatchScores) {
+      vacancy.needsReclustering = true;
+    }
+
+    await this.vacancyRepository.save(vacancy);
+
+    if (shouldRecalculateMatchScores) {
       await this.recalculateSubmissionMatchScores(vacancyId);
     }
 
@@ -472,7 +481,7 @@ export class VacancyService {
 
   async findVacancyByIdWithSubmissionsAndAnswers(
     vacancyId: string,
-  ): Promise<VacancyDto> {
+  ): Promise<Vacancy> {
     const vacancy = await this.vacancyRepository.findOne({
       where: { id: vacancyId },
       relations: ['vacancyQuestions', 'submissions', 'submissions.answers'],
@@ -482,6 +491,6 @@ export class VacancyService {
       throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
     }
 
-    return vacancyToVacancyDto(vacancy);
+    return vacancy;
   }
 }
