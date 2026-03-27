@@ -32,9 +32,11 @@ export class ClusteringService {
     private readonly vacancySubmissionService: VacancySubmissionService,
   ) {}
 
-  /** Builds a feature vector for a given vacancy submission
-   * (e.g. [0.5, 1, 0, 0, 0.8, 1, 0, 1]) based on order:
+  /** Builds a feature vector for a given vacancy submission based on order:
    * [question_features..., salary, tag_features..., experience, language_features...]
+   * Example: A vacancy with 1 boolean question (priority 2), salary, 2 tags, 3 years required experience,
+   and 1 language requirement might produce:
+   * [0.5,  0.75,  1 - tag1, 0 - tag2,  0.66,  1]
    */
   buildFeatureVector(
     submission: VacancySubmission,
@@ -138,11 +140,16 @@ export class ClusteringService {
     const vacancy = await this.vacancyService.findVacancyById(vacancyId);
 
     const submissions =
-      await this.vacancySubmissionService.findSubmissionAnswersByVacancyId(
+      await this.vacancySubmissionService.findSubmissionsWithAnswersByVacancyId(
         vacancyId,
       );
 
-    if (submissions.length < 2) return;
+    if (submissions.length < 2) {
+      this.logger.warn(
+        `Not enough submissions to cluster for vacancy ${vacancyId}. At least 2 are required.`,
+      );
+      return;
+    }
 
     const vacancyQuestions =
       await this.vacancyService.findAllQuestionsByVacancyId(vacancyId);

@@ -72,7 +72,7 @@ export class VacancySubmissionService {
     private dataSource: DataSource,
   ) {}
 
-  async findSubmissionAnswersByVacancyId(
+  async findSubmissionsWithAnswersByVacancyId(
     vacancyId: string,
   ): Promise<VacancySubmission[]> {
     const submissions = await this.vacancySubmissionRepository.find({
@@ -671,9 +671,9 @@ export class VacancySubmissionService {
           `${r.dimension}: ${((r.weight / totalWeight) * 100).toFixed(1)}%`,
       )
       .join(', ');
-    const logDetails = results.map((r) => r.log).join(' | ');
+    const logLines = results.map((r) => `  - ${r.log}`).join('\n');
     this.logger.log(
-      `MatchScore: base=${baseScore.toFixed(2)}/100 + bonuses=${bonusPoints.toFixed(2)} = ${totalScore.toFixed(2)} | Weight distribution: [${weightDistribution}] | ${logDetails}`,
+      `MatchScore: base=${baseScore.toFixed(2)}/100 + bonuses=${bonusPoints.toFixed(2)} = ${totalScore.toFixed(2)}\n  Weight distribution: [${weightDistribution}]\n${logLines}`,
     );
 
     return Math.round(totalScore * 100) / 100;
@@ -697,6 +697,7 @@ export class VacancySubmissionService {
     let weightedSum = 0;
     let weightTotal = 0;
     let bonus = 0;
+    const questionDetails: string[] = [];
 
     for (const vq of scorable) {
       const weight = vq.priority > 0 ? 1 / vq.priority : 1;
@@ -743,8 +744,26 @@ export class VacancySubmissionService {
           bonus += values.filter((v) => extraOptions.includes(v)).length;
         }
       } else {
-        isMatch = candidateAnswer === vq.expectedValue ? 1 : 0;
+        // Normalize both sides to string for comparison (jsonb may return array for single values)
+        const normExpected = Array.isArray(vq.expectedValue)
+          ? vq.expectedValue[0]
+          : vq.expectedValue;
+        const normAnswer = Array.isArray(candidateAnswer)
+          ? candidateAnswer[0]
+          : candidateAnswer;
+
+        isMatch = normAnswer === normExpected ? 1 : 0;
       }
+
+      const answered = Array.isArray(candidateAnswer)
+        ? candidateAnswer.join(', ')
+        : (candidateAnswer ?? 'N/A');
+      const expected = Array.isArray(vq.expectedValue)
+        ? vq.expectedValue.join(', ')
+        : String(vq.expectedValue);
+      questionDetails.push(
+        `"${vq.label}": expected=[${expected}] answered=[${answered}] match=${isMatch}`,
+      );
 
       weightedSum += weight * isMatch;
       weightTotal += weight;
@@ -756,7 +775,7 @@ export class VacancySubmissionService {
       ratio,
       weight,
       bonus,
-      log: `Questions: ${(ratio * 100).toFixed(1)}% match (bonus: +${bonus} with provided weight - ${weight})`,
+      log: `Questions: ${(ratio * 100).toFixed(1)}% match (bonus: +${bonus} with provided weight - ${weight}) { ${questionDetails.join('; ')} }`,
     };
   }
 
@@ -782,7 +801,7 @@ export class VacancySubmissionService {
       ratio,
       weight: weight ?? 12,
       bonus: extraCount,
-      log: `Tags: ${matchedCount}/${vacancyTags.length} required (bonus: +${extraCount} extra) with provided weight - ${weight}`,
+      log: `Tags: ${matchedCount}/${vacancyTags.length} required (bonus: +${extraCount} extra, weight: ${weight}) { vacancy: [${vacancyTags.join(', ')}], candidate: [${(submissionTags || []).join(', ')}] }`,
     };
   }
 
@@ -839,7 +858,7 @@ export class VacancySubmissionService {
       ratio,
       weight: weight ?? 8,
       bonus: levelBonus + extraLangBonus,
-      log: `Languages: ${metCount}/${requirements.length} required (levelBonus: +${levelBonus}, extraLangs: +${extraLangBonus}) with provided weight - ${weight}`,
+      log: `Languages: ${metCount}/${requirements.length} required (levelBonus: +${levelBonus}, extraLangs: +${extraLangBonus}, weight: ${weight}) { required: [${requirements.map((r) => `${r.code}:${r.level}`).join(', ')}], candidate: [${(candidateLangs || []).map((l) => `${l.code}:${l.level}`).join(', ')}] }`,
     };
   }
 
@@ -956,6 +975,51 @@ export class VacancySubmissionService {
 
     submission.resumeAiScore = aiResult?.score ?? null;
     submission.resumeAiSentenceScores = aiResult?.sentenceScores ?? null;
+
+    const saved = await this.vacancySubmissionRepository.save(submission);
+    return vacancySubmToVacancySubmDto(saved);
+  }
+
+  async recalculateMatchScore(
+    submissionId: string,
+  ): Promise<VacancySubmissionDto> {
+    const submission = await this.vacancySubmissionRepository.findOne({
+      where: { id: submissionId },
+      relations: ['answers', 'candidateProfile', 'candidateProfile.user'],
+    });
+
+    if (!submission) {
+      throw new HttpException(
+        'Vacancy Submission not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const vacancy = await this.vacancyService.findVacancyById(
+      submission.vacancyId,
+    );
+
+    const vacancyQuestions =
+      await this.vacancyService.findAllQuestionsByVacancyId(
+        submission.vacancyId,
+      );
+
+    submission.matchScore = this.calculateMatchScore(
+      submission.answers || [],
+      vacancyQuestions,
+      {
+        candidateLanguages: submission.candidateProfile?.languages,
+        candidateYearsOfExperience:
+          submission.candidateProfile?.yearsOfExperience,
+        vacancyLanguageRequirements: vacancy.languageRequirements,
+        vacancyRequiredYearsOfExperience: vacancy.requiredYearsOfExperience,
+        vacancyTags: vacancy.tags,
+        vacancySalary: vacancy.salary,
+        submissionTags: submission.tags,
+        expectedSalary: submission.expectedSalary,
+        customWeights: vacancy.customWeights,
+      },
+    );
 
     const saved = await this.vacancySubmissionRepository.save(submission);
     return vacancySubmToVacancySubmDto(saved);

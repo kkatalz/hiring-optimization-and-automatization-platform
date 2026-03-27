@@ -213,6 +213,24 @@ export class VacancySubmissionController {
     );
   }
 
+  @Roles(UserRole.admin, UserRole.recruiter, UserRole.superAdmin)
+  @Post('calculate-match-score/:submissionId')
+  async calculateMatchScoreForSubmission(
+    @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
+    @AuthUser() requester: UserDto,
+  ): Promise<VacancySubmissionDto> {
+    const submissionTenantId =
+      await this.vacancySubmissionService.getTenantIdBySubmissionId(
+        submissionId,
+      );
+
+    validateTenantAccess(requester, submissionTenantId);
+
+    return await this.vacancySubmissionService.recalculateMatchScore(
+      submissionId,
+    );
+  }
+
   @Roles(UserRole.candidate)
   @Post(':vacancyId')
   async create(
