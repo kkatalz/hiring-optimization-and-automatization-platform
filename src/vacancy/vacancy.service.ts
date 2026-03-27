@@ -174,20 +174,24 @@ export class VacancyService {
   ): Vacancy[] {
     const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
 
-    return vacancies.sort((a, b) => {
-      const rangeA = parseSalaryRange(a.salary);
-      const rangeB = parseSalaryRange(b.salary);
-
-      // Non-parseable salaries go to the end
-      if (!rangeA && !rangeB) return 0;
-      if (!rangeA) return 1;
-      if (!rangeB) return -1;
-
-      const midA = (rangeA.min + rangeA.max) / 2;
-      const midB = (rangeB.min + rangeB.max) / 2;
-
-      return direction === 'ASC' ? midA - midB : midB - midA;
+    // Precompute sortable salary midpoint
+    const decorated = vacancies.map((vacancy) => {
+      const range = parseSalaryRange(vacancy.salary);
+      const sortKey = range ? (range.min + range.max) / 2 : null;
+      return { vacancy, sortKey };
     });
+
+    // Sort using the precomputed key; non-parseable salaries will go to the end
+    decorated.sort((a, b) => {
+      if (a.sortKey === null && b.sortKey === null) return 0;
+      if (a.sortKey === null) return 1;
+      if (b.sortKey === null) return -1;
+      return direction === 'ASC'
+        ? a.sortKey - b.sortKey
+        : b.sortKey - a.sortKey;
+    });
+
+    return decorated.map((item) => item.vacancy);
   }
 
   async findVacanciesWithSubmissions(
