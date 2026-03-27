@@ -1112,33 +1112,45 @@ describe('VacancyService', () => {
       expect(result.length).to.equal(2);
     });
 
-    it('should filter by minRequiredExperience', async () => {
+    it('should filter by minRequiredExperience (NULLs included)', async () => {
       const result = await service.findAllWithFilters({
         minRequiredExperience: 4,
       });
 
-      expect(result.length).to.equal(1);
-      expect(result[0].name).to.equal('Backend Engineer');
+      // Backend Engineer (5) + Zoo keeper (null) + Zoo keeper helper 1 (null)
+      expect(result.length).to.equal(3);
+      const names = result.map((v) => v.name);
+      expect(names).to.include('Backend Engineer');
+      expect(names).to.include('Zoo keeper');
+      expect(names).to.include('Zoo keeper helper 1');
     });
 
-    it('should filter by maxRequiredExperience', async () => {
+    it('should filter by maxRequiredExperience (NULLs included)', async () => {
       const result = await service.findAllWithFilters({
         maxRequiredExperience: 3,
       });
 
-      // vacancy[2] has 3 years — should be included
-      expect(result.length).to.equal(1);
-      expect(result[0].name).to.equal('Frontend Developer');
+      // Frontend Developer (3) + Zoo keeper (null) + Zoo keeper helper 1 (null)
+      expect(result.length).to.equal(3);
+      const names = result.map((v) => v.name);
+      expect(names).to.include('Frontend Developer');
+      expect(names).to.include('Zoo keeper');
+      expect(names).to.include('Zoo keeper helper 1');
     });
 
-    it('should filter by experience range', async () => {
+    it('should filter by experience range (NULLs included)', async () => {
       const result = await service.findAllWithFilters({
         minRequiredExperience: 2,
         maxRequiredExperience: 4,
       });
 
-      expect(result.length).to.equal(1);
-      expect(result[0].requiredYearsOfExperience).to.equal(3);
+      // Frontend Developer (3) + Zoo keeper (null) + Zoo keeper helper 1 (null)
+      expect(result.length).to.equal(3);
+      const withExp = result.filter(
+        (v) => v.requiredYearsOfExperience != null,
+      );
+      expect(withExp.length).to.equal(1);
+      expect(withExp[0].requiredYearsOfExperience).to.equal(3);
     });
 
     it('should filter by minSalary', async () => {
@@ -1185,6 +1197,15 @@ describe('VacancyService', () => {
 
       // vacancy[2] has ['React', 'TypeScript', 'Frontend']
       // vacancy[3] has ['Node.js', 'TypeScript', 'Backend']
+      expect(result.length).to.equal(2);
+    });
+
+    it('should filter by tags case-insensitively', async () => {
+      const result = await service.findAllWithFilters({
+        tags: ['typescript'],
+      });
+
+      // vacancy[2] has 'TypeScript', vacancy[3] has 'TypeScript' — both match
       expect(result.length).to.equal(2);
     });
 

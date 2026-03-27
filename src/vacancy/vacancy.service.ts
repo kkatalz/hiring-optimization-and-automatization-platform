@@ -78,15 +78,17 @@ export class VacancyService {
     }
 
     if (filterDto?.minRequiredExperience != null) {
-      query.andWhere('vacancy.required_years_of_experience >= :minExp', {
-        minExp: filterDto.minRequiredExperience,
-      });
+      query.andWhere(
+        '(vacancy.required_years_of_experience >= :minExp OR vacancy.required_years_of_experience IS NULL)',
+        { minExp: filterDto.minRequiredExperience },
+      );
     }
 
     if (filterDto?.maxRequiredExperience != null) {
-      query.andWhere('vacancy.required_years_of_experience <= :maxExp', {
-        maxExp: filterDto.maxRequiredExperience,
-      });
+      query.andWhere(
+        '(vacancy.required_years_of_experience <= :maxExp OR vacancy.required_years_of_experience IS NULL)',
+        { maxExp: filterDto.maxRequiredExperience },
+      );
     }
 
     // SQL-side sorting (for non-salary fields)
@@ -114,10 +116,10 @@ export class VacancyService {
     }
 
     if (filterDto?.tags?.length) {
-      const filterTags = new Set(filterDto.tags);
+      const filterTags = new Set(filterDto.tags.map((t) => t.toLowerCase()));
 
       vacancies = vacancies.filter((v) =>
-        v.tags?.some((t) => filterTags.has(t)),
+        v.tags?.some((t) => filterTags.has(t.toLowerCase())),
       );
     }
 
