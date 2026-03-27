@@ -10,7 +10,7 @@ import { VacancySubmissionDto } from '../vacancySubmission/dto/vacancySubmission
 import { vacancySubmToVacancySubmDto } from '../vacancySubmission/map/vacancySubmission.map';
 import { VacancyService } from '../vacancy/vacancy.service';
 import mlKmeans from 'ml-kmeans';
-import { SalaryRange } from './types/salaryRange.interface';
+import { SalaryRange } from '../types/salaryRange.interface';
 import { VacancySubmissionService } from '../vacancySubmission/vacancySubmission.service';
 import {
   LanguageProficiency,

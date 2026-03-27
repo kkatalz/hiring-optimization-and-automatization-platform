@@ -1,4 +1,4 @@
-import { SalaryRange } from '../clustering/types/salaryRange.interface';
+import { SalaryRange } from '../types/salaryRange.interface';
 
 /**
  * If salary is a range like "50k-70k" or "50,000 - 70,000", extract min and max as numbers.
