@@ -15,6 +15,7 @@ export const vacancyToVacancyDto = ({
   customWeights,
   submissions,
   vacancyQuestions,
+  createdAt,
 }: Vacancy): VacancyDto => {
   return {
     id,
@@ -30,5 +31,6 @@ export const vacancyToVacancyDto = ({
     tags,
     customWeights,
     vacancyQuestions,
+    createdAt,
   };
 };

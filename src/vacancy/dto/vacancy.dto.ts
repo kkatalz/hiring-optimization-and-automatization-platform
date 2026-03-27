@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsDate,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -72,4 +73,8 @@ export class VacancyDto {
   @ValidateNested({ each: true })
   @Type(() => VacancyQuestionDto)
   vacancyQuestions?: VacancyQuestionDto[];
+
+  @IsOptional()
+  @IsDate()
+  createdAt?: Date;
 }

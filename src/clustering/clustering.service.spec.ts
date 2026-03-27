@@ -10,7 +10,7 @@ import { expect } from 'chai';
 import { Repository } from 'typeorm';
 
 import { ClusteringService } from './clustering.service';
-import { SalaryRange } from './types/salaryRange.interface';
+import { SalaryRange } from '../types/salaryRange.interface';
 import { VacancySubmission } from '../entities/vacancySubmission';
 import { Vacancy } from '../entities/vacancy';
 import { VacancyQuestion } from '../entities/vacancyQuestion';
@@ -54,6 +54,7 @@ const clusteringVacancy: Vacancy = {
     { code: 'de', level: LanguageLevel.A2 },
   ],
   requiredYearsOfExperience: 10,
+  createdAt: new Date(),
 };
 
 const clusteringSubmissions: VacancySubmission[] = [
