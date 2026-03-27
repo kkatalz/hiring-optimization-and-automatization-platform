@@ -697,6 +697,7 @@ export class VacancySubmissionService {
     let weightedSum = 0;
     let weightTotal = 0;
     let bonus = 0;
+    const questionDetails: string[] = [];
 
     for (const vq of scorable) {
       const weight = vq.priority > 0 ? 1 / vq.priority : 1;
@@ -743,8 +744,26 @@ export class VacancySubmissionService {
           bonus += values.filter((v) => extraOptions.includes(v)).length;
         }
       } else {
-        isMatch = candidateAnswer === vq.expectedValue ? 1 : 0;
+        // Normalize both sides to string for comparison (jsonb may return array for single values)
+        const normExpected = Array.isArray(vq.expectedValue)
+          ? vq.expectedValue[0]
+          : vq.expectedValue;
+        const normAnswer = Array.isArray(candidateAnswer)
+          ? candidateAnswer[0]
+          : candidateAnswer;
+
+        isMatch = normAnswer === normExpected ? 1 : 0;
       }
+
+      const answered = Array.isArray(candidateAnswer)
+        ? candidateAnswer.join(', ')
+        : (candidateAnswer ?? 'N/A');
+      const expected = Array.isArray(vq.expectedValue)
+        ? vq.expectedValue.join(', ')
+        : String(vq.expectedValue);
+      questionDetails.push(
+        `"${vq.label}": expected=[${expected}] answered=[${answered}] match=${isMatch}`,
+      );
 
       weightedSum += weight * isMatch;
       weightTotal += weight;
