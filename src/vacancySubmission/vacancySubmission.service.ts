@@ -72,7 +72,7 @@ export class VacancySubmissionService {
     private dataSource: DataSource,
   ) {}
 
-  async findSubmissionAnswersByVacancyId(
+  async findSubmissionsWithAnswersByVacancyId(
     vacancyId: string,
   ): Promise<VacancySubmission[]> {
     const submissions = await this.vacancySubmissionRepository.find({
@@ -671,9 +671,9 @@ export class VacancySubmissionService {
           `${r.dimension}: ${((r.weight / totalWeight) * 100).toFixed(1)}%`,
       )
       .join(', ');
-    const logDetails = results.map((r) => r.log).join(' | ');
+    const logLines = results.map((r) => `  - ${r.log}`).join('\n');
     this.logger.log(
-      `MatchScore: base=${baseScore.toFixed(2)}/100 + bonuses=${bonusPoints.toFixed(2)} = ${totalScore.toFixed(2)} | Weight distribution: [${weightDistribution}] | ${logDetails}`,
+      `MatchScore: base=${baseScore.toFixed(2)}/100 + bonuses=${bonusPoints.toFixed(2)} = ${totalScore.toFixed(2)}\n  Weight distribution: [${weightDistribution}]\n${logLines}`,
     );
 
     return Math.round(totalScore * 100) / 100;
@@ -756,7 +756,7 @@ export class VacancySubmissionService {
       ratio,
       weight,
       bonus,
-      log: `Questions: ${(ratio * 100).toFixed(1)}% match (bonus: +${bonus} with provided weight - ${weight})`,
+      log: `Questions: ${(ratio * 100).toFixed(1)}% match (bonus: +${bonus} with provided weight - ${weight}) { ${questionDetails.join('; ')} }`,
     };
   }
 
@@ -782,7 +782,7 @@ export class VacancySubmissionService {
       ratio,
       weight: weight ?? 12,
       bonus: extraCount,
-      log: `Tags: ${matchedCount}/${vacancyTags.length} required (bonus: +${extraCount} extra) with provided weight - ${weight}`,
+      log: `Tags: ${matchedCount}/${vacancyTags.length} required (bonus: +${extraCount} extra, weight: ${weight}) { vacancy: [${vacancyTags.join(', ')}], candidate: [${(submissionTags || []).join(', ')}] }`,
     };
   }
 
@@ -839,7 +839,7 @@ export class VacancySubmissionService {
       ratio,
       weight: weight ?? 8,
       bonus: levelBonus + extraLangBonus,
-      log: `Languages: ${metCount}/${requirements.length} required (levelBonus: +${levelBonus}, extraLangs: +${extraLangBonus}) with provided weight - ${weight}`,
+      log: `Languages: ${metCount}/${requirements.length} required (levelBonus: +${levelBonus}, extraLangs: +${extraLangBonus}, weight: ${weight}) { required: [${requirements.map((r) => `${r.code}:${r.level}`).join(', ')}], candidate: [${(candidateLangs || []).map((l) => `${l.code}:${l.level}`).join(', ')}] }`,
     };
   }
 
