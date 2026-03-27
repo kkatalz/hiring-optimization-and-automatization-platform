@@ -22,7 +22,8 @@
     "migration:generate": "ts-node -r dotenv/config -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:generate -d src/ormconfig.ts",
     "migration:run": "ts-node -r dotenv/config -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run      -d src/ormconfig.ts",
     "migration:revert": "ts-node -r dotenv/config -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:revert   -d src/ormconfig.ts",
-    "migration:show": "ts-node -r dotenv/config -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:show     -d src/ormconfig.ts"
+    "migration:show": "ts-node -r dotenv/config -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:show     -d src/ormconfig.ts",
+    "db:seed": "ts-node -r dotenv/config -r tsconfig-paths/register src/seed.ts"
   },
   "dependencies": {
     "@google-cloud/local-auth": "^2.1.0",
