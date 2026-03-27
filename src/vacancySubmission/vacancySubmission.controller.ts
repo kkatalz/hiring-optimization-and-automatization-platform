@@ -213,6 +213,24 @@ export class VacancySubmissionController {
     );
   }
 
+  @Roles(UserRole.admin, UserRole.recruiter, UserRole.superAdmin)
+  @Post('calculate-match-score/:submissionId')
+  async calculateMatchScoreForSubmission(
+    @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
+    @AuthUser() requester: UserDto,
+  ): Promise<VacancySubmissionDto> {
+    const submissionTenantId =
+      await this.vacancySubmissionService.getTenantIdBySubmissionId(
+        submissionId,
+      );
+
+    validateTenantAccess(requester, submissionTenantId);
+
+    return await this.vacancySubmissionService.recalculateMatchScore(
+      submissionId,
+    );
+  }
+
   @Roles(UserRole.candidate)
   @Post(':vacancyId')
   async create(
@@ -225,53 +243,5 @@ export class VacancySubmissionController {
       vacancyId,
       user.id,
     );
-  }
-
-  @Roles(UserRole.admin, UserRole.recruiter, UserRole.superAdmin)
-  @Post(':vacancyId/calculate-match-scores')
-  async calculateMatchScoresWithinVacancy(
-    @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
-    @AuthUser() requester: UserDto,
-  ): Promise<{ message: string }> {
-    const vacancyTenantId =
-      await this.vacancyService.getTenantIdByVacancyId(vacancyId);
-
-    validateTenantAccess(requester, vacancyTenantId);
-
-    const vacancy = await this.vacancyService.findVacancyById(vacancyId);
-
-    const submissions =
-      await this.vacancySubmissionService.findSubmissionsWithAnswersByVacancyId(
-        vacancyId,
-      );
-
-    const vacancyQuestions =
-      await this.vacancyService.findAllQuestionsByVacancyId(vacancyId);
-
-    for (const submission of submissions) {
-      const matchScore = this.vacancySubmissionService.calculateMatchScore(
-        submission.answers || [],
-        vacancyQuestions,
-        {
-          candidateLanguages: submission.candidateProfile?.languages,
-          candidateYearsOfExperience:
-            submission.candidateProfile?.yearsOfExperience,
-          vacancyLanguageRequirements: vacancy.languageRequirements,
-          vacancyRequiredYearsOfExperience: vacancy.requiredYearsOfExperience,
-          vacancyTags: vacancy.tags,
-          vacancySalary: vacancy.salary,
-          submissionTags: submission.tags,
-          expectedSalary: submission.expectedSalary,
-          customWeights: vacancy.customWeights,
-        },
-      );
-      submission.matchScore = matchScore;
-    }
-
-    await this.vacancySubmissionService.saveSubmissions(submissions);
-
-    return {
-      message: `Match scores calculated successfully for all submissions within vacancy: ${vacancyId}.`,
-    };
   }
 }

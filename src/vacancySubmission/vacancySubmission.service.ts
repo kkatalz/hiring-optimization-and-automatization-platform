@@ -980,10 +980,49 @@ export class VacancySubmissionService {
     return vacancySubmToVacancySubmDto(saved);
   }
 
-  async saveSubmissions(
-    submissions: VacancySubmission[],
-  ): Promise<VacancySubmission[]> {
-    return this.vacancySubmissionRepository.save(submissions);
+  async recalculateMatchScore(
+    submissionId: string,
+  ): Promise<VacancySubmissionDto> {
+    const submission = await this.vacancySubmissionRepository.findOne({
+      where: { id: submissionId },
+      relations: ['answers', 'candidateProfile', 'candidateProfile.user'],
+    });
+
+    if (!submission) {
+      throw new HttpException(
+        'Vacancy Submission not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const vacancy = await this.vacancyService.findVacancyById(
+      submission.vacancyId,
+    );
+
+    const vacancyQuestions =
+      await this.vacancyService.findAllQuestionsByVacancyId(
+        submission.vacancyId,
+      );
+
+    submission.matchScore = this.calculateMatchScore(
+      submission.answers || [],
+      vacancyQuestions,
+      {
+        candidateLanguages: submission.candidateProfile?.languages,
+        candidateYearsOfExperience:
+          submission.candidateProfile?.yearsOfExperience,
+        vacancyLanguageRequirements: vacancy.languageRequirements,
+        vacancyRequiredYearsOfExperience: vacancy.requiredYearsOfExperience,
+        vacancyTags: vacancy.tags,
+        vacancySalary: vacancy.salary,
+        submissionTags: submission.tags,
+        expectedSalary: submission.expectedSalary,
+        customWeights: vacancy.customWeights,
+      },
+    );
+
+    const saved = await this.vacancySubmissionRepository.save(submission);
+    return vacancySubmToVacancySubmDto(saved);
   }
 
   async findOneById(id: string): Promise<VacancySubmission> {
