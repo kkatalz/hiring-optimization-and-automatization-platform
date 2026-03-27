@@ -1,5 +1,5 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 
 import { Vacancy } from '../entities/vacancy';
 import { VacancyQuestion } from '../entities/vacancyQuestion';
@@ -27,6 +27,9 @@ import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
 import { vacancyQuestionToDetailedDto } from './map/vacancyQuestionDetailed.map';
 import { CreateVacancyQuestionInlineDto } from './dto/createVacancyWithQuestions.dto';
 import { VacancySubmissionService } from '../vacancySubmission/vacancySubmission.service';
+import { CandidateVacancyFilterDto } from '../vacancy/dto/candidateVacancyFilter.dto';
+import { parseSalaryRange } from '../utils/parseSalaryRange';
+import { LanguageLevelRank } from '../entities/hiring.enum';
 
 @Injectable()
 export class VacancyService {
@@ -50,6 +53,139 @@ export class VacancyService {
     });
 
     return vacancies.map(vacancyToVacancyDto);
+  }
+
+  async findAllWithFilters(
+    filterDto?: CandidateVacancyFilterDto,
+    sortBy?: string,
+    order?: 'ASC' | 'DESC',
+  ): Promise<VacancyDto[]> {
+    const query = this.vacancyRepository
+      .createQueryBuilder('vacancy')
+      .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq');
+
+    if (filterDto?.name) {
+      query.andWhere('vacancy.name ILIKE :name', {
+        // Partial match (contains)
+        name: `%${filterDto.name}%`,
+      });
+    }
+
+    if (filterDto?.timeCommitment?.length) {
+      query.andWhere('vacancy.time_commitment IN (:...timeCommitments)', {
+        timeCommitments: filterDto.timeCommitment,
+      });
+    }
+
+    if (filterDto?.minRequiredExperience != null) {
+      query.andWhere('vacancy.required_years_of_experience >= :minExp', {
+        minExp: filterDto.minRequiredExperience,
+      });
+    }
+
+    if (filterDto?.maxRequiredExperience != null) {
+      query.andWhere('vacancy.required_years_of_experience <= :maxExp', {
+        maxExp: filterDto.maxRequiredExperience,
+      });
+    }
+
+    // SQL-side sorting (for non-salary fields)
+    if (sortBy !== 'salary') {
+      this.applyVacancySorting(query, sortBy, order);
+    }
+
+    let vacancies = await query.getMany();
+
+    // In-memory filters
+    if (filterDto?.minSalary != null || filterDto?.maxSalary != null) {
+      vacancies = vacancies.filter((v) => {
+        const range = parseSalaryRange(v.salary);
+
+        if (!range) return false;
+
+        if (filterDto.minSalary != null && range.max < filterDto.minSalary)
+          return false;
+
+        if (filterDto.maxSalary != null && range.min > filterDto.maxSalary)
+          return false;
+
+        return true;
+      });
+    }
+
+    if (filterDto?.tags?.length) {
+      const filterTags = new Set(filterDto.tags);
+
+      vacancies = vacancies.filter((v) =>
+        v.tags?.some((t) => filterTags.has(t)),
+      );
+    }
+
+    if (filterDto?.languageRequirements?.length) {
+      vacancies = vacancies.filter((v) => {
+        if (!v.languageRequirements?.length) return false;
+
+        return filterDto.languageRequirements!.some((filterLang) =>
+          v.languageRequirements!.some((vacLang) => {
+            if (filterLang.code && vacLang.code !== filterLang.code)
+              return false;
+
+            if (filterLang.level && vacLang.level) {
+              return (
+                LanguageLevelRank.indexOf(vacLang.level) >=
+                LanguageLevelRank.indexOf(filterLang.level)
+              );
+            }
+            return true;
+          }),
+        );
+      });
+    }
+
+    // In-memory sorting for salary (free-text field, can't sort in SQL)
+    if (sortBy === 'salary') {
+      vacancies = this.applySalarySorting(vacancies, order);
+    }
+
+    return vacancies.map(vacancyToVacancyDto);
+  }
+
+  private static readonly SQL_SORT_FIELDS = [
+    'createdAt',
+    'requiredYearsOfExperience',
+  ];
+
+  private applyVacancySorting(
+    query: SelectQueryBuilder<Vacancy>,
+    sortBy?: string,
+    order?: 'ASC' | 'DESC',
+  ): void {
+    if (sortBy && VacancyService.SQL_SORT_FIELDS.includes(sortBy)) {
+      const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
+      query.orderBy(`vacancy.${sortBy}`, direction, 'NULLS LAST');
+    }
+  }
+
+  private applySalarySorting(
+    vacancies: Vacancy[],
+    order?: 'ASC' | 'DESC',
+  ): Vacancy[] {
+    const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
+
+    return vacancies.sort((a, b) => {
+      const rangeA = parseSalaryRange(a.salary);
+      const rangeB = parseSalaryRange(b.salary);
+
+      // Non-parseable salaries go to the end
+      if (!rangeA && !rangeB) return 0;
+      if (!rangeA) return 1;
+      if (!rangeB) return -1;
+
+      const midA = (rangeA.min + rangeA.max) / 2;
+      const midB = (rangeB.min + rangeB.max) / 2;
+
+      return direction === 'ASC' ? midA - midB : midB - midA;
+    });
   }
 
   async findVacanciesWithSubmissions(

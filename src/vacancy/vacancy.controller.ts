@@ -21,6 +21,7 @@ import { VacancyQuestionDto } from '../vacancy/dto/vacancyQuestion.dto';
 import { VacancyService } from '../vacancy/vacancy.service';
 import { CreateVacancyQuestionDto } from './dto/createVacancyQuesion.dto';
 import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
+import { CandidateVacancyFilterDto } from './dto/candidateVacancyFilter.dto';
 
 @Controller('vacancies')
 export class VacancyController {
@@ -39,6 +40,15 @@ export class VacancyController {
   @Get()
   findAllVacancies(): Promise<VacancyDto[]> {
     return this.vacancyService.findAll();
+  }
+
+  @Post('search')
+  searchVacancies(
+    @Body() filterDto: CandidateVacancyFilterDto,
+    @Query('sortBy') sortBy?: string,
+    @Query('order') order?: 'ASC' | 'DESC',
+  ): Promise<VacancyDto[]> {
+    return this.vacancyService.findAllWithFilters(filterDto, sortBy, order);
   }
 
   /**

@@ -39,6 +39,7 @@ import { SaplingService } from '../sapling/sapling.service';
 import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfiles';
 import { QuestionType } from '../entities/question.enum';
 import { Question } from '../entities/question';
+import { TimeCommitment, LanguageLevel } from '../entities/hiring.enum';
 
 describe('VacancyService', () => {
   let service: VacancyService;
@@ -1069,6 +1070,255 @@ describe('VacancyService', () => {
         expect(e.response).to.equal('Vacancy is not found.');
         expect(e.status).to.equal(404);
       }
+    });
+  });
+
+  describe('findAllWithFilters', () => {
+    it('should return all vacancies when no filters provided', async () => {
+      const result = await service.findAllWithFilters();
+
+      expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
+    });
+
+    it('should filter by name (case-insensitive partial match)', async () => {
+      const result = await service.findAllWithFilters({ name: 'zoo' });
+
+      expect(result.length).to.equal(2);
+      result.forEach((v) => expect(v.name.toLowerCase()).to.include('zoo'));
+    });
+
+    it('should filter by name with no match', async () => {
+      const result = await service.findAllWithFilters({
+        name: 'nonexistent',
+      });
+
+      expect(result.length).to.equal(0);
+    });
+
+    it('should filter by single timeCommitment', async () => {
+      const result = await service.findAllWithFilters({
+        timeCommitment: [TimeCommitment.FULL_TIME],
+      });
+
+      expect(result.length).to.equal(1);
+      expect(result[0].timeCommitment).to.equal(TimeCommitment.FULL_TIME);
+    });
+
+    it('should filter by multiple timeCommitment values (OR logic)', async () => {
+      const result = await service.findAllWithFilters({
+        timeCommitment: [TimeCommitment.FULL_TIME, TimeCommitment.PART_TIME],
+      });
+
+      expect(result.length).to.equal(2);
+    });
+
+    it('should filter by minRequiredExperience', async () => {
+      const result = await service.findAllWithFilters({
+        minRequiredExperience: 4,
+      });
+
+      expect(result.length).to.equal(1);
+      expect(result[0].name).to.equal('Backend Engineer');
+    });
+
+    it('should filter by maxRequiredExperience', async () => {
+      const result = await service.findAllWithFilters({
+        maxRequiredExperience: 3,
+      });
+
+      // vacancy[2] has 3 years — should be included
+      expect(result.length).to.equal(1);
+      expect(result[0].name).to.equal('Frontend Developer');
+    });
+
+    it('should filter by experience range', async () => {
+      const result = await service.findAllWithFilters({
+        minRequiredExperience: 2,
+        maxRequiredExperience: 4,
+      });
+
+      expect(result.length).to.equal(1);
+      expect(result[0].requiredYearsOfExperience).to.equal(3);
+    });
+
+    it('should filter by minSalary', async () => {
+      const result = await service.findAllWithFilters({ minSalary: 2000 });
+
+      // Only "Frontend Developer" (3000-5000) matches
+      expect(result.length).to.equal(1);
+      expect(result[0].name).to.equal('Frontend Developer');
+    });
+
+    it('should filter by maxSalary', async () => {
+      const result = await service.findAllWithFilters({ maxSalary: 800 });
+
+      // "Zoo keeper" (1000-1100) excluded, "Zoo keeper helper 1" (500-700) included
+      expect(result.length).to.equal(1);
+      expect(result[0].name).to.equal('Zoo keeper helper 1');
+    });
+
+    it('should filter by salary range', async () => {
+      const result = await service.findAllWithFilters({
+        minSalary: 600,
+        maxSalary: 1200,
+      });
+
+      // "Zoo keeper" (1000-1100) — range overlaps [600,1200], included
+      // "Zoo keeper helper 1" (500-700) — range overlaps [600,1200], included
+      // "Frontend Developer" (3000-5000) — min 3000 > 1200, excluded
+      // "Backend Engineer" (competitive) — no parseable salary, excluded
+      expect(result.length).to.equal(2);
+    });
+
+    it('should exclude vacancies with no parseable salary when salary filter is set', async () => {
+      const result = await service.findAllWithFilters({ minSalary: 1 });
+
+      // "Backend Engineer" has salary "competitive" — not parseable, excluded
+      const names = result.map((v) => v.name);
+      expect(names).to.not.include('Backend Engineer');
+    });
+
+    it('should filter by tags (at least one match)', async () => {
+      const result = await service.findAllWithFilters({
+        tags: ['TypeScript'],
+      });
+
+      // vacancy[2] has ['React', 'TypeScript', 'Frontend']
+      // vacancy[3] has ['Node.js', 'TypeScript', 'Backend']
+      expect(result.length).to.equal(2);
+    });
+
+    it('should return empty when no tags match', async () => {
+      const result = await service.findAllWithFilters({
+        tags: ['Rust'],
+      });
+
+      expect(result.length).to.equal(0);
+    });
+
+    it('should filter by language code only', async () => {
+      const result = await service.findAllWithFilters({
+        languageRequirements: [{ code: 'uk' }],
+      });
+
+      // Only "Frontend Developer" requires uk
+      expect(result.length).to.equal(1);
+      expect(result[0].name).to.equal('Frontend Developer');
+    });
+
+    it('should filter by language code and level', async () => {
+      const result = await service.findAllWithFilters({
+        languageRequirements: [{ code: 'en', level: LanguageLevel.B2 }],
+      });
+
+      // vacancy[2] requires en B2, vacancy[3] requires en C1 (>= B2)
+      expect(result.length).to.equal(2);
+    });
+
+    it('should exclude vacancy when language level is below filter', async () => {
+      const result = await service.findAllWithFilters({
+        languageRequirements: [{ code: 'en', level: LanguageLevel.C2 }],
+      });
+
+      // vacancy[2] requires en B2 (< C2), vacancy[3] requires en C1 (< C2)
+      expect(result.length).to.equal(0);
+    });
+
+    it('should combine multiple filters', async () => {
+      const result = await service.findAllWithFilters({
+        tags: ['TypeScript'],
+        timeCommitment: [TimeCommitment.PART_TIME],
+      });
+
+      // Only "Frontend Developer" has TypeScript AND PART_TIME
+      expect(result.length).to.equal(1);
+      expect(result[0].name).to.equal('Frontend Developer');
+    });
+
+    it('should sort by createdAt ASC', async () => {
+      const result = await service.findAllWithFilters({}, 'createdAt', 'ASC');
+
+      expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
+      for (let i = 1; i < result.length; i++) {
+        expect(
+          new Date(result[i].createdAt!).getTime(),
+        ).to.be.greaterThanOrEqual(
+          new Date(result[i - 1].createdAt!).getTime(),
+        );
+      }
+    });
+
+    it('should sort by createdAt DESC', async () => {
+      const result = await service.findAllWithFilters({}, 'createdAt', 'DESC');
+
+      expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
+      for (let i = 1; i < result.length; i++) {
+        expect(new Date(result[i].createdAt!).getTime()).to.be.lessThanOrEqual(
+          new Date(result[i - 1].createdAt!).getTime(),
+        );
+      }
+    });
+
+    it('should sort by requiredYearsOfExperience DESC', async () => {
+      const result = await service.findAllWithFilters(
+        {},
+        'requiredYearsOfExperience',
+        'DESC',
+      );
+
+      // Non-null values should come first in DESC order, nulls last
+      const withExp = result.filter((v) => v.requiredYearsOfExperience != null);
+      for (let i = 1; i < withExp.length; i++) {
+        expect(withExp[i].requiredYearsOfExperience!).to.be.lessThanOrEqual(
+          withExp[i - 1].requiredYearsOfExperience!,
+        );
+      }
+    });
+
+    it('should sort by salary ASC (by midpoint, non-parseable last)', async () => {
+      const result = await service.findAllWithFilters({}, 'salary', 'ASC');
+
+      // Zoo keeper helper 1: 500-700 (mid 600)
+      // Zoo keeper: 1000-1100 (mid 1050)
+      // Frontend Developer: 3000-5000 (mid 4000)
+      // Backend Engineer: "competitive" (non-parseable → last)
+      expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
+
+      const names = result.map((v) => v.name);
+      expect(names[0]).to.equal('Zoo keeper helper 1');
+      expect(names[1]).to.equal('Zoo keeper');
+      expect(names[2]).to.equal('Frontend Developer');
+      expect(names[3]).to.equal('Backend Engineer');
+    });
+
+    it('should sort by salary DESC (by midpoint, non-parseable last)', async () => {
+      const result = await service.findAllWithFilters({}, 'salary', 'DESC');
+
+      const names = result.map((v) => v.name);
+      expect(names[0]).to.equal('Frontend Developer');
+      expect(names[1]).to.equal('Zoo keeper');
+      expect(names[2]).to.equal('Zoo keeper helper 1');
+      expect(names[3]).to.equal('Backend Engineer');
+    });
+
+    it('should ignore invalid sort field and return unsorted results', async () => {
+      const result = await service.findAllWithFilters(
+        {},
+        'invalidField',
+        'ASC',
+      );
+
+      expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
+    });
+
+    it('should return empty result when filters match nothing', async () => {
+      const result = await service.findAllWithFilters({
+        name: 'nonexistent',
+        tags: ['Rust'],
+        minSalary: 999999,
+      });
+
+      expect(result.length).to.equal(0);
     });
   });
 });
