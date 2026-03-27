@@ -1104,6 +1104,170 @@ describe('VacancySubmissionService', () => {
         );
       }
     });
+
+    describe('salary expectation filters', () => {
+      beforeEach(async () => {
+        // Create a second submission with expectedSalary
+        await service.create(
+          {
+            comment: 'Submission with salary',
+            expectedSalary: 2000,
+            answers: [
+              { questionId: testQuestions[0].id, value: 'true' },
+              { questionId: testQuestions[2].id, value: ['Bachelor'] },
+            ],
+          },
+          vacancyId,
+          testUsers[5].id,
+        );
+      });
+
+      it('should filter submissions by minSalaryExpectation', async () => {
+        const filter: RecruitingFilterDto = { minSalaryExpectation: 1500 };
+
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        expect(result.length).to.equal(1);
+        expect(Number(result[0].expectedSalary)).to.equal(2000);
+      });
+
+      it('should exclude submissions below minSalaryExpectation', async () => {
+        const filter: RecruitingFilterDto = { minSalaryExpectation: 3000 };
+
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        expect(result).to.deep.equal([]);
+      });
+
+      it('should filter submissions by maxSalaryExpectation', async () => {
+        const filter: RecruitingFilterDto = { maxSalaryExpectation: 2500 };
+
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        // Only the submission with expectedSalary=2000 matches (the fixture one has null salary)
+        expect(result.length).to.equal(1);
+        expect(Number(result[0].expectedSalary)).to.equal(2000);
+      });
+
+      it('should exclude submissions above maxSalaryExpectation', async () => {
+        const filter: RecruitingFilterDto = { maxSalaryExpectation: 500 };
+
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        expect(result).to.deep.equal([]);
+      });
+
+      it('should filter by salary range (min and max combined)', async () => {
+        const filter: RecruitingFilterDto = {
+          minSalaryExpectation: 1500,
+          maxSalaryExpectation: 2500,
+        };
+
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        expect(result.length).to.equal(1);
+        expect(Number(result[0].expectedSalary)).to.equal(2000);
+      });
+
+      it('should return empty when salary range excludes all submissions', async () => {
+        const filter: RecruitingFilterDto = {
+          minSalaryExpectation: 5000,
+          maxSalaryExpectation: 6000,
+        };
+
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        expect(result).to.deep.equal([]);
+      });
+    });
+
+    describe('minMatchScore filter', () => {
+      beforeEach(async () => {
+        // Create a second submission that will have a non-zero matchScore
+        // testQuestions[0] expected='true', testQuestions[2] expected=['Bachelor']
+        // Answering both correctly gives matchScore=100
+        await service.create(
+          {
+            comment: 'High match submission',
+            answers: [
+              { questionId: testQuestions[0].id, value: 'true' },
+              { questionId: testQuestions[2].id, value: ['Bachelor'] },
+            ],
+          },
+          vacancyId,
+          testUsers[5].id,
+        );
+      });
+
+      it('should filter submissions by minMatchScore', async () => {
+        const filter: RecruitingFilterDto = { minMatchScore: 50 };
+
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        expect(result.length).to.equal(1);
+        expect(result[0].matchScore).to.be.greaterThanOrEqual(50);
+      });
+
+      it('should return all submissions when minMatchScore is 0', async () => {
+        const filter: RecruitingFilterDto = { minMatchScore: 0 };
+
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        // Both the fixture submission (matchScore=0) and the new one (matchScore=100) qualify
+        expect(result.length).to.equal(2);
+      });
+
+      it('should exclude submissions below minMatchScore', async () => {
+        const filter: RecruitingFilterDto = { minMatchScore: 200 };
+
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        expect(result).to.deep.equal([]);
+      });
+
+      it('should combine minMatchScore with other filters', async () => {
+        const filter: RecruitingFilterDto = {
+          minMatchScore: 50,
+          minYearsOfExperience: 5,
+        };
+
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        // testUsers[5] → candidateProfile[0] has yearsOfExperience=2, so no match
+        // The fixture submission candidate has yearsOfExperience=5 but matchScore=0
+        expect(result).to.deep.equal([]);
+      });
+    });
   });
 
   describe('findAllSubmissionsWithinTenantWithFilters', () => {
@@ -1331,6 +1495,100 @@ describe('VacancySubmissionService', () => {
           `Value for question ${testQuestions[2].id} must be one of: High School, Bachelor, Master, PhD`,
         );
       }
+    });
+
+    describe('salary expectation filters within tenant', () => {
+      beforeEach(async () => {
+        await service.create(
+          {
+            comment: 'Tenant submission with salary',
+            expectedSalary: 3000,
+            answers: [
+              { questionId: testQuestions[0].id, value: 'true' },
+              { questionId: testQuestions[2].id, value: ['Bachelor'] },
+            ],
+          },
+          testVacancies[1].id,
+          testUsers[5].id,
+        );
+      });
+
+      it('should filter by minSalaryExpectation within tenant', async () => {
+        const filter: RecruitingFilterDto = { minSalaryExpectation: 2000 };
+
+        const result = await service.findAllSubmissionsWithinTenantWithFilters(
+          tenantId,
+          filter,
+        );
+
+        expect(result.length).to.equal(1);
+        expect(Number(result[0].expectedSalary)).to.equal(3000);
+      });
+
+      it('should filter by maxSalaryExpectation within tenant', async () => {
+        const filter: RecruitingFilterDto = { maxSalaryExpectation: 3500 };
+
+        const result = await service.findAllSubmissionsWithinTenantWithFilters(
+          tenantId,
+          filter,
+        );
+
+        expect(result.length).to.equal(1);
+        expect(Number(result[0].expectedSalary)).to.equal(3000);
+      });
+
+      it('should return empty when salary range excludes all within tenant', async () => {
+        const filter: RecruitingFilterDto = {
+          minSalaryExpectation: 5000,
+          maxSalaryExpectation: 6000,
+        };
+
+        const result = await service.findAllSubmissionsWithinTenantWithFilters(
+          tenantId,
+          filter,
+        );
+
+        expect(result).to.deep.equal([]);
+      });
+    });
+
+    describe('minMatchScore filter within tenant', () => {
+      beforeEach(async () => {
+        await service.create(
+          {
+            comment: 'High match in tenant',
+            answers: [
+              { questionId: testQuestions[0].id, value: 'true' },
+              { questionId: testQuestions[2].id, value: ['Bachelor'] },
+            ],
+          },
+          testVacancies[1].id,
+          testUsers[5].id,
+        );
+      });
+
+      it('should filter by minMatchScore within tenant', async () => {
+        const filter: RecruitingFilterDto = { minMatchScore: 50 };
+
+        const result = await service.findAllSubmissionsWithinTenantWithFilters(
+          tenantId,
+          filter,
+        );
+
+        expect(result.length).to.equal(1);
+        expect(result[0].matchScore).to.be.greaterThanOrEqual(50);
+      });
+
+      it('should return empty when minMatchScore excludes all within tenant', async () => {
+        const filter: RecruitingFilterDto = { minMatchScore: 200 };
+
+        const result = await service.findAllSubmissionsWithinTenantWithFilters(
+          tenantId,
+          filter,
+        );
+
+        expect(result).to.deep.equal([]);
+      });
     });
   });
 
