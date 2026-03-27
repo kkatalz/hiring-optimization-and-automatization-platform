@@ -72,4 +72,6 @@ export class VacancyDto {
   @ValidateNested({ each: true })
   @Type(() => VacancyQuestionDto)
   vacancyQuestions?: VacancyQuestionDto[];
+
+  createdAt?: Date;
 }

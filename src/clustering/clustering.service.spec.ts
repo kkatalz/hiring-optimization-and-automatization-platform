@@ -54,6 +54,7 @@ const clusteringVacancy: Vacancy = {
     { code: 'de', level: LanguageLevel.A2 },
   ],
   requiredYearsOfExperience: 10,
+  createdAt: new Date(),
 };
 
 const clusteringSubmissions: VacancySubmission[] = [

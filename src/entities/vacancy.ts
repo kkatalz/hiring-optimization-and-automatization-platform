@@ -1,5 +1,6 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -52,6 +53,9 @@ export class Vacancy {
 
   @Column({ type: 'jsonb', name: 'custom_weights', nullable: true })
   customWeights?: CustomWeights;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 
   @Column({
     name: 'needs_reclustering',
