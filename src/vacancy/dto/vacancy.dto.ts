@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsDate,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -73,5 +74,7 @@ export class VacancyDto {
   @Type(() => VacancyQuestionDto)
   vacancyQuestions?: VacancyQuestionDto[];
 
+  @IsOptional()
+  @IsDate()
   createdAt?: Date;
 }

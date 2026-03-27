@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Min,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -31,10 +32,12 @@ export class CandidateVacancyFilterDto {
 
   @IsOptional()
   @IsNumber()
+  @Min(0)
   minSalary?: number;
 
   @IsOptional()
   @IsNumber()
+  @Min(0)
   maxSalary?: number;
 
   @IsOptional()
@@ -44,9 +47,11 @@ export class CandidateVacancyFilterDto {
 
   @IsOptional()
   @IsInt()
+  @Min(0)
   minRequiredExperience?: number;
 
   @IsOptional()
   @IsInt()
+  @Min(0)
   maxRequiredExperience?: number;
 }
