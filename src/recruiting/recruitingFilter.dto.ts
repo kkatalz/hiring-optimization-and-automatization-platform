@@ -51,4 +51,19 @@ export class RecruitingFilterDto {
   @ValidateNested({ each: true })
   @Type(() => QuestionAnswerFilterEntry)
   answers?: QuestionAnswerFilterEntry[];
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  minMatchScore?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  minSalaryExpectation?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  maxSalaryExpectation?: number;
 }

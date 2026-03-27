@@ -362,6 +362,24 @@ export class VacancySubmissionService {
     // Apply QueryBuilder filters (SQL side)
     filterByExperience(query, filterDto);
     filterByCountriesCities(query, filterDto);
+
+    if (filterDto.minSalaryExpectation != null) {
+      query.andWhere('submission.expected_salary >= :minSalary', {
+        minSalary: filterDto.minSalaryExpectation,
+      });
+    }
+
+    if (filterDto.maxSalaryExpectation != null) {
+      query.andWhere('submission.expected_salary <= :maxSalary', {
+        maxSalary: filterDto.maxSalaryExpectation,
+      });
+    }
+
+    if (filterDto.minMatchScore != null) {
+      query.andWhere('submission.match_score >= :minMatchScore', {
+        minMatchScore: filterDto.minMatchScore,
+      });
+    }
     this.applySorting(query, sortBy, order);
 
     let submissions = await query.getMany();
