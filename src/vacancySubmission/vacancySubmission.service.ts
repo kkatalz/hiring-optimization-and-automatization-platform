@@ -961,6 +961,12 @@ export class VacancySubmissionService {
     return vacancySubmToVacancySubmDto(saved);
   }
 
+  async saveSubmissions(
+    submissions: VacancySubmission[],
+  ): Promise<VacancySubmission[]> {
+    return this.vacancySubmissionRepository.save(submissions);
+  }
+
   async findOneById(id: string): Promise<VacancySubmission> {
     const submission = await this.vacancySubmissionRepository.findOne({
       where: { id },

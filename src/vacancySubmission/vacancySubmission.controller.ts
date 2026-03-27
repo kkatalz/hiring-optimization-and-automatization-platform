@@ -226,4 +226,52 @@ export class VacancySubmissionController {
       user.id,
     );
   }
+
+  @Roles(UserRole.admin, UserRole.recruiter, UserRole.superAdmin)
+  @Post(':vacancyId/calculate-match-scores')
+  async calculateMatchScoresWithinVacancy(
+    @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
+    @AuthUser() requester: UserDto,
+  ): Promise<{ message: string }> {
+    const vacancyTenantId =
+      await this.vacancyService.getTenantIdByVacancyId(vacancyId);
+
+    validateTenantAccess(requester, vacancyTenantId);
+
+    const vacancy = await this.vacancyService.findVacancyById(vacancyId);
+
+    const submissions =
+      await this.vacancySubmissionService.findSubmissionsWithAnswersByVacancyId(
+        vacancyId,
+      );
+
+    const vacancyQuestions =
+      await this.vacancyService.findAllQuestionsByVacancyId(vacancyId);
+
+    for (const submission of submissions) {
+      const matchScore = this.vacancySubmissionService.calculateMatchScore(
+        submission.answers || [],
+        vacancyQuestions,
+        {
+          candidateLanguages: submission.candidateProfile?.languages,
+          candidateYearsOfExperience:
+            submission.candidateProfile?.yearsOfExperience,
+          vacancyLanguageRequirements: vacancy.languageRequirements,
+          vacancyRequiredYearsOfExperience: vacancy.requiredYearsOfExperience,
+          vacancyTags: vacancy.tags,
+          vacancySalary: vacancy.salary,
+          submissionTags: submission.tags,
+          expectedSalary: submission.expectedSalary,
+          customWeights: vacancy.customWeights,
+        },
+      );
+      submission.matchScore = matchScore;
+    }
+
+    await this.vacancySubmissionService.saveSubmissions(submissions);
+
+    return {
+      message: `Match scores calculated successfully for all submissions within vacancy: ${vacancyId}.`,
+    };
+  }
 }
