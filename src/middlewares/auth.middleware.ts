@@ -1,5 +1,5 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
-import { NextFunction } from 'express';
+import { NextFunction, Response } from 'express';
 import { verify } from 'jsonwebtoken';
 import { AuthRequest } from '../types/expressRequest.interface';
 import { UserDto } from '../user/dto/user.dto';
@@ -17,7 +17,7 @@ export class AuthMiddleware implements NestMiddleware {
 
     const token = req.headers.authorization.split(' ')[1];
     try {
-      const decode = verify(token, process.env.JWT_SECRET ?? 'test') as {
+      const decode = verify(token, process.env.JWT_ACCESS_SECRET ?? 'test') as {
         id: string;
       };
       const id = decode.id;
