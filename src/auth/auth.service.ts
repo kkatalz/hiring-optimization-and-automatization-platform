@@ -37,7 +37,7 @@ export class AuthService {
         role: user.role,
         tenantId: user.tenantId,
       },
-      process.env.JWT_ACCESS_SECRET ?? 'test',
+      process.env.JWT_ACCESS_SECRET!,
       { expiresIn: '15m' },
     );
   }
@@ -48,13 +48,13 @@ export class AuthService {
         id: user.id,
         tokenType: 'refresh',
       },
-      process.env.JWT_REFRESH_SECRET ?? 'test',
+      process.env.JWT_REFRESH_SECRET!,
       { expiresIn: '7d' },
     );
   }
 
   verifyRefreshToken(token: string): { id: string } {
-    const decoded = verify(token, process.env.JWT_REFRESH_SECRET ?? 'test') as {
+    const decoded = verify(token, process.env.JWT_REFRESH_SECRET!) as {
       id: string;
       tokenType: string;
     };
