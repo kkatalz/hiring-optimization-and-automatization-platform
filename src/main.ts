@@ -6,7 +6,11 @@ import { ValidationPipe } from '@nestjs/common';
 
 dotenv.config();
 
-const requiredEnvVars = ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'] as const;
+const requiredEnvVars = [
+  'JWT_ACCESS_SECRET',
+  'JWT_REFRESH_SECRET',
+  'CORS_ORIGIN',
+] as const;
 
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
@@ -18,7 +22,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(cookieParser());
-  app.enableCors({ origin: true, credentials: true });
+  app.enableCors({
+    origin: process.env.CORS_ORIGIN!.split(','),
+    credentials: true,
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
