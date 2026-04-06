@@ -154,6 +154,7 @@ export class VacancySubmissionService {
           vacancyId: vacancyId,
           tenantId: vacancy.tenantId,
           candidateId: candidate.id,
+          status: VacancySubmissionStatus.pending,
           matchScore,
           commentAiScore: commentAiResult?.score ?? null,
           commentAiSentenceScores: commentAiResult?.sentenceScores ?? null,
