@@ -51,7 +51,8 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "sinon": "^21.0.1",
-    "typeorm": "^0.3.28"
+    "typeorm": "^0.3.28",
+    "cookie-parser": "^1.4.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -70,7 +71,6 @@
     "@types/node": "^22.10.7",
     "@types/supertest": "^6.0.2",
     "chai": "^4.3.10",
-    "cookie-parser": "^1.4.7",
     "cross-env": "^10.1.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
