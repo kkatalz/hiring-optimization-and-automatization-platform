@@ -21,6 +21,7 @@ export class CandidateProfileFilterDto {
   maxYearsOfExperience?: number;
 
   @IsOptional()
+  @IsArray()
   @IsString({ each: true })
   countries?: string[];
 

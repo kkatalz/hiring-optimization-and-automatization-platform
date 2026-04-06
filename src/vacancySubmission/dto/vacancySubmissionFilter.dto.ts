@@ -32,6 +32,7 @@ export class VacancySubmissionFilterDto {
   maxYearsOfExperience?: number;
 
   @IsOptional()
+  @IsArray()
   @IsString({ each: true })
   countries?: string[];
 
