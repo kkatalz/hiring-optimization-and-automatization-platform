@@ -347,6 +347,8 @@ export class VacancySubmissionService {
     'createdAt',
     'expectedSalary',
     'recruiterRating',
+    'commentAiScore',
+    'resumeAiScore',
   ];
 
   private async executeFilteredSubmissions(
@@ -382,6 +384,19 @@ export class VacancySubmissionService {
         minMatchScore: filterDto.minMatchScore,
       });
     }
+
+    if (filterDto.maxCommentAiScore != null) {
+      query.andWhere('submission.comment_ai_score <= :maxCommentAiScore', {
+        maxCommentAiScore: filterDto.maxCommentAiScore,
+      });
+    }
+
+    if (filterDto.maxResumeAiScore != null) {
+      query.andWhere('submission.resume_ai_score <= :maxResumeAiScore', {
+        maxResumeAiScore: filterDto.maxResumeAiScore,
+      });
+    }
+
     this.applySorting(query, sortBy, order);
 
     let submissions = await query.getMany();
