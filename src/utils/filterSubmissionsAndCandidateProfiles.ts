@@ -3,16 +3,19 @@ import {
   LanguageLevelRank,
   LanguageProficiency,
 } from '../entities/hiring.enum';
+import { CandidateProfileFilterDto } from '../candidateProfile/dto/candidateProfileFilter.dto';
 import {
   QuestionAnswerFilterEntry,
-  RecruitingFilterDto,
-} from '../recruiting/recruitingFilter.dto';
+  VacancySubmissionFilterDto,
+} from '../vacancySubmission/dto/vacancySubmissionFilter.dto';
 import { VacancySubmission } from '../entities/vacancySubmission';
 import { SelectQueryBuilder } from 'typeorm';
 
+type CommonFilterDto = CandidateProfileFilterDto | VacancySubmissionFilterDto;
+
 export const filterByExperience = (
   query: SelectQueryBuilder<any>,
-  filterDto: RecruitingFilterDto,
+  filterDto: CommonFilterDto,
 ) => {
   if (filterDto?.minYearsOfExperience) {
     query.andWhere(
@@ -37,7 +40,7 @@ export const filterByExperience = (
 
 export const filterByCountriesCities = (
   query: SelectQueryBuilder<any>,
-  filterDto: RecruitingFilterDto,
+  filterDto: CommonFilterDto,
 ) => {
   if (filterDto?.countries && filterDto.countries.length > 0) {
     query.andWhere('candidateProfile.country = ANY(:countries)', {
@@ -56,7 +59,7 @@ export const filterByCountriesCities = (
 
 export const filterByLanguages = (
   candidates: CandidateProfile[],
-  filterDto: RecruitingFilterDto,
+  filterDto: CommonFilterDto,
 ) => {
   if (!filterDto?.languages?.length) return candidates;
 

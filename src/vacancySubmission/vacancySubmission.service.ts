@@ -19,8 +19,8 @@ import { VacancySubmissionStatus } from '../entities/statuses.enum';
 import { CandidateProfileService } from '../candidateProfile/candidateProfile.service';
 import {
   QuestionAnswerFilterEntry,
-  RecruitingFilterDto,
-} from '../recruiting/recruitingFilter.dto';
+  VacancySubmissionFilterDto,
+} from './dto/vacancySubmissionFilter.dto';
 import {
   filterByAnswers,
   filterByExperience,
@@ -256,7 +256,7 @@ export class VacancySubmissionService {
 
   async findAllSubmissionsWithinVacancyWithFilters(
     vacancyId: string,
-    filterSubmissionsDto?: RecruitingFilterDto,
+    filterSubmissionsDto?: VacancySubmissionFilterDto,
     sortBy?: string,
     order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
@@ -286,7 +286,7 @@ export class VacancySubmissionService {
 
   async findAllSubmissionsWithinTenantWithFilters(
     tenantId: string,
-    filterSubmissionsDto?: RecruitingFilterDto,
+    filterSubmissionsDto?: VacancySubmissionFilterDto,
     sortBy?: string,
     order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
@@ -351,7 +351,7 @@ export class VacancySubmissionService {
 
   private async executeFilteredSubmissions(
     query: SelectQueryBuilder<VacancySubmission>,
-    filterDto?: RecruitingFilterDto,
+    filterDto?: VacancySubmissionFilterDto,
     sortBy?: string,
     order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
