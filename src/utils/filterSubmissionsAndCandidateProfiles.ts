@@ -26,7 +26,7 @@ export const filterByExperience = (
     );
   }
 
-  if (filterDto?.maxYearsOfExperience) {
+  if (filterDto?.maxYearsOfExperience != null) {
     query.andWhere(
       'candidateProfile.years_of_experience <= :maxYearsOfExperience',
       {
@@ -101,19 +101,11 @@ export const filterByAnswers = (
   });
 };
 
+/** Checks whether a candidate satisfies a single requirement. */
 export const meetsLanguageRequirement = (
   candidateLangs: LanguageProficiency[],
   required: LanguageProficiency,
 ): boolean => {
-  /** 
-   * Does the candidate have some language matching this one requirement?
-   * Three scenarios for language filtering:
-   *1) when code and level are provided, return candidates that match ALL of these languageProficiency requirement (code and level), where
-   level equal or higher than provided
-   *2) when only code is provided, return candidates that have this specific code at any level
-   *3) when only level is provided, return candidates that have any language at level equal or higher than provided
-   **/
-
   return candidateLangs.some((cl) => {
     if (required.code && cl.code !== required.code) return false;
 

@@ -24,7 +24,7 @@ export class SaplingService {
       );
     }
 
-    if (!text || text.length < 50) {
+    if (text.length < 50) {
       this.logger.warn(
         `Text is too short for AI detection (length: ${text?.length ?? 0})`,
       );
@@ -72,7 +72,9 @@ export class SaplingService {
         clearTimeout(timeout);
       }
     } catch (error) {
-      this.logger.warn(`Sapling API call failed: ${error.message}`);
+      this.logger.warn(
+        `Sapling API call failed: ${error instanceof Error ? error.message : error}`,
+      );
       return null;
     }
   }
@@ -169,7 +171,9 @@ export class SaplingService {
         clearTimeout(timeout);
       }
     } catch (error) {
-      this.logger.warn(`Sapling ${endpoint} call failed: ${error.message}`);
+      this.logger.warn(
+        `Sapling ${endpoint} call failed: ${error instanceof Error ? error.message : error}`,
+      );
       return null;
     }
   }

@@ -46,6 +46,7 @@ import {
 } from './types/matchingScore.interface';
 import { SaplingService } from '../sapling/sapling.service';
 import { parseSalaryRange } from '../utils/parseSalaryRange';
+import { AiDetectionResult } from '../sapling/types/scores.interface';
 
 @Injectable()
 export class VacancySubmissionService {
@@ -142,10 +143,25 @@ export class VacancySubmissionService {
       },
     );
 
-    const [commentAiResult, resumeAiResult] = await Promise.all([
-      this.saplingService.detectAiContent(createVacancySubmissionDto.comment),
-      this.saplingService.detectAiContent(createVacancySubmissionDto.resume),
-    ]);
+    let commentAiResult: AiDetectionResult | null = null;
+    if (
+      createVacancySubmissionDto.comment?.length &&
+      createVacancySubmissionDto.comment.length >= 50
+    ) {
+      commentAiResult = await this.saplingService.detectAiContent(
+        createVacancySubmissionDto.comment,
+      );
+    }
+
+    let resumeAiResult: AiDetectionResult | null = null;
+    if (
+      createVacancySubmissionDto.resume?.length &&
+      createVacancySubmissionDto.resume.length >= 50
+    ) {
+      resumeAiResult = await this.saplingService.detectAiContent(
+        createVacancySubmissionDto.resume,
+      );
+    }
 
     return await this.dataSource.transaction(
       async (transactionalEntityManager) => {
