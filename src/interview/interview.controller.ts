@@ -1,12 +1,12 @@
 import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
-import { AuthUser } from 'src/decorators/authUser.dto';
-import { Roles } from 'src/decorators/roles.decorator';
-import { Interview } from 'src/entities/interview';
-import { UserRole } from 'src/entities/role.enum';
-import { UpdateInterviewDto } from 'src/interview/dto/updateInterview.dto';
-import { InterviewService } from 'src/interview/interview.service';
-import { UserDto } from 'src/user/dto/user.dto';
-import { validateTenantAccess } from 'src/utils/validate';
+import { AuthUser } from '../decorators/authUser.dto';
+import { Roles } from '../decorators/roles.decorator';
+import { Interview } from '../entities/interview';
+import { UserRole } from '../entities/role.enum';
+import { UpdateInterviewDto } from '../interview/dto/updateInterview.dto';
+import { InterviewService } from '../interview/interview.service';
+import { UserDto } from '../user/dto/user.dto';
+import { validateTenantAccess } from '../utils/validate';
 
 @Controller('interviews')
 export class InterviewController {
