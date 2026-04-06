@@ -20,7 +20,7 @@ import { CandidateProfileService } from './candidateProfile.service';
 import { CandidateProfileDto } from './dto/candidateProfile.dto';
 import { CreateCandidateProfileDto } from './dto/createCandidateProfile.dto';
 import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
-import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
+import { CandidateProfileFilterDto } from './dto/candidateProfileFilter.dto';
 import { validateTenantAccess } from '../utils/validate';
 import { UploadResume } from '../utils/upload-resume.decorator';
 
@@ -55,7 +55,7 @@ export class CandidateProfileController {
   @Post('get/within-tenant/filter')
   async findAllCandidates(
     @AuthUser() requester: UserDto,
-    @Body() profileFilterDto?: RecruitingFilterDto,
+    @Body() profileFilterDto?: CandidateProfileFilterDto,
     @Query('tenantId') tenantId?: string,
   ): Promise<CandidateProfileDto[]> {
     if (tenantId) validateTenantAccess(requester, tenantId);
