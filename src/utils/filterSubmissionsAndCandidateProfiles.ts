@@ -57,6 +57,10 @@ export const filterByCountriesCities = (
   return query;
 };
 
+/** Candidate & Submission must meet every requirement 
+  Example: "languages": [{ "code": "es", "level": "B1" }, { "code": "en", "level": "NATIVE"} ] 
+  -> candidate must have at least B1 in Spanish and be native in English to pass the filter
+*/
 export const filterByLanguages = (
   candidates: CandidateProfile[],
   filterDto: CommonFilterDto,
@@ -64,7 +68,7 @@ export const filterByLanguages = (
   if (!filterDto?.languages?.length) return candidates;
 
   return candidates.filter((c) =>
-    filterDto?.languages?.some((requiredLang) =>
+    filterDto?.languages?.every((requiredLang) =>
       meetsLanguageRequirement(c.languages, requiredLang),
     ),
   );
@@ -101,8 +105,10 @@ export const meetsLanguageRequirement = (
   candidateLangs: LanguageProficiency[],
   required: LanguageProficiency,
 ): boolean => {
-  /** three scenarios for language filtering:
-   *1) when code and level are provided, return candidates that match at least one of these languageProficiency requirement (code and level), where
+  /** 
+   * Does the candidate have some language matching this one requirement?
+   * Three scenarios for language filtering:
+   *1) when code and level are provided, return candidates that match ALL of these languageProficiency requirement (code and level), where
    level equal or higher than provided
    *2) when only code is provided, return candidates that have this specific code at any level
    *3) when only level is provided, return candidates that have any language at level equal or higher than provided

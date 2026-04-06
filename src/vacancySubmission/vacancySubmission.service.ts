@@ -396,7 +396,7 @@ export class VacancySubmissionService {
         const languages = s.candidateProfile?.languages;
         return (
           languages &&
-          filterDto.languages!.some((req) =>
+          filterDto.languages!.every((req) =>
             meetsLanguageRequirement(languages, req),
           )
         );
