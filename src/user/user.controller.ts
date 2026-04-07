@@ -96,8 +96,8 @@ export class UserController {
     }
 
     if (requester.id !== id) {
-    const userTenantId = await this.userService.getTenantIdByUserId(id);
-    validateTenantAccess(requester, userTenantId);
+      const userTenantId = await this.userService.getTenantIdByUserId(id);
+      validateTenantAccess(requester, userTenantId);
     }
 
     return this.userService.findDtoById(id);
@@ -268,7 +268,7 @@ export class UserController {
   ): void {
     if (requester.role === UserRole.admin && requester.tenantId !== tenantId) {
       throw new ForbiddenException(
-        `You can access users only within your own tenant: ${tenantId}, but not requested:${requester.tenantId}.`,
+        `You can access users only within your own tenant: ${requester.tenantId}, but not requested: ${tenantId}.`,
       );
     } else if (requester.role === UserRole.recruiter && requester.id !== userId)
       throw new HttpException(
