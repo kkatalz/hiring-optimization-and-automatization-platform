@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  MaxLength,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -21,6 +22,7 @@ export class QuestionAnswerAllRequiredDto {
 export class CreateVacancySubmissionDto {
   @IsOptional()
   @IsString()
+  @MaxLength(5000)
   comment?: string;
 
   @IsOptional()

@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  MaxLength,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -22,10 +23,12 @@ export class CreateCandidateProfileDto {
 
   @IsNotEmpty()
   @IsString()
+  @MaxLength(20)
   firstName: string;
 
   @IsNotEmpty()
   @IsString()
+  @MaxLength(50)
   lastName: string;
 
   @IsNotEmpty()
@@ -35,10 +38,12 @@ export class CreateCandidateProfileDto {
 
   @IsNotEmpty()
   @IsString()
+  @MaxLength(100)
   country: string;
 
   @IsNotEmpty()
   @IsString()
+  @MaxLength(100)
   city: string;
 
   @IsNotEmpty()
