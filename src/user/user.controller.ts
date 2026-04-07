@@ -281,12 +281,11 @@ export class UserController {
     requester: UserDto,
     user: UserDto,
   ): void {
-    if (
-      (user.role === UserRole.candidate || user.role === UserRole.superAdmin) &&
-      requester.id !== user.id
-    )
+    if (requester.role === UserRole.superAdmin) return;
+
+    if (requester.id !== user.id)
       throw new HttpException(
-        'Candidate and super admin can change only their own credentials.',
+        'You can change only your own credentials.',
         HttpStatus.FORBIDDEN,
       );
   }
