@@ -18,6 +18,7 @@ import { UserRole } from '../entities/role.enum';
 import { TenantInterceptor } from '../interceptors/tenantId.interceptor';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { ChangeRoleDto } from './dto/changeRole.dto';
 import { UserDto } from './dto/user.dto';
 import { UserService } from './user.service';
 import { validateTenantAccess } from '../utils/validate';
@@ -75,14 +76,29 @@ export class UserController {
     return this.userService.findAllByTenantId(tenantId);
   }
 
-  @Roles(UserRole.superAdmin, UserRole.admin)
+  @Roles(
+    UserRole.superAdmin,
+    UserRole.admin,
+    UserRole.recruiter,
+    UserRole.candidate,
+  )
   @Get(':id')
   async findById(
     @AuthUser() requester: UserDto,
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<UserDto> {
-    const userTenantId = await this.userService.getTenantIdByUserId(id);
-    validateTenantAccess(requester, userTenantId);
+    if (
+      (requester.role === UserRole.candidate ||
+        requester.role === UserRole.recruiter) &&
+      requester.id !== id
+    ) {
+      throw new ForbiddenException('You can only view your own profile.');
+    }
+
+    if (requester.id !== id && requester.role !== UserRole.superAdmin) {
+      const userTenantId = await this.userService.getTenantIdByUserId(id);
+      validateTenantAccess(requester, userTenantId);
+    }
 
     return this.userService.findDtoById(id);
   }
@@ -90,7 +106,7 @@ export class UserController {
   /**
    * SuperAdmin can update all users without tenant restriction.
    * Admin can update only users within their tenant, but not other tenants.
-   * Recruiter can update only their own fields.
+   * Recruiter can update only their own name fields.
    */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Patch(':userId/tenant/:tenantId')
@@ -107,6 +123,40 @@ export class UserController {
     );
 
     return this.userService.update(userId, tenantId, updateUserDto);
+  }
+
+  /**
+   * SuperAdmin can change any user's role.
+   * Admin can change roles only within their tenant, but cannot promote to superAdmin and change admin's role.
+   */
+  @Roles(UserRole.superAdmin, UserRole.admin)
+  @Patch(':userId/role')
+  async changeRole(
+    @AuthUser() requester: UserDto,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+    @Body() changeRoleDto: ChangeRoleDto,
+  ): Promise<UserDto> {
+    const user = await this.userService.findById(userId);
+
+    if (requester.role === UserRole.admin) {
+      if (!user.tenantId || user.tenantId !== requester.tenantId) {
+        throw new ForbiddenException(
+          'Admin can only change roles for users within their own tenant.',
+        );
+      }
+      if (changeRoleDto.role === UserRole.superAdmin) {
+        throw new ForbiddenException(
+          'Admin cannot promote users to superAdmin.',
+        );
+      }
+      if (user.role === UserRole.admin) {
+        throw new ForbiddenException(
+          "Admin cannot change another admin's role.",
+        );
+      }
+    }
+
+    return this.userService.changeRole(userId, changeRoleDto.role);
   }
 
   /**
@@ -168,7 +218,12 @@ export class UserController {
       );
     else this.validateCandidateSuperAdminForCredentialsAccess(requester, user);
 
-    return await this.userService.changePassword(userId, changePasswordDto);
+    const isSelfChange = requester.id === userId;
+    return await this.userService.changePassword(
+      userId,
+      changePasswordDto,
+      isSelfChange,
+    );
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin)
@@ -211,9 +266,15 @@ export class UserController {
     tenantId: string,
     userId: string,
   ): void {
+    if (requester.role === UserRole.superAdmin) return;
+
+    if (requester.role === UserRole.candidate) {
+      throw new ForbiddenException('You can change only your own credentials.');
+    }
+
     if (requester.role === UserRole.admin && requester.tenantId !== tenantId) {
       throw new ForbiddenException(
-        `You can access users only within your own tenant: ${tenantId}, but not requested:${requester.tenantId}.`,
+        `You can access users only within your own tenant: ${requester.tenantId}, but not requested: ${tenantId}.`,
       );
     } else if (requester.role === UserRole.recruiter && requester.id !== userId)
       throw new HttpException(
@@ -226,12 +287,11 @@ export class UserController {
     requester: UserDto,
     user: UserDto,
   ): void {
-    if (
-      (user.role === UserRole.candidate || user.role === UserRole.superAdmin) &&
-      requester.id !== user.id
-    )
+    if (requester.role === UserRole.superAdmin) return;
+
+    if (requester.id !== user.id)
       throw new HttpException(
-        'Candidate and super admin can change only their own credentials.',
+        'You can change only your own credentials.',
         HttpStatus.FORBIDDEN,
       );
   }
