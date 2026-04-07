@@ -1,4 +1,8 @@
-import { Injectable, NestMiddleware } from '@nestjs/common';
+import {
+  Injectable,
+  NestMiddleware,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { NextFunction, Response } from 'express';
 import { verify } from 'jsonwebtoken';
 import { AuthRequest } from '../types/expressRequest.interface';
@@ -17,17 +21,17 @@ export class AuthMiddleware implements NestMiddleware {
 
     const token = req.headers.authorization.split(' ')[1];
     try {
-      const decode = verify(token, process.env.JWT_ACCESS_SECRET!) as {
+      const decode = verify(token, process.env.JWT_ACCESS_SECRET!, {
+        algorithms: ['HS256'],
+      }) as {
         id: string;
       };
       const id = decode.id;
 
-      let user: UserDto | undefined = undefined;
-      user = await this.userService.findById(id);
+      const user = await this.userService.findById(id);
 
       if (!user) {
-        next();
-        return;
+        throw new UnauthorizedException('User not found or deactivated.');
       }
 
       req.user = user;
@@ -35,7 +39,10 @@ export class AuthMiddleware implements NestMiddleware {
       next();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
-      next();
+      if (err instanceof UnauthorizedException) {
+        throw err;
+      }
+      throw new UnauthorizedException('Invalid or expired token.');
     }
   }
 }
