@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Post,
@@ -36,6 +37,8 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ accessToken: string }> {
+    this.validateOrigin(req);
+
     const refreshToken = req.cookies?.refresh_token;
 
     if (!refreshToken) {
@@ -84,6 +87,18 @@ export class AuthController {
       path: '/auth',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+  }
+
+  private validateOrigin(req: Request): void {
+    const allowedOrigins = process.env
+      .CORS_ORIGIN!.split(',')
+      .map((o) => o.trim());
+
+    const origin = req.headers.origin;
+
+    if (origin && !allowedOrigins.includes(origin)) {
+      throw new ForbiddenException('Invalid origin.');
+    }
   }
 
   private clearRefreshTokenCookie(res: Response): void {
