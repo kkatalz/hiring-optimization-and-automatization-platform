@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { Vacancy } from './vacancy';
 import { UserRole } from './role.enum';
 import { Tenant } from './tenant';
@@ -20,6 +21,7 @@ export class User {
   @Column({ unique: true })
   email: string;
 
+  @Exclude()
   @Column()
   password: string;
 

@@ -15,7 +15,8 @@ import ormconfig from './ormconfig';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthMiddleware } from './middlewares/auth.middleware';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ClassSerializerInterceptor } from '@nestjs/common';
 import { RolesGuard } from './guards/roles.guard';
 import { VacancyModule } from './vacancy/vacancy.module';
 import { VacancySubmissionModule } from './vacancySubmission/vacancySubmission.module';
@@ -52,6 +53,10 @@ import { ClusteringModule } from './clustering/clustering.module';
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ClassSerializerInterceptor,
     },
   ],
 })
