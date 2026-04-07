@@ -127,8 +127,7 @@ export class UserController {
 
   /**
    * SuperAdmin can change any user's role.
-   * Admin can change roles only within their tenant, cannot promote to superAdmin,
-   *  and cannot change another admin's role.
+   * Admin can change roles only within their tenant, but cannot promote to superAdmin and change admin's role.
    */
   @Roles(UserRole.superAdmin, UserRole.admin)
   @Patch(':userId/role')
