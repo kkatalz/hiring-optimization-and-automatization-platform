@@ -45,7 +45,6 @@ export class UserService {
     const users = await this.userRepository.find({
       where: {
         email: createUserDto.email,
-        deleted: false,
       },
     });
 
@@ -159,7 +158,6 @@ export class UserService {
     const userWithGivenEmail = await this.userRepository.findOne({
       where: {
         email,
-        deleted: false,
         id: Not(userId),
       },
     });
