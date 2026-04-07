@@ -139,11 +139,12 @@ export class UserController {
   ): Promise<UserDto> {
     const user = await this.userService.findById(userId);
 
-    if (user.tenantId) {
-      validateTenantAccess(requester, user.tenantId);
-    }
-
     if (requester.role === UserRole.admin) {
+      if (!user.tenantId || user.tenantId !== requester.tenantId) {
+        throw new ForbiddenException(
+          'Admin can only change roles for users within their own tenant.',
+        );
+      }
       if (changeRoleDto.role === UserRole.superAdmin) {
         throw new ForbiddenException(
           'Admin cannot promote users to superAdmin.',
