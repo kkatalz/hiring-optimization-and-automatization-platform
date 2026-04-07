@@ -143,25 +143,24 @@ export class VacancySubmissionService {
       },
     );
 
-    let commentAiResult: AiDetectionResult | null = null;
-    if (
+    const commentAiPromise: Promise<AiDetectionResult | null> =
       createVacancySubmissionDto.comment?.length &&
       createVacancySubmissionDto.comment.length >= 50
-    ) {
-      commentAiResult = await this.saplingService.detectAiContent(
-        createVacancySubmissionDto.comment,
-      );
-    }
+        ? this.saplingService.detectAiContent(
+            createVacancySubmissionDto.comment,
+          )
+        : Promise.resolve(null);
 
-    let resumeAiResult: AiDetectionResult | null = null;
-    if (
+    const resumeAiPromise: Promise<AiDetectionResult | null> =
       createVacancySubmissionDto.resume?.length &&
       createVacancySubmissionDto.resume.length >= 50
-    ) {
-      resumeAiResult = await this.saplingService.detectAiContent(
-        createVacancySubmissionDto.resume,
-      );
-    }
+        ? this.saplingService.detectAiContent(createVacancySubmissionDto.resume)
+        : Promise.resolve(null);
+
+    const [commentAiResult, resumeAiResult] = await Promise.all([
+      commentAiPromise,
+      resumeAiPromise,
+    ]);
 
     return await this.dataSource.transaction(
       async (transactionalEntityManager) => {
