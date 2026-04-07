@@ -75,14 +75,29 @@ export class UserController {
     return this.userService.findAllByTenantId(tenantId);
   }
 
-  @Roles(UserRole.superAdmin, UserRole.admin)
+  @Roles(
+    UserRole.superAdmin,
+    UserRole.admin,
+    UserRole.recruiter,
+    UserRole.candidate,
+  )
   @Get(':id')
   async findById(
     @AuthUser() requester: UserDto,
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<UserDto> {
+    if (
+      (requester.role === UserRole.candidate ||
+        requester.role === UserRole.recruiter) &&
+      requester.id !== id
+    ) {
+      throw new ForbiddenException('You can only view your own profile.');
+    }
+
+    if (requester.id !== id) {
     const userTenantId = await this.userService.getTenantIdByUserId(id);
     validateTenantAccess(requester, userTenantId);
+    }
 
     return this.userService.findDtoById(id);
   }
