@@ -1301,15 +1301,15 @@ describe('VacancySubmissionService', () => {
           where: { vacancyId },
         });
         await submissionRepository.update(submissions[0].id, {
-          commentAiScore: 0.8,
+          commentAiScore: 80,
         });
         await submissionRepository.update(submissions[1].id, {
-          commentAiScore: 0.3,
+          commentAiScore: 30,
         });
       });
 
       it('should filter submissions by maxCommentAiScore', async () => {
-        const filter: VacancySubmissionFilterDto = { maxCommentAiScore: 0.5 };
+        const filter: VacancySubmissionFilterDto = { maxCommentAiScore: 50 };
 
         const result = await service.findAllSubmissionsWithinVacancyWithFilters(
           vacancyId,
@@ -1317,11 +1317,11 @@ describe('VacancySubmissionService', () => {
         );
 
         expect(result.length).to.equal(1);
-        expect(result[0].commentAiScore).to.be.lessThanOrEqual(0.5);
+        expect(result[0].commentAiScore).to.be.lessThanOrEqual(50);
       });
 
       it('should return all submissions when maxCommentAiScore is high enough', async () => {
-        const filter: VacancySubmissionFilterDto = { maxCommentAiScore: 1.0 };
+        const filter: VacancySubmissionFilterDto = { maxCommentAiScore: 100 };
 
         const result = await service.findAllSubmissionsWithinVacancyWithFilters(
           vacancyId,
@@ -1332,7 +1332,7 @@ describe('VacancySubmissionService', () => {
       });
 
       it('should return empty when maxCommentAiScore excludes all', async () => {
-        const filter: VacancySubmissionFilterDto = { maxCommentAiScore: 0.1 };
+        const filter: VacancySubmissionFilterDto = { maxCommentAiScore: 10 };
 
         const result = await service.findAllSubmissionsWithinVacancyWithFilters(
           vacancyId,
@@ -1361,15 +1361,15 @@ describe('VacancySubmissionService', () => {
           where: { vacancyId },
         });
         await submissionRepository.update(submissions[0].id, {
-          resumeAiScore: 0.9,
+          resumeAiScore: 90,
         });
         await submissionRepository.update(submissions[1].id, {
-          resumeAiScore: 0.2,
+          resumeAiScore: 20,
         });
       });
 
       it('should filter submissions by maxResumeAiScore', async () => {
-        const filter: VacancySubmissionFilterDto = { maxResumeAiScore: 0.5 };
+        const filter: VacancySubmissionFilterDto = { maxResumeAiScore: 50 };
 
         const result = await service.findAllSubmissionsWithinVacancyWithFilters(
           vacancyId,
@@ -1377,11 +1377,11 @@ describe('VacancySubmissionService', () => {
         );
 
         expect(result.length).to.equal(1);
-        expect(result[0].resumeAiScore).to.be.lessThanOrEqual(0.5);
+        expect(result[0].resumeAiScore).to.be.lessThanOrEqual(50);
       });
 
       it('should exclude all when maxResumeAiScore is very low', async () => {
-        const filter: VacancySubmissionFilterDto = { maxResumeAiScore: 0.1 };
+        const filter: VacancySubmissionFilterDto = { maxResumeAiScore: 10 };
 
         const result = await service.findAllSubmissionsWithinVacancyWithFilters(
           vacancyId,
@@ -1410,12 +1410,12 @@ describe('VacancySubmissionService', () => {
           where: { vacancyId },
         });
         await submissionRepository.update(submissions[0].id, {
-          commentAiScore: 0.8,
-          resumeAiScore: 0.9,
+          commentAiScore: 80,
+          resumeAiScore: 90,
         });
         await submissionRepository.update(submissions[1].id, {
-          commentAiScore: 0.2,
-          resumeAiScore: 0.1,
+          commentAiScore: 20,
+          resumeAiScore: 10,
         });
       });
 

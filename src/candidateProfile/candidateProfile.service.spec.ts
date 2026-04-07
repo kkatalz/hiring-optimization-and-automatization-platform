@@ -310,28 +310,28 @@ describe('CandidateProfileService', () => {
     beforeEach(async () => {
       // Set different resumeAiScore values on the two candidates
       await candidateProfileRepository.update(testCandidatesProfiles[0].id, {
-        resumeAiScore: 0.9,
+        resumeAiScore: 90,
       });
       await candidateProfileRepository.update(testCandidatesProfiles[1].id, {
-        resumeAiScore: 0.3,
+        resumeAiScore: 30,
       });
     });
 
     it('should filter candidates by maxResumeAiScore', async () => {
       const result = await candidateProfileService.findAllCandidatesWithFilters(
         {
-          maxResumeAiScore: 0.5,
+          maxResumeAiScore: 50,
         },
       );
 
       expect(result.length).to.equal(1);
-      expect(result[0].resumeAiScore).to.be.lessThanOrEqual(0.5);
+      expect(result[0].resumeAiScore).to.be.lessThanOrEqual(50);
     });
 
     it('should return all candidates when maxResumeAiScore is high enough', async () => {
       const result = await candidateProfileService.findAllCandidatesWithFilters(
         {
-          maxResumeAiScore: 1.0,
+          maxResumeAiScore: 100,
         },
       );
 
@@ -341,7 +341,7 @@ describe('CandidateProfileService', () => {
     it('should return empty when maxResumeAiScore excludes all', async () => {
       const result = await candidateProfileService.findAllCandidatesWithFilters(
         {
-          maxResumeAiScore: 0.1,
+          maxResumeAiScore: 10,
         },
       );
 
