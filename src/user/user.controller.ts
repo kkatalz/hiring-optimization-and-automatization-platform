@@ -266,6 +266,12 @@ export class UserController {
     tenantId: string,
     userId: string,
   ): void {
+    if (requester.role === UserRole.superAdmin) return;
+
+    if (requester.role === UserRole.candidate) {
+      throw new ForbiddenException('You can change only your own credentials.');
+    }
+
     if (requester.role === UserRole.admin && requester.tenantId !== tenantId) {
       throw new ForbiddenException(
         `You can access users only within your own tenant: ${requester.tenantId}, but not requested: ${tenantId}.`,
