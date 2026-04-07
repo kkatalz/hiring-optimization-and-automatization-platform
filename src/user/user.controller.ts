@@ -95,7 +95,7 @@ export class UserController {
       throw new ForbiddenException('You can only view your own profile.');
     }
 
-    if (requester.id !== id) {
+    if (requester.id !== id && requester.role !== UserRole.superAdmin) {
       const userTenantId = await this.userService.getTenantIdByUserId(id);
       validateTenantAccess(requester, userTenantId);
     }
