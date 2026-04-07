@@ -5,10 +5,11 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Max,
   Min,
   ValidateNested,
 } from 'class-validator';
-import { LanguageProficiency } from '../entities/hiring.enum';
+import { LanguageProficiency } from '../../entities/hiring.enum';
 import { Type } from 'class-transformer';
 
 export class QuestionAnswerFilterEntry {
@@ -20,7 +21,7 @@ export class QuestionAnswerFilterEntry {
   value?: string | string[];
 }
 
-export class RecruitingFilterDto {
+export class VacancySubmissionFilterDto {
   @IsNumber()
   @IsOptional()
   @Min(0)
@@ -32,6 +33,7 @@ export class RecruitingFilterDto {
   maxYearsOfExperience?: number;
 
   @IsOptional()
+  @IsArray()
   @IsString({ each: true })
   countries?: string[];
 
@@ -66,4 +68,16 @@ export class RecruitingFilterDto {
   @IsNumber()
   @Min(0)
   maxSalaryExpectation?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  maxCommentAiScore?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  maxResumeAiScore?: number;
 }

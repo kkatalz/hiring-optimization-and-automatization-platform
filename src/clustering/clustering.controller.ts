@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  ParseUUIDPipe,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
 import { AuthUser } from '../decorators/authUser.dto';
 import { Roles } from '../decorators/roles.decorator';
 import { UserRole } from '../entities/role.enum';
@@ -24,10 +17,10 @@ export class ClusteringController {
     private readonly vacancySubmissionService: VacancySubmissionService,
   ) {}
 
-  @Roles(UserRole.admin, UserRole.recruiter)
-  @Post('run')
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
+  @Post('run/:vacancyId')
   async runClustering(
-    @Query('vacancyId', new ParseUUIDPipe()) vacancyId: string,
+    @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
     @AuthUser() requester: UserDto,
   ): Promise<{ message: string }> {
     const vacancyTenantId =
@@ -40,7 +33,7 @@ export class ClusteringController {
     return { message: 'Clustering completed successfully.' };
   }
 
-  @Roles(UserRole.admin, UserRole.recruiter)
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get('similar/:submissionId')
   async findSimilar(
     @Param('submissionId', new ParseUUIDPipe()) submissionId: string,

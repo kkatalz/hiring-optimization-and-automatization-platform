@@ -10,7 +10,7 @@ import { CreateCandidateProfileDto } from './dto/createCandidateProfile.dto';
 import { UpdateCandidateProfileDto } from './dto/updateCandidateProfile.dto';
 import { candidateToCandidateProfileDto } from './map/candidate.map';
 import { UserService } from '../user/user.service';
-import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
+import { CandidateProfileFilterDto } from './dto/candidateProfileFilter.dto';
 import {
   filterByExperience,
   filterByCountriesCities,
@@ -51,7 +51,7 @@ export class CandidateProfileService {
   }
 
   async findAllCandidatesWithFilters(
-    profileFilterDto?: RecruitingFilterDto,
+    profileFilterDto?: CandidateProfileFilterDto,
     tenantId?: string,
   ): Promise<CandidateProfileDto[]> {
     const query = this.candidateProfileRepository
@@ -67,6 +67,13 @@ export class CandidateProfileService {
     if (profileFilterDto) {
       filterByExperience(query, profileFilterDto);
       filterByCountriesCities(query, profileFilterDto);
+
+      if (profileFilterDto.maxResumeAiScore != null) {
+        query.andWhere(
+          'candidateProfile.resume_ai_score <= :maxResumeAiScore',
+          { maxResumeAiScore: profileFilterDto.maxResumeAiScore },
+        );
+      }
     }
 
     let candidates = await query.getMany();

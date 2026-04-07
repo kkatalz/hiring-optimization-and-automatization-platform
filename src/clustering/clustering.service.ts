@@ -232,7 +232,7 @@ export class ClusteringService {
         await this.clusterSubmissions(vacancy.id);
       } catch (error) {
         this.logger.error(
-          `Failed to cluster vacancy ${vacancy.id}: ${error.message}`,
+          `Failed to cluster vacancy ${vacancy.id}: ${error instanceof Error ? error.message : error}`,
         );
       }
     }

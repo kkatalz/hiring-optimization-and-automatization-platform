@@ -19,8 +19,8 @@ import { VacancySubmissionStatus } from '../entities/statuses.enum';
 import { CandidateProfileService } from '../candidateProfile/candidateProfile.service';
 import {
   QuestionAnswerFilterEntry,
-  RecruitingFilterDto,
-} from '../recruiting/recruitingFilter.dto';
+  VacancySubmissionFilterDto,
+} from './dto/vacancySubmissionFilter.dto';
 import {
   filterByAnswers,
   filterByExperience,
@@ -46,6 +46,7 @@ import {
 } from './types/matchingScore.interface';
 import { SaplingService } from '../sapling/sapling.service';
 import { parseSalaryRange } from '../utils/parseSalaryRange';
+import { AiDetectionResult } from '../sapling/types/scores.interface';
 
 @Injectable()
 export class VacancySubmissionService {
@@ -142,9 +143,23 @@ export class VacancySubmissionService {
       },
     );
 
+    const commentAiPromise: Promise<AiDetectionResult | null> =
+      createVacancySubmissionDto.comment?.length &&
+      createVacancySubmissionDto.comment.length >= 50
+        ? this.saplingService.detectAiContent(
+            createVacancySubmissionDto.comment,
+          )
+        : Promise.resolve(null);
+
+    const resumeAiPromise: Promise<AiDetectionResult | null> =
+      createVacancySubmissionDto.resume?.length &&
+      createVacancySubmissionDto.resume.length >= 50
+        ? this.saplingService.detectAiContent(createVacancySubmissionDto.resume)
+        : Promise.resolve(null);
+
     const [commentAiResult, resumeAiResult] = await Promise.all([
-      this.saplingService.detectAiContent(createVacancySubmissionDto.comment),
-      this.saplingService.detectAiContent(createVacancySubmissionDto.resume),
+      commentAiPromise,
+      resumeAiPromise,
     ]);
 
     return await this.dataSource.transaction(
@@ -154,6 +169,7 @@ export class VacancySubmissionService {
           vacancyId: vacancyId,
           tenantId: vacancy.tenantId,
           candidateId: candidate.id,
+          status: VacancySubmissionStatus.pending,
           matchScore,
           commentAiScore: commentAiResult?.score ?? null,
           commentAiSentenceScores: commentAiResult?.sentenceScores ?? null,
@@ -255,7 +271,7 @@ export class VacancySubmissionService {
 
   async findAllSubmissionsWithinVacancyWithFilters(
     vacancyId: string,
-    filterSubmissionsDto?: RecruitingFilterDto,
+    filterSubmissionsDto?: VacancySubmissionFilterDto,
     sortBy?: string,
     order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
@@ -285,7 +301,7 @@ export class VacancySubmissionService {
 
   async findAllSubmissionsWithinTenantWithFilters(
     tenantId: string,
-    filterSubmissionsDto?: RecruitingFilterDto,
+    filterSubmissionsDto?: VacancySubmissionFilterDto,
     sortBy?: string,
     order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
@@ -346,11 +362,13 @@ export class VacancySubmissionService {
     'createdAt',
     'expectedSalary',
     'recruiterRating',
+    'commentAiScore',
+    'resumeAiScore',
   ];
 
   private async executeFilteredSubmissions(
     query: SelectQueryBuilder<VacancySubmission>,
-    filterDto?: RecruitingFilterDto,
+    filterDto?: VacancySubmissionFilterDto,
     sortBy?: string,
     order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
@@ -381,6 +399,19 @@ export class VacancySubmissionService {
         minMatchScore: filterDto.minMatchScore,
       });
     }
+
+    if (filterDto.maxCommentAiScore != null) {
+      query.andWhere('submission.comment_ai_score <= :maxCommentAiScore', {
+        maxCommentAiScore: filterDto.maxCommentAiScore,
+      });
+    }
+
+    if (filterDto.maxResumeAiScore != null) {
+      query.andWhere('submission.resume_ai_score <= :maxResumeAiScore', {
+        maxResumeAiScore: filterDto.maxResumeAiScore,
+      });
+    }
+
     this.applySorting(query, sortBy, order);
 
     let submissions = await query.getMany();
@@ -395,7 +426,7 @@ export class VacancySubmissionService {
         const languages = s.candidateProfile?.languages;
         return (
           languages &&
-          filterDto.languages!.some((req) =>
+          filterDto.languages!.every((req) =>
             meetsLanguageRequirement(languages, req),
           )
         );

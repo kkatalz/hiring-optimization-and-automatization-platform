@@ -3,16 +3,19 @@ import {
   LanguageLevelRank,
   LanguageProficiency,
 } from '../entities/hiring.enum';
+import { CandidateProfileFilterDto } from '../candidateProfile/dto/candidateProfileFilter.dto';
 import {
   QuestionAnswerFilterEntry,
-  RecruitingFilterDto,
-} from '../recruiting/recruitingFilter.dto';
+  VacancySubmissionFilterDto,
+} from '../vacancySubmission/dto/vacancySubmissionFilter.dto';
 import { VacancySubmission } from '../entities/vacancySubmission';
 import { SelectQueryBuilder } from 'typeorm';
 
+type CommonFilterDto = CandidateProfileFilterDto | VacancySubmissionFilterDto;
+
 export const filterByExperience = (
   query: SelectQueryBuilder<any>,
-  filterDto: RecruitingFilterDto,
+  filterDto: CommonFilterDto,
 ) => {
   if (filterDto?.minYearsOfExperience) {
     query.andWhere(
@@ -23,7 +26,7 @@ export const filterByExperience = (
     );
   }
 
-  if (filterDto?.maxYearsOfExperience) {
+  if (filterDto?.maxYearsOfExperience != null) {
     query.andWhere(
       'candidateProfile.years_of_experience <= :maxYearsOfExperience',
       {
@@ -37,7 +40,7 @@ export const filterByExperience = (
 
 export const filterByCountriesCities = (
   query: SelectQueryBuilder<any>,
-  filterDto: RecruitingFilterDto,
+  filterDto: CommonFilterDto,
 ) => {
   if (filterDto?.countries && filterDto.countries.length > 0) {
     query.andWhere('candidateProfile.country = ANY(:countries)', {
@@ -54,14 +57,18 @@ export const filterByCountriesCities = (
   return query;
 };
 
+/** Candidate & Submission must meet every requirement 
+  Example: "languages": [{ "code": "es", "level": "B1" }, { "code": "en", "level": "NATIVE"} ] 
+  -> candidate must have at least B1 in Spanish and be native in English to pass the filter
+*/
 export const filterByLanguages = (
   candidates: CandidateProfile[],
-  filterDto: RecruitingFilterDto,
+  filterDto: CommonFilterDto,
 ) => {
   if (!filterDto?.languages?.length) return candidates;
 
   return candidates.filter((c) =>
-    filterDto?.languages?.some((requiredLang) =>
+    filterDto?.languages?.every((requiredLang) =>
       meetsLanguageRequirement(c.languages, requiredLang),
     ),
   );
@@ -94,17 +101,11 @@ export const filterByAnswers = (
   });
 };
 
+/** Checks whether a candidate satisfies a single requirement. */
 export const meetsLanguageRequirement = (
   candidateLangs: LanguageProficiency[],
   required: LanguageProficiency,
 ): boolean => {
-  /** three scenarios for language filtering:
-   *1) when code and level are provided, return candidates that match at least one of these languageProficiency requirement (code and level), where
-   level equal or higher than provided
-   *2) when only code is provided, return candidates that have this specific code at any level
-   *3) when only level is provided, return candidates that have any language at level equal or higher than provided
-   **/
-
   return candidateLangs.some((cl) => {
     if (required.code && cl.code !== required.code) return false;
 

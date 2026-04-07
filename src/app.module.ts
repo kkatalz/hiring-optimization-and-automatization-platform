@@ -11,16 +11,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TenantModule } from './tenant/tenant.module';
 import ormconfig from './ormconfig';
-import { UserModule } from 'src/user/user.module';
-import { AuthModule } from 'src/auth/auth.module';
-import { AuthMiddleware } from 'src/middlewares/auth.middleware';
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { AuthMiddleware } from './middlewares/auth.middleware';
 import { APP_GUARD } from '@nestjs/core';
-import { RolesGuard } from 'src/guards/roles.guard';
-import { VacancyModule } from 'src/vacancy/vacancy.module';
+import { RolesGuard } from './guards/roles.guard';
+import { VacancyModule } from './vacancy/vacancy.module';
 import { VacancySubmissionModule } from './vacancySubmission/vacancySubmission.module';
-import { InterviewModule } from 'src/interview/interview.module';
-import { CandidateProfileModule } from 'src/candidateProfile/candidateProfile.module';
-import { QuestionModule } from 'src/question/question.module';
+import { InterviewModule } from './interview/interview.module';
+import { CandidateProfileModule } from './candidateProfile/candidateProfile.module';
+import { QuestionModule } from './question/question.module';
 import { ClusteringModule } from './clustering/clustering.module';
 
 @Module({

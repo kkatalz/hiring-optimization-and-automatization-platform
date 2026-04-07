@@ -39,13 +39,14 @@ import { testVacancyQuestions } from '../../test/fixtures/testVacancyQuestions';
 import { Repository } from 'typeorm';
 import { CandidateProfileService } from '../candidateProfile/candidateProfile.service';
 import { LanguageLevel } from '../entities/hiring.enum';
-import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
+import { VacancySubmissionFilterDto } from './dto/vacancySubmissionFilter.dto';
 import { testSubmissionAnswers } from '../../test/fixtures/testSubmissionAnswers';
 import { SaplingService } from '../sapling/sapling.service';
 
 describe('VacancySubmissionService', () => {
   let service: VacancySubmissionService;
   let vacancyRepository: Repository<Vacancy>;
+  let submissionRepository: Repository<VacancySubmission>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -82,6 +83,9 @@ describe('VacancySubmissionService', () => {
     service = module.get<VacancySubmissionService>(VacancySubmissionService);
     vacancyRepository = module.get<Repository<Vacancy>>(
       getRepositoryToken(Vacancy),
+    );
+    submissionRepository = module.get<Repository<VacancySubmission>>(
+      getRepositoryToken(VacancySubmission),
     );
 
     await loadDatabase({
@@ -664,7 +668,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return submissions when candidate meets minYearsOfExperience', async () => {
-      const filter: RecruitingFilterDto = { minYearsOfExperience: 5 };
+      const filter: VacancySubmissionFilterDto = { minYearsOfExperience: 5 };
 
       const result = await service.findAllSubmissionsWithinVacancyWithFilters(
         vacancyId,
@@ -676,7 +680,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should exclude submissions when candidate does not meet minYearsOfExperience', async () => {
-      const filter: RecruitingFilterDto = { minYearsOfExperience: 10 };
+      const filter: VacancySubmissionFilterDto = { minYearsOfExperience: 10 };
 
       const result = await service.findAllSubmissionsWithinVacancyWithFilters(
         vacancyId,
@@ -687,7 +691,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return submissions when candidate meets maxYearsOfExperience', async () => {
-      const filter: RecruitingFilterDto = { maxYearsOfExperience: 10 };
+      const filter: VacancySubmissionFilterDto = { maxYearsOfExperience: 10 };
 
       const result = await service.findAllSubmissionsWithinVacancyWithFilters(
         vacancyId,
@@ -698,7 +702,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should exclude submissions when candidate exceeds maxYearsOfExperience', async () => {
-      const filter: RecruitingFilterDto = { maxYearsOfExperience: 3 };
+      const filter: VacancySubmissionFilterDto = { maxYearsOfExperience: 3 };
 
       const result = await service.findAllSubmissionsWithinVacancyWithFilters(
         vacancyId,
@@ -709,7 +713,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should filter by experience range (min and max combined)', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         minYearsOfExperience: 5,
         maxYearsOfExperience: 10,
       };
@@ -723,7 +727,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return submissions when candidate matches country filter', async () => {
-      const filter: RecruitingFilterDto = { countries: ['Ukraine'] };
+      const filter: VacancySubmissionFilterDto = { countries: ['Ukraine'] };
 
       const result = await service.findAllSubmissionsWithinVacancyWithFilters(
         vacancyId,
@@ -734,7 +738,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should exclude submissions when candidate does not match country filter', async () => {
-      const filter: RecruitingFilterDto = { countries: ['Germany'] };
+      const filter: VacancySubmissionFilterDto = { countries: ['Germany'] };
 
       const result = await service.findAllSubmissionsWithinVacancyWithFilters(
         vacancyId,
@@ -745,7 +749,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return submissions when candidate matches city filter', async () => {
-      const filter: RecruitingFilterDto = { cities: ['Kyiv'] };
+      const filter: VacancySubmissionFilterDto = { cities: ['Kyiv'] };
 
       const result = await service.findAllSubmissionsWithinVacancyWithFilters(
         vacancyId,
@@ -756,7 +760,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should exclude submissions when candidate does not match city filter', async () => {
-      const filter: RecruitingFilterDto = { cities: ['Berlin'] };
+      const filter: VacancySubmissionFilterDto = { cities: ['Berlin'] };
 
       const result = await service.findAllSubmissionsWithinVacancyWithFilters(
         vacancyId,
@@ -767,7 +771,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return submissions when candidate matches language code filter', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         languages: [{ code: 'en' }],
       };
 
@@ -780,7 +784,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should exclude submissions when candidate does not have required language', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         languages: [{ code: 'fr' }],
       };
 
@@ -793,7 +797,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return submissions when candidate meets language level requirement', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         languages: [{ code: 'en', level: LanguageLevel.B2 }],
       };
 
@@ -806,7 +810,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should exclude submissions when candidate does not meet language level requirement', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         languages: [{ code: 'de', level: LanguageLevel.C1 }],
       };
 
@@ -819,7 +823,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should filter by level only (any language at or above that level)', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         languages: [{ level: LanguageLevel.C1 }],
       };
 
@@ -833,7 +837,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should combine multiple filters', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         minYearsOfExperience: 5,
         countries: ['Ukraine'],
         languages: [{ code: 'en', level: LanguageLevel.B2 }],
@@ -848,7 +852,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return empty when one of combined filters does not match', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         minYearsOfExperience: 5,
         countries: ['Germany'],
         languages: [{ code: 'en' }],
@@ -863,7 +867,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return submissions when answer matches filter', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         answers: [{ questionId: testQuestions[0].id, value: 'true' }],
       };
 
@@ -877,7 +881,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return empty when answer value does not match filter', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         answers: [{ questionId: testQuestions[0].id, value: 'false' }],
       };
 
@@ -890,7 +894,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return submissions matching all answer filters (AND logic)', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         answers: [
           { questionId: testQuestions[0].id, value: 'true' },
           {
@@ -909,7 +913,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return empty when one of multiple answer filters does not match', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         answers: [
           { questionId: testQuestions[0].id, value: 'true' },
           { questionId: testQuestions[1].id, value: 'non-matching value' },
@@ -925,7 +929,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return submissions when filtering by questionId only (no value)', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         answers: [{ questionId: testQuestions[0].id }],
       };
 
@@ -939,7 +943,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should combine experience and answer filters', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         minYearsOfExperience: 5,
         answers: [{ questionId: testQuestions[0].id, value: 'true' }],
       };
@@ -953,7 +957,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return empty when experience filter matches but answer filter does not', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         minYearsOfExperience: 5,
         answers: [{ questionId: testQuestions[0].id, value: 'false' }],
       };
@@ -967,7 +971,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return submissions that include provided questionId, when answer[] filter has only questionId (question is type of boolean), but not value (findAllSubmissionsWithinVacancyWithFilters)', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         answers: [{ questionId: testQuestions[0].id }],
       };
 
@@ -1046,7 +1050,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should throw BadRequestException when questionId in answer filter is not linked to the vacancy', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         answers: [{ questionId: testQuestions[3].id, value: 'true' }],
       };
 
@@ -1065,7 +1069,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should throw BadRequestException when value for boolean question is not a boolean', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         answers: [{ questionId: testQuestions[0].id, value: 'not-a-boolean' }],
       };
 
@@ -1084,7 +1088,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should throw BadRequestException when value for dropdown question is not one of the allowed options', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         answers: [
           { questionId: testQuestions[2].id, value: ['InvalidOption'] },
         ],
@@ -1123,7 +1127,9 @@ describe('VacancySubmissionService', () => {
       });
 
       it('should filter submissions by minSalaryExpectation', async () => {
-        const filter: RecruitingFilterDto = { minSalaryExpectation: 1500 };
+        const filter: VacancySubmissionFilterDto = {
+          minSalaryExpectation: 1500,
+        };
 
         const result = await service.findAllSubmissionsWithinVacancyWithFilters(
           vacancyId,
@@ -1135,7 +1141,9 @@ describe('VacancySubmissionService', () => {
       });
 
       it('should exclude submissions below minSalaryExpectation', async () => {
-        const filter: RecruitingFilterDto = { minSalaryExpectation: 3000 };
+        const filter: VacancySubmissionFilterDto = {
+          minSalaryExpectation: 3000,
+        };
 
         const result = await service.findAllSubmissionsWithinVacancyWithFilters(
           vacancyId,
@@ -1146,7 +1154,9 @@ describe('VacancySubmissionService', () => {
       });
 
       it('should filter submissions by maxSalaryExpectation', async () => {
-        const filter: RecruitingFilterDto = { maxSalaryExpectation: 2500 };
+        const filter: VacancySubmissionFilterDto = {
+          maxSalaryExpectation: 2500,
+        };
 
         const result = await service.findAllSubmissionsWithinVacancyWithFilters(
           vacancyId,
@@ -1159,7 +1169,9 @@ describe('VacancySubmissionService', () => {
       });
 
       it('should exclude submissions above maxSalaryExpectation', async () => {
-        const filter: RecruitingFilterDto = { maxSalaryExpectation: 500 };
+        const filter: VacancySubmissionFilterDto = {
+          maxSalaryExpectation: 500,
+        };
 
         const result = await service.findAllSubmissionsWithinVacancyWithFilters(
           vacancyId,
@@ -1170,7 +1182,7 @@ describe('VacancySubmissionService', () => {
       });
 
       it('should filter by salary range (min and max combined)', async () => {
-        const filter: RecruitingFilterDto = {
+        const filter: VacancySubmissionFilterDto = {
           minSalaryExpectation: 1500,
           maxSalaryExpectation: 2500,
         };
@@ -1185,7 +1197,7 @@ describe('VacancySubmissionService', () => {
       });
 
       it('should return empty when salary range excludes all submissions', async () => {
-        const filter: RecruitingFilterDto = {
+        const filter: VacancySubmissionFilterDto = {
           minSalaryExpectation: 5000,
           maxSalaryExpectation: 6000,
         };
@@ -1218,7 +1230,7 @@ describe('VacancySubmissionService', () => {
       });
 
       it('should filter submissions by minMatchScore', async () => {
-        const filter: RecruitingFilterDto = { minMatchScore: 50 };
+        const filter: VacancySubmissionFilterDto = { minMatchScore: 50 };
 
         const result = await service.findAllSubmissionsWithinVacancyWithFilters(
           vacancyId,
@@ -1230,7 +1242,7 @@ describe('VacancySubmissionService', () => {
       });
 
       it('should return all submissions when minMatchScore is 0', async () => {
-        const filter: RecruitingFilterDto = { minMatchScore: 0 };
+        const filter: VacancySubmissionFilterDto = { minMatchScore: 0 };
 
         const result = await service.findAllSubmissionsWithinVacancyWithFilters(
           vacancyId,
@@ -1242,7 +1254,7 @@ describe('VacancySubmissionService', () => {
       });
 
       it('should exclude submissions below minMatchScore', async () => {
-        const filter: RecruitingFilterDto = { minMatchScore: 200 };
+        const filter: VacancySubmissionFilterDto = { minMatchScore: 200 };
 
         const result = await service.findAllSubmissionsWithinVacancyWithFilters(
           vacancyId,
@@ -1253,7 +1265,7 @@ describe('VacancySubmissionService', () => {
       });
 
       it('should combine minMatchScore with other filters', async () => {
-        const filter: RecruitingFilterDto = {
+        const filter: VacancySubmissionFilterDto = {
           minMatchScore: 50,
           minYearsOfExperience: 5,
         };
@@ -1266,6 +1278,208 @@ describe('VacancySubmissionService', () => {
         // testUsers[5] → candidateProfile[0] has yearsOfExperience=2, so no match
         // The fixture submission candidate has yearsOfExperience=5 but matchScore=0
         expect(result).to.deep.equal([]);
+      });
+    });
+
+    describe('maxCommentAiScore filter', () => {
+      beforeEach(async () => {
+        // Create a second submission, then set AI scores directly
+        await service.create(
+          {
+            comment: 'AI score test',
+            answers: [
+              { questionId: testQuestions[0].id, value: 'true' },
+              { questionId: testQuestions[2].id, value: ['Bachelor'] },
+            ],
+          },
+          vacancyId,
+          testUsers[5].id,
+        );
+
+        // Update AI scores on submissions
+        const submissions = await submissionRepository.find({
+          where: { vacancyId },
+        });
+        await submissionRepository.update(submissions[0].id, {
+          commentAiScore: 80,
+        });
+        await submissionRepository.update(submissions[1].id, {
+          commentAiScore: 30,
+        });
+      });
+
+      it('should filter submissions by maxCommentAiScore', async () => {
+        const filter: VacancySubmissionFilterDto = { maxCommentAiScore: 50 };
+
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        expect(result.length).to.equal(1);
+        expect(result[0].commentAiScore).to.be.lessThanOrEqual(50);
+      });
+
+      it('should return all submissions when maxCommentAiScore is high enough', async () => {
+        const filter: VacancySubmissionFilterDto = { maxCommentAiScore: 100 };
+
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        expect(result.length).to.equal(2);
+      });
+
+      it('should return empty when maxCommentAiScore excludes all', async () => {
+        const filter: VacancySubmissionFilterDto = { maxCommentAiScore: 10 };
+
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        expect(result).to.deep.equal([]);
+      });
+    });
+
+    describe('maxResumeAiScore filter', () => {
+      beforeEach(async () => {
+        await service.create(
+          {
+            comment: 'Resume AI score test',
+            answers: [
+              { questionId: testQuestions[0].id, value: 'true' },
+              { questionId: testQuestions[2].id, value: ['Bachelor'] },
+            ],
+          },
+          vacancyId,
+          testUsers[5].id,
+        );
+
+        const submissions = await submissionRepository.find({
+          where: { vacancyId },
+        });
+        await submissionRepository.update(submissions[0].id, {
+          resumeAiScore: 90,
+        });
+        await submissionRepository.update(submissions[1].id, {
+          resumeAiScore: 20,
+        });
+      });
+
+      it('should filter submissions by maxResumeAiScore', async () => {
+        const filter: VacancySubmissionFilterDto = { maxResumeAiScore: 50 };
+
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        expect(result.length).to.equal(1);
+        expect(result[0].resumeAiScore).to.be.lessThanOrEqual(50);
+      });
+
+      it('should exclude all when maxResumeAiScore is very low', async () => {
+        const filter: VacancySubmissionFilterDto = { maxResumeAiScore: 10 };
+
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        expect(result).to.deep.equal([]);
+      });
+    });
+
+    describe('AI score sorting', () => {
+      beforeEach(async () => {
+        await service.create(
+          {
+            comment: 'Sort test',
+            answers: [
+              { questionId: testQuestions[0].id, value: 'true' },
+              { questionId: testQuestions[2].id, value: ['Bachelor'] },
+            ],
+          },
+          vacancyId,
+          testUsers[5].id,
+        );
+
+        const submissions = await submissionRepository.find({
+          where: { vacancyId },
+        });
+        await submissionRepository.update(submissions[0].id, {
+          commentAiScore: 80,
+          resumeAiScore: 90,
+        });
+        await submissionRepository.update(submissions[1].id, {
+          commentAiScore: 20,
+          resumeAiScore: 10,
+        });
+      });
+
+      it('should sort by commentAiScore ASC', async () => {
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          undefined,
+          'commentAiScore',
+          'ASC',
+        );
+
+        expect(result.length).to.equal(2);
+        expect(result[0].commentAiScore).to.be.lessThanOrEqual(
+          result[1].commentAiScore!,
+        );
+      });
+
+      it('should sort by resumeAiScore DESC', async () => {
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          undefined,
+          'resumeAiScore',
+          'DESC',
+        );
+
+        expect(result.length).to.equal(2);
+        expect(result[0].resumeAiScore).to.be.greaterThanOrEqual(
+          result[1].resumeAiScore!,
+        );
+      });
+    });
+
+    describe('language AND filter logic', () => {
+      it('should require ALL languages to match (AND logic), not just one', async () => {
+        // testCandidatesProfiles[1] has: ukr/NATIVE, en/C1, de/B1
+        // Filter requires both fr AND en → should fail because candidate doesn't know French
+        const filter: VacancySubmissionFilterDto = {
+          languages: [{ code: 'fr' }, { code: 'en' }],
+        };
+
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        expect(result).to.deep.equal([]);
+      });
+
+      it('should return submissions when candidate meets all language requirements', async () => {
+        // testCandidatesProfiles[1] has: ukr/NATIVE, en/C1, de/B1
+        // Filter requires both en and de → candidate has both
+        const filter: VacancySubmissionFilterDto = {
+          languages: [
+            { code: 'en', level: LanguageLevel.B2 },
+            { code: 'de', level: LanguageLevel.A2 },
+          ],
+        };
+
+        const result = await service.findAllSubmissionsWithinVacancyWithFilters(
+          vacancyId,
+          filter,
+        );
+
+        expect(result.length).to.equal(1);
       });
     });
   });
@@ -1281,7 +1495,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should filter submissions by answer within tenant', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         answers: [{ questionId: testQuestions[0].id, value: 'true' }],
       };
 
@@ -1295,7 +1509,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return empty when answer does not match within tenant', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         answers: [{ questionId: testQuestions[0].id, value: 'false' }],
       };
 
@@ -1308,7 +1522,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should combine candidate filters with answer filters within tenant', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         minYearsOfExperience: 5,
         answers: [{ questionId: testQuestions[0].id, value: 'true' }],
       };
@@ -1322,7 +1536,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return submissions when filtering by questionId only (no value)', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         answers: [{ questionId: testQuestions[0].id }],
       };
 
@@ -1336,7 +1550,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should filter by language within tenant', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         languages: [{ code: 'en' }],
       };
 
@@ -1349,7 +1563,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should combine language and answer filters within tenant', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         languages: [{ code: 'en', level: LanguageLevel.B2 }],
         answers: [{ questionId: testQuestions[0].id, value: 'true' }],
       };
@@ -1410,7 +1624,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should return submissions when answer filter has questionId (question is type of boolean), but not value (findAllSubmissionWithinTenantWithFilters)', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         answers: [{ questionId: testQuestions[0].id }],
       };
 
@@ -1422,7 +1636,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should throw NOT_FOUND when answer filter references non-existent questionId', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         answers: [{ questionId: nonExistentUUIDId, value: 'true' }],
       };
 
@@ -1439,7 +1653,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should throw BadRequestException when answer filter references questionId that is not linked to any vacancy within tenant', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         answers: [{ questionId: testQuestions[3].id, value: 'true' }],
       };
 
@@ -1458,7 +1672,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should throw BadRequestException when value for boolean question is not a boolean within tenant filter', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         answers: [{ questionId: testQuestions[0].id, value: 'not-a-boolean' }],
       };
 
@@ -1477,7 +1691,7 @@ describe('VacancySubmissionService', () => {
     });
 
     it('should throw BadRequestException when value for dropdown question is not one of the allowed options within tenant filter', async () => {
-      const filter: RecruitingFilterDto = {
+      const filter: VacancySubmissionFilterDto = {
         answers: [
           { questionId: testQuestions[2].id, value: ['InvalidOption'] },
         ],
@@ -1514,7 +1728,9 @@ describe('VacancySubmissionService', () => {
       });
 
       it('should filter by minSalaryExpectation within tenant', async () => {
-        const filter: RecruitingFilterDto = { minSalaryExpectation: 2000 };
+        const filter: VacancySubmissionFilterDto = {
+          minSalaryExpectation: 2000,
+        };
 
         const result = await service.findAllSubmissionsWithinTenantWithFilters(
           tenantId,
@@ -1526,7 +1742,9 @@ describe('VacancySubmissionService', () => {
       });
 
       it('should filter by maxSalaryExpectation within tenant', async () => {
-        const filter: RecruitingFilterDto = { maxSalaryExpectation: 3500 };
+        const filter: VacancySubmissionFilterDto = {
+          maxSalaryExpectation: 3500,
+        };
 
         const result = await service.findAllSubmissionsWithinTenantWithFilters(
           tenantId,
@@ -1538,7 +1756,7 @@ describe('VacancySubmissionService', () => {
       });
 
       it('should return empty when salary range excludes all within tenant', async () => {
-        const filter: RecruitingFilterDto = {
+        const filter: VacancySubmissionFilterDto = {
           minSalaryExpectation: 5000,
           maxSalaryExpectation: 6000,
         };
@@ -1568,7 +1786,7 @@ describe('VacancySubmissionService', () => {
       });
 
       it('should filter by minMatchScore within tenant', async () => {
-        const filter: RecruitingFilterDto = { minMatchScore: 50 };
+        const filter: VacancySubmissionFilterDto = { minMatchScore: 50 };
 
         const result = await service.findAllSubmissionsWithinTenantWithFilters(
           tenantId,
@@ -1580,7 +1798,7 @@ describe('VacancySubmissionService', () => {
       });
 
       it('should return empty when minMatchScore excludes all within tenant', async () => {
-        const filter: RecruitingFilterDto = { minMatchScore: 200 };
+        const filter: VacancySubmissionFilterDto = { minMatchScore: 200 };
 
         const result = await service.findAllSubmissionsWithinTenantWithFilters(
           tenantId,

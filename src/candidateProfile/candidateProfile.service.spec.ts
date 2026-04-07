@@ -32,10 +32,13 @@ import { testVacancies } from '../../test/fixtures/testVacancies';
 import { testVacancySubmissions } from '../../test/fixtures/testVacancySubmissions';
 import { Tenant } from '../entities/tenant';
 import { SaplingService } from '../sapling/sapling.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 describe('CandidateProfileService', () => {
   let candidateProfileService: CandidateProfileService;
   let userService: UserService;
+  let candidateProfileRepository: Repository<CandidateProfile>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -60,6 +63,9 @@ describe('CandidateProfileService', () => {
     );
 
     userService = module.get<UserService>(UserService);
+    candidateProfileRepository = module.get<Repository<CandidateProfile>>(
+      getRepositoryToken(CandidateProfile),
+    );
 
     await loadDatabase({
       Tenant: testTenants,
@@ -298,6 +304,87 @@ describe('CandidateProfileService', () => {
       );
 
     expect(result.length).to.equal(1);
+  });
+
+  describe('maxResumeAiScore filter', () => {
+    beforeEach(async () => {
+      // Set different resumeAiScore values on the two candidates
+      await candidateProfileRepository.update(testCandidatesProfiles[0].id, {
+        resumeAiScore: 90,
+      });
+      await candidateProfileRepository.update(testCandidatesProfiles[1].id, {
+        resumeAiScore: 30,
+      });
+    });
+
+    it('should filter candidates by maxResumeAiScore', async () => {
+      const result = await candidateProfileService.findAllCandidatesWithFilters(
+        {
+          maxResumeAiScore: 50,
+        },
+      );
+
+      expect(result.length).to.equal(1);
+      expect(result[0].resumeAiScore).to.be.lessThanOrEqual(50);
+    });
+
+    it('should return all candidates when maxResumeAiScore is high enough', async () => {
+      const result = await candidateProfileService.findAllCandidatesWithFilters(
+        {
+          maxResumeAiScore: 100,
+        },
+      );
+
+      expect(result.length).to.equal(TOTAL_CANDIDATES);
+    });
+
+    it('should return empty when maxResumeAiScore excludes all', async () => {
+      const result = await candidateProfileService.findAllCandidatesWithFilters(
+        {
+          maxResumeAiScore: 10,
+        },
+      );
+
+      expect(result).to.deep.equal([]);
+    });
+  });
+
+  describe('language AND filter logic', () => {
+    it('should require ALL languages to match (AND logic), not just one', async () => {
+      // testCandidatesProfiles[0] has: en/NATIVE
+      // testCandidatesProfiles[1] has: ukr/NATIVE, en/C1, de/B1
+      // Filter: fr AND en → candidateProfiles[0] has en but not fr, candidateProfiles[1] has en but not fr
+      const result = await candidateProfileService.findAllCandidatesWithFilters(
+        {
+          languages: [{ code: 'fr' }, { code: 'en' }],
+        },
+      );
+
+      expect(result).to.deep.equal([]);
+    });
+
+    it('should return candidates who meet all language requirements', async () => {
+      // testCandidatesProfiles[1] has: ukr/NATIVE, en/C1, de/B1
+      // Filter: en AND de → candidateProfiles[1] has both
+      const result = await candidateProfileService.findAllCandidatesWithFilters(
+        {
+          languages: [
+            { code: 'en', level: LanguageLevel.B2 },
+            { code: 'de', level: LanguageLevel.A2 },
+          ],
+        },
+      );
+
+      expect(result.length).to.equal(1);
+      expect(result[0].languages).to.deep.include({
+        code: 'en',
+        level: LanguageLevel.C1,
+      });
+      expect(result[0].languages).to.deep.include({
+        code: 'de',
+        level: LanguageLevel.B1,
+      });
+    });
   });
 
   describe('find candidate profile by user id', () => {

@@ -19,7 +19,7 @@ import { CreateVacancySubmissionDto } from './dto/createVacancySubmission.dto';
 import { VacancySubmissionDto } from '../vacancySubmission/dto/vacancySubmission.dto';
 import { VacancySubmissionService } from './vacancySubmission.service';
 import { validateTenantAccess } from '../utils/validate';
-import { RecruitingFilterDto } from '../recruiting/recruitingFilter.dto';
+import { VacancySubmissionFilterDto } from './dto/vacancySubmissionFilter.dto';
 import { VacancyService } from '../vacancy/vacancy.service';
 import { extractUserTenantId } from '../utils/extractUserTenantId';
 import { SubmissionRatingDto } from './dto/submissionRating.dto';
@@ -73,7 +73,7 @@ export class VacancySubmissionController {
   @Post('get/filter/within/tenant')
   async findAllSubmissionsWithinTenant(
     @AuthUser() viewer: UserDto,
-    @Body() filterSubmissionsDto?: RecruitingFilterDto,
+    @Body() filterSubmissionsDto?: VacancySubmissionFilterDto,
     @Query('tenantId') tenantId?: string,
     @Query('sortBy') sortBy?: string,
     @Query('order') order?: 'ASC' | 'DESC',
@@ -99,7 +99,7 @@ export class VacancySubmissionController {
   async findAllSubmissionsWithinVacancy(
     @AuthUser() viewer: UserDto,
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
-    @Body() filterSubmissionsDto?: RecruitingFilterDto,
+    @Body() filterSubmissionsDto?: VacancySubmissionFilterDto,
     @Query('sortBy') sortBy?: string,
     @Query('order') order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
