@@ -3,6 +3,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Max,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -39,5 +40,6 @@ export class CandidateProfileFilterDto {
   @IsNumber()
   @IsOptional()
   @Min(0)
+  @Max(100)
   maxResumeAiScore?: number;
 }

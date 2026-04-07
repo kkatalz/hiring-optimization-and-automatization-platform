@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Max,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -71,10 +72,12 @@ export class VacancySubmissionFilterDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(100)
   maxCommentAiScore?: number;
 
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(100)
   maxResumeAiScore?: number;
 }
