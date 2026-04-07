@@ -37,11 +37,23 @@ export class VacancyController {
     return this.vacancyService.create(createVacancyDto, creator);
   }
 
+  @Roles(
+    UserRole.superAdmin,
+    UserRole.admin,
+    UserRole.recruiter,
+    UserRole.candidate,
+  )
   @Get()
   findAllVacancies(): Promise<VacancyDto[]> {
     return this.vacancyService.findAll();
   }
 
+  @Roles(
+    UserRole.superAdmin,
+    UserRole.admin,
+    UserRole.recruiter,
+    UserRole.candidate,
+  )
   @Post('search')
   searchVacancies(
     @Body() filterDto: CandidateVacancyFilterDto,
@@ -110,6 +122,12 @@ export class VacancyController {
     return await this.vacancyService.findAllQuestionsByVacancyId(vacancyId);
   }
 
+  @Roles(
+    UserRole.superAdmin,
+    UserRole.admin,
+    UserRole.recruiter,
+    UserRole.candidate,
+  )
   @Get(':vacancyId')
   findByVacancyId(
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
