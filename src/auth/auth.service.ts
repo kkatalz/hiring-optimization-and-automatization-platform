@@ -16,7 +16,7 @@ export class AuthService {
 
   async validateUser(loginUserDto: LoginUserDto): Promise<User> {
     const user = await this.userRepository.findOne({
-      where: { email: loginUserDto.email },
+      where: { email: loginUserDto.email, deleted: false },
     });
 
     if (!user)
@@ -38,7 +38,7 @@ export class AuthService {
         tenantId: user.tenantId,
       },
       process.env.JWT_ACCESS_SECRET!,
-      { expiresIn: '15m' },
+      { expiresIn: '24h' },
     );
   }
 
