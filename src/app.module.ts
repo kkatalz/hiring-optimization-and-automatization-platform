@@ -9,6 +9,7 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { TenantModule } from './tenant/tenant.module';
 import ormconfig from './ormconfig';
 import { UserModule } from './user/user.module';
@@ -28,6 +29,9 @@ import { ClusteringModule } from './clustering/clustering.module';
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot(ormconfig),
     ScheduleModule.forRoot(),
+    ThrottlerModule.forRoot({
+      throttlers: [{ ttl: 60000, limit: 10 }],
+    }),
     TenantModule,
     UserModule,
     CandidateProfileModule,
@@ -41,6 +45,10 @@ import { ClusteringModule } from './clustering/clustering.module';
   controllers: [AppController],
   providers: [
     AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
