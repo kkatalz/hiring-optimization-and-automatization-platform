@@ -106,7 +106,7 @@ describe('UserService', () => {
       }
     });
 
-    it('should throw if user with provided email in createUserDto already exists within provided tenant', async () => {
+    it('should throw if user with provided email already exists', async () => {
       const tenantId = testTenants[0].id;
 
       const dto: CreateUserDto = {
@@ -353,7 +353,7 @@ describe('UserService', () => {
       }
     });
 
-    it('should throw if user with provided email in changeEmailDto already exists within provided tenant', async () => {
+    it('should throw if user with provided email already exists', async () => {
       const changeEmailDto: ChangeEmailDto = {
         email: testUsers[0].email,
       };
