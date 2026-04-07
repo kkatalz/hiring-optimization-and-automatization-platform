@@ -187,7 +187,10 @@ export class UserService {
     const user = await this.findById(userId);
     const password = changePasswordDto.password;
 
-    user.password = await this.authService.hash(password);
+  async changeRole(userId: string, newRole: UserRole): Promise<UserDto> {
+    const user = await this.findById(userId);
+
+    user.role = newRole;
 
     const updatedUser = await this.userRepository.save(user);
 

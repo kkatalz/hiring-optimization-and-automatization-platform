@@ -194,7 +194,6 @@ describe('UserService', () => {
       const updateUserDto: UpdateUserDto = {
         firstName: 'updateRecruiter',
         lastName: 'updateRecruiter',
-        role: UserRole.admin,
       };
 
       const updateResult = await service.update(
@@ -206,7 +205,7 @@ describe('UserService', () => {
       expect(updateResult.id).to.deep.equal(userRecruiterId);
       expect(updateResult.firstName).to.deep.equal(updateUserDto.firstName);
       expect(updateResult.lastName).to.deep.equal(updateUserDto.lastName);
-      expect(updateResult.role).to.deep.equal(updateUserDto.role);
+      expect(updateResult.role).to.deep.equal(testUsers[1].role);
       expect(updateResult.tenantId).to.deep.equal(tenantId);
       expect(updateResult).to.have.property('token');
     });
@@ -396,7 +395,19 @@ describe('UserService', () => {
       };
 
       try {
-        await service.changePassword(nonExistentUUIDId, changePasswordDto);
+  describe('changeRole', () => {
+    it('should change user role', async () => {
+      const userId = testUsers[1].id;
+
+      const result = await service.changeRole(userId, UserRole.admin);
+
+      expect(result.id).to.equal(userId);
+      expect(result.role).to.equal(UserRole.admin);
+    });
+
+    it('should throw error if user with given id not found', async () => {
+      try {
+        await service.changeRole(nonExistentUUIDId, UserRole.admin);
 
         expect.fail('Should have thrown a NOT_FOUND error but did not');
       } catch (e) {

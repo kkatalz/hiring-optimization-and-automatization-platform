@@ -18,6 +18,7 @@ import { UserRole } from '../entities/role.enum';
 import { TenantInterceptor } from '../interceptors/tenantId.interceptor';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { ChangeRoleDto } from './dto/changeRole.dto';
 import { UserDto } from './dto/user.dto';
 import { UserService } from './user.service';
 import { validateTenantAccess } from '../utils/validate';
@@ -105,7 +106,7 @@ export class UserController {
   /**
    * SuperAdmin can update all users without tenant restriction.
    * Admin can update only users within their tenant, but not other tenants.
-   * Recruiter can update only their own fields.
+   * Recruiter can update only their own name fields.
    */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Patch(':userId/tenant/:tenantId')
@@ -122,6 +123,40 @@ export class UserController {
     );
 
     return this.userService.update(userId, tenantId, updateUserDto);
+  }
+
+  /**
+   * SuperAdmin can change any user's role.
+   * Admin can change roles only within their tenant, cannot promote to superAdmin,
+   *  and cannot change another admin's role.
+   */
+  @Roles(UserRole.superAdmin, UserRole.admin)
+  @Patch(':userId/role')
+  async changeRole(
+    @AuthUser() requester: UserDto,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+    @Body() changeRoleDto: ChangeRoleDto,
+  ): Promise<UserDto> {
+    const user = await this.userService.findById(userId);
+
+    if (user.tenantId) {
+      validateTenantAccess(requester, user.tenantId);
+    }
+
+    if (requester.role === UserRole.admin) {
+      if (changeRoleDto.role === UserRole.superAdmin) {
+        throw new ForbiddenException(
+          'Admin cannot promote users to superAdmin.',
+        );
+      }
+      if (user.role === UserRole.admin) {
+        throw new ForbiddenException(
+          "Admin cannot change another admin's role.",
+        );
+      }
+    }
+
+    return this.userService.changeRole(userId, changeRoleDto.role);
   }
 
   /**

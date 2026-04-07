@@ -1,5 +1,4 @@
 import { IsOptional, IsString } from 'class-validator';
-import { UserRole } from '../../entities/role.enum';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -9,8 +8,4 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   lastName?: string;
-
-  @IsOptional()
-  @IsString()
-  role?: UserRole;
 }
