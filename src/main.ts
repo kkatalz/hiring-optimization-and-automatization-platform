@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 
 dotenv.config();
@@ -21,6 +22,7 @@ for (const envVar of requiredEnvVars) {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.use(helmet());
   app.use(cookieParser());
   app.enableCors({
     origin: process.env.CORS_ORIGIN!.split(','),

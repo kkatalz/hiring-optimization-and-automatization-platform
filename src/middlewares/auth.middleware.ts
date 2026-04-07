@@ -6,7 +6,6 @@ import {
 import { NextFunction, Response } from 'express';
 import { verify } from 'jsonwebtoken';
 import { AuthRequest } from '../types/expressRequest.interface';
-import { UserDto } from '../user/dto/user.dto';
 import { UserService } from '../user/user.service';
 
 @Injectable()
@@ -37,7 +36,6 @@ export class AuthMiddleware implements NestMiddleware {
       req.user = user;
 
       next();
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       if (err instanceof UnauthorizedException) {
         throw err;
