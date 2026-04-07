@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
+import { compare } from 'bcrypt';
 import { User } from '../entities/user';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UserDto } from './dto/user.dto';
@@ -183,9 +184,37 @@ export class UserService {
   async changePassword(
     userId: string,
     changePasswordDto: ChangePasswordDto,
+    isSelfChange: boolean,
   ): Promise<UserDto> {
     const user = await this.findById(userId);
-    const password = changePasswordDto.password;
+
+    if (isSelfChange) {
+      if (!changePasswordDto.oldPassword) {
+        throw new HttpException(
+          'Old password is required when changing your own password.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const oldPasswordMatches = await compare(
+        changePasswordDto.oldPassword,
+        user.password,
+      );
+
+      if (!oldPasswordMatches) {
+        throw new HttpException(
+          'Old password is incorrect.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
+    user.password = await this.authService.hash(changePasswordDto.password);
+
+    const updatedUser = await this.userRepository.save(user);
+
+    return userToUserDto({ user: updatedUser });
+  }
 
   async changeRole(userId: string, newRole: UserRole): Promise<UserDto> {
     const user = await this.findById(userId);

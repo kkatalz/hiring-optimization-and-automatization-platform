@@ -218,7 +218,12 @@ export class UserController {
       );
     else this.validateCandidateSuperAdminForCredentialsAccess(requester, user);
 
-    return await this.userService.changePassword(userId, changePasswordDto);
+    const isSelfChange = requester.id === userId;
+    return await this.userService.changePassword(
+      userId,
+      changePasswordDto,
+      isSelfChange,
+    );
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin)

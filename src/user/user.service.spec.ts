@@ -313,7 +313,7 @@ describe('UserService', () => {
   describe('changeEmail', () => {
     it('should change email', async () => {
       const changeEmailDto: ChangeEmailDto = {
-        email: 'changeEmail',
+        email: 'changed@dot.com',
       };
 
       const changeEmailResult = await service.changeEmail(
@@ -321,7 +321,7 @@ describe('UserService', () => {
         changeEmailDto,
       );
 
-      expect(changeEmailResult.email).to.deep.equal(changeEmailDto.email);
+      expect(changeEmailResult.email).to.deep.equal('changed@dot.com');
 
       expect(changeEmailResult).to.not.have.property('password');
     });
@@ -371,7 +371,7 @@ describe('UserService', () => {
   });
 
   describe('changePassword', () => {
-    it('should change password using AuthService to hash password and save the result', async () => {
+    it('should change password when admin changes another user (no old password needed)', async () => {
       const plainPassword = 'my-plain-password';
       const hashedResult = 'mocked-hash-result';
 
@@ -381,12 +381,72 @@ describe('UserService', () => {
 
       const hashStub = sinon.stub(authService, 'hash').resolves(hashedResult);
 
-      await service.changePassword(testUsers[0].id, changePasswordDto);
+      await service.changePassword(testUsers[0].id, changePasswordDto, false);
 
       expect(hashStub.calledOnceWith(plainPassword)).to.be.true;
 
       const userInDb = await userRepository.findOneBy({ id: testUsers[0].id });
       expect(userInDb?.password).to.equal(hashedResult);
+    });
+
+    it('should change password when user provides correct old password (self-change)', async () => {
+      const knownOldPassword = 'known-old-password';
+      const hashedOldPassword = await authService.hash(knownOldPassword);
+
+      // Set a known password on the user first
+      await userRepository.update(testUsers[0].id, {
+        password: hashedOldPassword,
+      });
+
+      const newPassword = 'new-password';
+      const hashedResult = 'mocked-hash-result';
+
+      const changePasswordDto: ChangePasswordDto = {
+        oldPassword: knownOldPassword,
+        password: newPassword,
+      };
+
+      const hashStub = sinon.stub(authService, 'hash').resolves(hashedResult);
+
+      await service.changePassword(testUsers[0].id, changePasswordDto, true);
+
+      expect(hashStub.calledOnceWith(newPassword)).to.be.true;
+
+      const userInDb = await userRepository.findOneBy({ id: testUsers[0].id });
+      expect(userInDb?.password).to.equal(hashedResult);
+    });
+
+    it('should throw if old password is missing on self-change', async () => {
+      const changePasswordDto: ChangePasswordDto = {
+        password: 'new-password',
+      };
+
+      try {
+        await service.changePassword(testUsers[0].id, changePasswordDto, true);
+
+        expect.fail('Should have thrown a BAD_REQUEST error but did not');
+      } catch (e: any) {
+        expect(e).to.have.property('status', 400);
+        expect(e.response).to.equal(
+          'Old password is required when changing your own password.',
+        );
+      }
+    });
+
+    it('should throw if old password is incorrect on self-change', async () => {
+      const changePasswordDto: ChangePasswordDto = {
+        oldPassword: 'wrong-password',
+        password: 'new-password',
+      };
+
+      try {
+        await service.changePassword(testUsers[0].id, changePasswordDto, true);
+
+        expect.fail('Should have thrown a BAD_REQUEST error but did not');
+      } catch (e: any) {
+        expect(e).to.have.property('status', 400);
+        expect(e.response).to.equal('Old password is incorrect.');
+      }
     });
 
     it('should throw error if user with given id not found', async () => {
@@ -395,6 +455,19 @@ describe('UserService', () => {
       };
 
       try {
+        await service.changePassword(
+          nonExistentUUIDId,
+          changePasswordDto,
+          false,
+        );
+
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal('User with given id not found.');
+      }
+    });
+  });
+
   describe('changeRole', () => {
     it('should change user role', async () => {
       const userId = testUsers[1].id;
