@@ -1,25 +1,29 @@
 import { Vacancy } from '../../entities/vacancy';
 import { CandidateVacancyDto } from '../dto/candidateVacancy.dto';
 
-export const vacancyToCandidateVacancyDto = ({
-  id,
-  name,
-  description,
-  salary,
-  submissions,
-  timeCommitment,
-  languageRequirements,
-  requiredYearsOfExperience,
-  tags,
-  vacancyQuestions,
-  createdAt,
-}: Vacancy): CandidateVacancyDto => {
+export const vacancyToCandidateVacancyDto = (
+  vacancy: Vacancy,
+): CandidateVacancyDto => {
+  const {
+    id,
+    name,
+    description,
+    salary,
+    timeCommitment,
+    languageRequirements,
+    requiredYearsOfExperience,
+    tags,
+    vacancyQuestions,
+    createdAt,
+  } = vacancy;
+
   return {
     id,
     name,
     description,
     salary,
-    numberOfSubmissions: submissions?.length,
+    numberOfSubmissions:
+      (vacancy as Vacancy & { submissionCount?: number }).submissionCount ?? 0,
     timeCommitment,
     languageRequirements,
     requiredYearsOfExperience,

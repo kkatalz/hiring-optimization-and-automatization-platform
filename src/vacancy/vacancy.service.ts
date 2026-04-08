@@ -55,7 +55,12 @@ export class VacancyService {
   }
 
   async findAllForCandidates(): Promise<CandidateVacancyDto[]> {
-    const vacancies = await this.fetchAllVacancies();
+    const vacancies = await this.vacancyRepository
+      .createQueryBuilder('vacancy')
+      .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq')
+      .loadRelationCountAndMap('vacancy.submissionCount', 'vacancy.submissions')
+      .getMany();
+
     return vacancies.map(vacancyToCandidateVacancyDto);
   }
 
@@ -81,6 +86,7 @@ export class VacancyService {
       filterDto,
       sortBy,
       order,
+      true,
     );
     return vacancies.map(vacancyToCandidateVacancyDto);
   }
@@ -88,7 +94,17 @@ export class VacancyService {
   async findVacancyByIdForCandidates(
     vacancyId: string,
   ): Promise<CandidateVacancyDto> {
-    const vacancy = await this.fetchVacancyById(vacancyId);
+    const vacancy = await this.vacancyRepository
+      .createQueryBuilder('vacancy')
+      .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq')
+      .loadRelationCountAndMap('vacancy.submissionCount', 'vacancy.submissions')
+      .where('vacancy.id = :vacancyId', { vacancyId })
+      .getOne();
+
+    if (!vacancy) {
+      throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
+    }
+
     return vacancyToCandidateVacancyDto(vacancy);
   }
 
@@ -102,10 +118,18 @@ export class VacancyService {
     filterDto?: CandidateVacancyFilterDto,
     sortBy?: string,
     order?: 'ASC' | 'DESC',
+    loadSubmissionCount = false,
   ): Promise<Vacancy[]> {
     const query = this.vacancyRepository
       .createQueryBuilder('vacancy')
       .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq');
+
+    if (loadSubmissionCount) {
+      query.loadRelationCountAndMap(
+        'vacancy.submissionCount',
+        'vacancy.submissions',
+      );
+    }
 
     if (filterDto?.name) {
       query.andWhere('vacancy.name ILIKE :name', {
