@@ -54,7 +54,9 @@ export class AuthService {
   }
 
   verifyRefreshToken(token: string): { id: string } {
-    const decoded = verify(token, process.env.JWT_REFRESH_SECRET!) as {
+    const decoded = verify(token, process.env.JWT_REFRESH_SECRET!, {
+      algorithms: ['HS256'],
+    }) as {
       id: string;
       tokenType: string;
     };
@@ -67,11 +69,11 @@ export class AuthService {
   }
 
   async findUserById(id: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { id } });
+    return this.userRepository.findOne({ where: { id, deleted: false } });
   }
 
   async hash(password: string): Promise<string> {
-    const salt = await bcrypt.genSalt();
+    const salt = await bcrypt.genSalt(12);
     return bcrypt.hash(password, salt);
   }
 }

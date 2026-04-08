@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+} from '@nestjs/common';
 import { AuthUser } from '../decorators/authUser.dto';
 import { Roles } from '../decorators/roles.decorator';
 import { Interview } from '../entities/interview';
@@ -26,7 +33,7 @@ export class InterviewController {
   @Patch(':id/interview-status')
   async updateInterviewStatus(
     @AuthUser() updater: UserDto,
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateInterviewDto: UpdateInterviewDto,
   ) {
     const interviewTenantId =

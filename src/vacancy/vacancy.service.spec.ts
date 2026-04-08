@@ -29,6 +29,7 @@ import {
 import { testSubmissionAnswers } from '../../test/fixtures/testSubmissionAnswers';
 import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
 import { VacancyDto } from '../vacancy/dto/vacancy.dto';
+import { CandidateVacancyDto } from '../vacancy/dto/candidateVacancy.dto';
 import { Repository } from 'typeorm';
 import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
 import { nonExistentUUIDId } from '../../test/utils';
@@ -1340,6 +1341,132 @@ describe('VacancyService', () => {
       });
 
       expect(result.length).to.equal(0);
+    });
+  });
+
+  describe('findAllForCandidates', () => {
+    it('should return all vacancies', async () => {
+      const result: CandidateVacancyDto[] =
+        await service.findAllForCandidates();
+
+      expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
+    });
+
+    it('should not expose sensitive fields', async () => {
+      const result = await service.findAllForCandidates();
+
+      result.forEach((vacancy) => {
+        expect(vacancy).to.not.have.property('createdById');
+        expect(vacancy).to.not.have.property('customWeights');
+        expect(vacancy).to.not.have.property('tenantId');
+        expect(vacancy).to.not.have.property('submissions');
+      });
+    });
+
+    it('should not expose expectedValue or priority in vacancyQuestions', async () => {
+      const result = await service.findAllForCandidates();
+
+      const withQuestions = result.find(
+        (v) =>
+          v.vacancyQuestions !== undefined && v.vacancyQuestions.length > 0,
+      );
+      expect(withQuestions).to.not.be.undefined;
+
+      withQuestions!.vacancyQuestions!.forEach((vq) => {
+        expect(vq).to.not.have.property('expectedValue');
+        expect(vq).to.not.have.property('priority');
+        expect(vq).to.have.property('vacancyId');
+        expect(vq).to.have.property('questionId');
+        expect(vq).to.have.property('isRequired');
+      });
+    });
+  });
+
+  describe('findAllWithFiltersForCandidates', () => {
+    it('should return all vacancies when no filters provided', async () => {
+      const result = await service.findAllWithFiltersForCandidates();
+
+      expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
+    });
+
+    it('should not expose sensitive fields', async () => {
+      const result = await service.findAllWithFiltersForCandidates();
+
+      result.forEach((vacancy) => {
+        expect(vacancy).to.not.have.property('createdById');
+        expect(vacancy).to.not.have.property('customWeights');
+        expect(vacancy).to.not.have.property('tenantId');
+        expect(vacancy).to.not.have.property('submissions');
+      });
+    });
+
+    it('should apply filters correctly', async () => {
+      const result = await service.findAllWithFiltersForCandidates({
+        name: 'zoo',
+      });
+
+      expect(result.length).to.equal(2);
+      result.forEach((v) => expect(v.name.toLowerCase()).to.include('zoo'));
+    });
+
+    it('should sort correctly', async () => {
+      const result = await service.findAllWithFiltersForCandidates(
+        {},
+        'createdAt',
+        'ASC',
+      );
+
+      expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
+      for (let i = 1; i < result.length; i++) {
+        expect(
+          new Date(result[i].createdAt!).getTime(),
+        ).to.be.greaterThanOrEqual(
+          new Date(result[i - 1].createdAt!).getTime(),
+        );
+      }
+    });
+  });
+
+  describe('findVacancyByIdForCandidates', () => {
+    it('should find vacancy by id', async () => {
+      const result: CandidateVacancyDto =
+        await service.findVacancyByIdForCandidates(testVacancies[0].id);
+
+      expect(result.id).to.equal(testVacancies[0].id);
+      expect(result.name).to.equal(testVacancies[0].name);
+    });
+
+    it('should not expose sensitive fields', async () => {
+      const result = await service.findVacancyByIdForCandidates(
+        testVacancies[0].id,
+      );
+
+      expect(result).to.not.have.property('createdById');
+      expect(result).to.not.have.property('customWeights');
+      expect(result).to.not.have.property('tenantId');
+      expect(result).to.not.have.property('submissions');
+    });
+
+    it('should not expose expectedValue or priority in vacancyQuestions', async () => {
+      const result = await service.findVacancyByIdForCandidates(
+        testVacancies[0].id,
+      );
+
+      expect(result.vacancyQuestions).to.be.an('array');
+      result.vacancyQuestions!.forEach((vq) => {
+        expect(vq).to.not.have.property('expectedValue');
+        expect(vq).to.not.have.property('priority');
+      });
+    });
+
+    it('should throw NOT_FOUND for non-existent vacancy', async () => {
+      try {
+        await service.findVacancyByIdForCandidates(nonExistentUUIDId);
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e: any) {
+        expect(e.response).to.deep.equal('Vacancy is not found.');
+        expect(e.status).to.equal(404);
+      }
     });
   });
 });

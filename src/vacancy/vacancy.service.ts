@@ -13,11 +13,13 @@ import {
 } from '@nestjs/common';
 import { QuestionType } from '../entities/question.enum';
 import { VacancyDto } from '../vacancy/dto/vacancy.dto';
+import { CandidateVacancyDto } from '../vacancy/dto/candidateVacancy.dto';
 import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
 import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
 import { UserDto } from '../user/dto/user.dto';
 import { UserRole } from '../entities/role.enum';
 import { vacancyToVacancyDto } from '../vacancy/map/vacancy.map';
+import { vacancyToCandidateVacancyDto } from '../vacancy/map/candidateVacancy.map';
 import { VacancyQuestionDto } from '../vacancy/dto/vacancyQuestion.dto';
 import { vacancyQuestionToDto } from '../vacancy/map/vacancyQuestion.map';
 import { UserService } from '../user/user.service';
@@ -48,11 +50,18 @@ export class VacancyService {
   ) {}
 
   async findAll(): Promise<VacancyDto[]> {
-    const vacancies = await this.vacancyRepository.find({
-      relations: ['vacancyQuestions'],
-    });
-
+    const vacancies = await this.fetchAllVacancies();
     return vacancies.map(vacancyToVacancyDto);
+  }
+
+  async findAllForCandidates(): Promise<CandidateVacancyDto[]> {
+    const vacancies = await this.vacancyRepository
+      .createQueryBuilder('vacancy')
+      .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq')
+      .loadRelationCountAndMap('vacancy.submissionCount', 'vacancy.submissions')
+      .getMany();
+
+    return vacancies.map(vacancyToCandidateVacancyDto);
   }
 
   async findAllWithFilters(
@@ -60,13 +69,70 @@ export class VacancyService {
     sortBy?: string,
     order?: 'ASC' | 'DESC',
   ): Promise<VacancyDto[]> {
+    const vacancies = await this.fetchVacanciesWithFilters(
+      filterDto,
+      sortBy,
+      order,
+    );
+    return vacancies.map(vacancyToVacancyDto);
+  }
+
+  async findAllWithFiltersForCandidates(
+    filterDto?: CandidateVacancyFilterDto,
+    sortBy?: string,
+    order?: 'ASC' | 'DESC',
+  ): Promise<CandidateVacancyDto[]> {
+    const vacancies = await this.fetchVacanciesWithFilters(
+      filterDto,
+      sortBy,
+      order,
+      true,
+    );
+    return vacancies.map(vacancyToCandidateVacancyDto);
+  }
+
+  async findVacancyByIdForCandidates(
+    vacancyId: string,
+  ): Promise<CandidateVacancyDto> {
+    const vacancy = await this.vacancyRepository
+      .createQueryBuilder('vacancy')
+      .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq')
+      .loadRelationCountAndMap('vacancy.submissionCount', 'vacancy.submissions')
+      .where('vacancy.id = :vacancyId', { vacancyId })
+      .getOne();
+
+    if (!vacancy) {
+      throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
+    }
+
+    return vacancyToCandidateVacancyDto(vacancy);
+  }
+
+  private async fetchAllVacancies(): Promise<Vacancy[]> {
+    return this.vacancyRepository.find({
+      relations: ['vacancyQuestions'],
+    });
+  }
+
+  private async fetchVacanciesWithFilters(
+    filterDto?: CandidateVacancyFilterDto,
+    sortBy?: string,
+    order?: 'ASC' | 'DESC',
+    loadSubmissionCount = false,
+  ): Promise<Vacancy[]> {
     const query = this.vacancyRepository
       .createQueryBuilder('vacancy')
       .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq');
 
+    if (loadSubmissionCount) {
+      query.loadRelationCountAndMap(
+        'vacancy.submissionCount',
+        'vacancy.submissions',
+      );
+    }
+
     if (filterDto?.name) {
       query.andWhere('vacancy.name ILIKE :name', {
-        // Partial match (contains)
         name: `%${filterDto.name}%`,
       });
     }
@@ -149,49 +215,7 @@ export class VacancyService {
       vacancies = this.applySalarySorting(vacancies, order);
     }
 
-    return vacancies.map(vacancyToVacancyDto);
-  }
-
-  private static readonly SQL_SORT_FIELDS = [
-    'createdAt',
-    'requiredYearsOfExperience',
-  ];
-
-  private applyVacancySorting(
-    query: SelectQueryBuilder<Vacancy>,
-    sortBy?: string,
-    order?: 'ASC' | 'DESC',
-  ): void {
-    if (sortBy && VacancyService.SQL_SORT_FIELDS.includes(sortBy)) {
-      const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
-      query.orderBy(`vacancy.${sortBy}`, direction, 'NULLS LAST');
-    }
-  }
-
-  private applySalarySorting(
-    vacancies: Vacancy[],
-    order?: 'ASC' | 'DESC',
-  ): Vacancy[] {
-    const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
-
-    // Precompute sortable salary midpoint
-    const decorated = vacancies.map((vacancy) => {
-      const range = parseSalaryRange(vacancy.salary);
-      const sortKey = range ? (range.min + range.max) / 2 : null;
-      return { vacancy, sortKey };
-    });
-
-    // Sort using the precomputed key; non-parseable salaries will go to the end
-    decorated.sort((a, b) => {
-      if (a.sortKey === null && b.sortKey === null) return 0;
-      if (a.sortKey === null) return 1;
-      if (b.sortKey === null) return -1;
-      return direction === 'ASC'
-        ? a.sortKey - b.sortKey
-        : b.sortKey - a.sortKey;
-    });
-
-    return decorated.map((item) => item.vacancy);
+    return vacancies;
   }
 
   async findVacanciesWithSubmissions(
@@ -225,6 +249,11 @@ export class VacancyService {
   }
 
   async findVacancyById(vacancyId: string): Promise<VacancyDto> {
+    const vacancy = await this.fetchVacancyById(vacancyId);
+    return vacancyToVacancyDto(vacancy);
+  }
+
+  private async fetchVacancyById(vacancyId: string): Promise<Vacancy> {
     const vacancy = await this.vacancyRepository.findOne({
       where: { id: vacancyId },
       relations: ['vacancyQuestions'],
@@ -234,7 +263,7 @@ export class VacancyService {
       throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
     }
 
-    return vacancyToVacancyDto(vacancy);
+    return vacancy;
   }
 
   async findAllByTenantId(tenantId: string): Promise<VacancyDto[]> {
@@ -433,6 +462,21 @@ export class VacancyService {
     return vacancies.map(vacancyToVacancyDto);
   }
 
+  async findVacancyByIdWithSubmissionsAndAnswers(
+    vacancyId: string,
+  ): Promise<Vacancy> {
+    const vacancy = await this.vacancyRepository.findOne({
+      where: { id: vacancyId },
+      relations: ['vacancyQuestions', 'submissions', 'submissions.answers'],
+    });
+
+    if (!vacancy) {
+      throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
+    }
+
+    return vacancy;
+  }
+
   private async saveBaseVacancy(
     fields: Partial<CreateVacancyDto>,
     creator: UserDto,
@@ -621,18 +665,45 @@ export class VacancyService {
     await this.vacancyRepository.manager.save(vacancy.submissions);
   }
 
-  async findVacancyByIdWithSubmissionsAndAnswers(
-    vacancyId: string,
-  ): Promise<Vacancy> {
-    const vacancy = await this.vacancyRepository.findOne({
-      where: { id: vacancyId },
-      relations: ['vacancyQuestions', 'submissions', 'submissions.answers'],
+  private static readonly SQL_SORT_FIELDS = [
+    'createdAt',
+    'requiredYearsOfExperience',
+  ];
+
+  private applyVacancySorting(
+    query: SelectQueryBuilder<Vacancy>,
+    sortBy?: string,
+    order?: 'ASC' | 'DESC',
+  ): void {
+    if (sortBy && VacancyService.SQL_SORT_FIELDS.includes(sortBy)) {
+      const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
+      query.orderBy(`vacancy.${sortBy}`, direction, 'NULLS LAST');
+    }
+  }
+
+  private applySalarySorting(
+    vacancies: Vacancy[],
+    order?: 'ASC' | 'DESC',
+  ): Vacancy[] {
+    const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
+
+    // Precompute sortable salary midpoint
+    const decorated = vacancies.map((vacancy) => {
+      const range = parseSalaryRange(vacancy.salary);
+      const sortKey = range ? (range.min + range.max) / 2 : null;
+      return { vacancy, sortKey };
     });
 
-    if (!vacancy) {
-      throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
-    }
+    // Sort using the precomputed key; non-parseable salaries will go to the end
+    decorated.sort((a, b) => {
+      if (a.sortKey === null && b.sortKey === null) return 0;
+      if (a.sortKey === null) return 1;
+      if (b.sortKey === null) return -1;
+      return direction === 'ASC'
+        ? a.sortKey - b.sortKey
+        : b.sortKey - a.sortKey;
+    });
 
-    return vacancy;
+    return decorated.map((item) => item.vacancy);
   }
 }

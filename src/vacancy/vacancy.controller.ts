@@ -17,6 +17,7 @@ import { validateTenantAccess } from '../utils/validate';
 import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
 import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
 import { VacancyDto } from '../vacancy/dto/vacancy.dto';
+import { CandidateVacancyDto } from '../vacancy/dto/candidateVacancy.dto';
 import { VacancyQuestionDto } from '../vacancy/dto/vacancyQuestion.dto';
 import { VacancyService } from '../vacancy/vacancy.service';
 import { CreateVacancyQuestionDto } from './dto/createVacancyQuesion.dto';
@@ -37,11 +38,19 @@ export class VacancyController {
     return this.vacancyService.create(createVacancyDto, creator);
   }
 
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get()
   findAllVacancies(): Promise<VacancyDto[]> {
     return this.vacancyService.findAll();
   }
 
+  @Roles(UserRole.candidate)
+  @Get('browse')
+  findAllVacanciesForCandidates(): Promise<CandidateVacancyDto[]> {
+    return this.vacancyService.findAllForCandidates();
+  }
+
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Post('search')
   searchVacancies(
     @Body() filterDto: CandidateVacancyFilterDto,
@@ -49,6 +58,20 @@ export class VacancyController {
     @Query('order') order?: 'ASC' | 'DESC',
   ): Promise<VacancyDto[]> {
     return this.vacancyService.findAllWithFilters(filterDto, sortBy, order);
+  }
+
+  @Roles(UserRole.candidate)
+  @Post('browse/search')
+  searchVacanciesForCandidates(
+    @Body() filterDto: CandidateVacancyFilterDto,
+    @Query('sortBy') sortBy?: string,
+    @Query('order') order?: 'ASC' | 'DESC',
+  ): Promise<CandidateVacancyDto[]> {
+    return this.vacancyService.findAllWithFiltersForCandidates(
+      filterDto,
+      sortBy,
+      order,
+    );
   }
 
   /**
@@ -110,11 +133,20 @@ export class VacancyController {
     return await this.vacancyService.findAllQuestionsByVacancyId(vacancyId);
   }
 
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get(':vacancyId')
   findByVacancyId(
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
   ): Promise<VacancyDto> {
     return this.vacancyService.findVacancyById(vacancyId);
+  }
+
+  @Roles(UserRole.candidate)
+  @Get('browse/:vacancyId')
+  findByVacancyIdForCandidates(
+    @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
+  ): Promise<CandidateVacancyDto> {
+    return this.vacancyService.findVacancyByIdForCandidates(vacancyId);
   }
 
   @Roles(UserRole.admin, UserRole.recruiter)

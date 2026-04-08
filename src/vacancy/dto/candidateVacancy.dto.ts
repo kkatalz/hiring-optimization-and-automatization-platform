@@ -2,11 +2,9 @@ import {
   IsArray,
   IsEnum,
   IsInt,
-  IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
-  MaxLength,
-  Min,
   ValidateNested,
 } from 'class-validator';
 import {
@@ -14,24 +12,24 @@ import {
   TimeCommitment,
 } from '../../entities/hiring.enum';
 import { Type } from 'class-transformer';
-import { CreateVacancyQuestionInlineDto } from './createVacancyWithQuestions.dto';
-import { CustomWeights } from '../../vacancySubmission/types/matchingScore.interface';
+import { CandidateVacancyQuestionDto } from './candidateVacancyQuestion.dto';
 
-export class CreateVacancyDto {
-  @IsNotEmpty()
+export class CandidateVacancyDto {
+  id: string;
+
   @IsString()
-  @MaxLength(200)
   name: string;
 
-  @IsNotEmpty()
   @IsString()
-  @MaxLength(5000)
   description: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
   salary?: string;
+
+  @IsNumber()
+  @IsOptional()
+  numberOfSubmissions?: number;
 
   @IsOptional()
   @IsEnum(TimeCommitment)
@@ -45,8 +43,6 @@ export class CreateVacancyDto {
 
   @IsOptional()
   @IsInt()
-  @Type(() => Number)
-  @Min(0)
   requiredYearsOfExperience?: number;
 
   @IsOptional()
@@ -55,13 +51,11 @@ export class CreateVacancyDto {
   tags?: string[];
 
   @IsOptional()
-  @ValidateNested()
-  @Type(() => CustomWeights)
-  customWeights?: CustomWeights;
-
-  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CreateVacancyQuestionInlineDto)
-  vacancyQuestions?: CreateVacancyQuestionInlineDto[];
+  @Type(() => CandidateVacancyQuestionDto)
+  vacancyQuestions?: CandidateVacancyQuestionDto[];
+
+  @IsOptional()
+  createdAt?: Date;
 }

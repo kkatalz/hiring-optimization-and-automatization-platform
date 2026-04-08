@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -64,7 +65,10 @@ export class QuestionController {
    */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get(':id')
-  async findQuestionById(@Param('id') id: string, @AuthUser() user: UserDto) {
+  async findQuestionById(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @AuthUser() user: UserDto,
+  ) {
     const question = await this.questionService.findDtoById(id);
 
     validateTenantAccess(user, question.tenantId);
@@ -79,7 +83,7 @@ export class QuestionController {
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Patch(':id')
   async updateQuestion(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateQuestionDto: UpdateQuestionDto,
     @AuthUser() user: UserDto,
   ) {
@@ -96,7 +100,10 @@ export class QuestionController {
    */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Delete(':id')
-  async removeQuestion(@Param('id') id: string, @AuthUser() user: UserDto) {
+  async removeQuestion(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @AuthUser() user: UserDto,
+  ) {
     const question = await this.questionService.findDtoById(id);
 
     validateTenantAccess(user, question.tenantId);
