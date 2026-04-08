@@ -1,4 +1,5 @@
 import {
+  HttpException,
   Injectable,
   NestMiddleware,
   UnauthorizedException,
@@ -19,28 +20,26 @@ export class AuthMiddleware implements NestMiddleware {
     }
 
     const token = req.headers.authorization.split(' ')[1];
+
+    let decoded: { id: string };
+
     try {
-      const decode = verify(token, process.env.JWT_ACCESS_SECRET!, {
+      decoded = verify(token, process.env.JWT_ACCESS_SECRET!, {
         algorithms: ['HS256'],
-      }) as {
-        id: string;
-      };
-      const id = decode.id;
-
-      const user = await this.userService.findById(id);
-
-      if (!user) {
-        throw new UnauthorizedException('User not found or deactivated.');
-      }
-
-      req.user = user;
-
-      next();
-    } catch (err) {
-      if (err instanceof UnauthorizedException) {
-        throw err;
-      }
+      }) as { id: string };
+    } catch {
       throw new UnauthorizedException('Invalid or expired token.');
     }
+
+    try {
+      req.user = await this.userService.findById(decoded.id);
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw new UnauthorizedException('User not found or deactivated.');
+      }
+      throw err;
+    }
+
+    next();
   }
 }
