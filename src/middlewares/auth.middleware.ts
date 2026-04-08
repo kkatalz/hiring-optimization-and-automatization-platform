@@ -19,6 +19,14 @@ export class AuthMiddleware implements NestMiddleware {
       return;
     }
 
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException(
+        'Please provide (correct) authorization token.',
+      );
+    }
+
     const token = req.headers.authorization.split(' ')[1];
 
     let decoded: { id: string };
