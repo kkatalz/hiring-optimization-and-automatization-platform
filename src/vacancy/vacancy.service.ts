@@ -433,6 +433,21 @@ export class VacancyService {
     return vacancies.map(vacancyToVacancyDto);
   }
 
+  async findVacancyByIdWithSubmissionsAndAnswers(
+    vacancyId: string,
+  ): Promise<Vacancy> {
+    const vacancy = await this.vacancyRepository.findOne({
+      where: { id: vacancyId },
+      relations: ['vacancyQuestions', 'submissions', 'submissions.answers'],
+    });
+
+    if (!vacancy) {
+      throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
+    }
+
+    return vacancy;
+  }
+
   private async saveBaseVacancy(
     fields: Partial<CreateVacancyDto>,
     creator: UserDto,
@@ -621,18 +636,45 @@ export class VacancyService {
     await this.vacancyRepository.manager.save(vacancy.submissions);
   }
 
-  async findVacancyByIdWithSubmissionsAndAnswers(
-    vacancyId: string,
-  ): Promise<Vacancy> {
-    const vacancy = await this.vacancyRepository.findOne({
-      where: { id: vacancyId },
-      relations: ['vacancyQuestions', 'submissions', 'submissions.answers'],
+  private static readonly SQL_SORT_FIELDS = [
+    'createdAt',
+    'requiredYearsOfExperience',
+  ];
+
+  private applyVacancySorting(
+    query: SelectQueryBuilder<Vacancy>,
+    sortBy?: string,
+    order?: 'ASC' | 'DESC',
+  ): void {
+    if (sortBy && VacancyService.SQL_SORT_FIELDS.includes(sortBy)) {
+      const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
+      query.orderBy(`vacancy.${sortBy}`, direction, 'NULLS LAST');
+    }
+  }
+
+  private applySalarySorting(
+    vacancies: Vacancy[],
+    order?: 'ASC' | 'DESC',
+  ): Vacancy[] {
+    const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
+
+    // Precompute sortable salary midpoint
+    const decorated = vacancies.map((vacancy) => {
+      const range = parseSalaryRange(vacancy.salary);
+      const sortKey = range ? (range.min + range.max) / 2 : null;
+      return { vacancy, sortKey };
     });
 
-    if (!vacancy) {
-      throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
-    }
+    // Sort using the precomputed key; non-parseable salaries will go to the end
+    decorated.sort((a, b) => {
+      if (a.sortKey === null && b.sortKey === null) return 0;
+      if (a.sortKey === null) return 1;
+      if (b.sortKey === null) return -1;
+      return direction === 'ASC'
+        ? a.sortKey - b.sortKey
+        : b.sortKey - a.sortKey;
+    });
 
-    return vacancy;
+    return decorated.map((item) => item.vacancy);
   }
 }
