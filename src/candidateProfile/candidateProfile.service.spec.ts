@@ -141,7 +141,7 @@ describe('CandidateProfileService', () => {
       expect(allCandidates.length).to.equal(TOTAL_CANDIDATES + 1);
     });
 
-    it('should throw if candidate with provided email, firstName and lastName already exists', async () => {
+    it('should throw if candidate with provided email already exists', async () => {
       const createCandidateDto: CreateCandidateProfileDto = {
         ...testUsers[5],
         ...testCandidatesProfiles[0],
@@ -153,7 +153,7 @@ describe('CandidateProfileService', () => {
       } catch (e: any) {
         expect(e).to.have.property('status', 400);
         expect(e.response).to.be.equal(
-          'Candidate with given details already exists.',
+          'Candidate with given email already exists.',
         );
       }
     });

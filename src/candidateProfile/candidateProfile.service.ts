@@ -92,16 +92,13 @@ export class CandidateProfileService {
   ): Promise<CandidateProfileDto> {
     const candidate = await this.userRepository.findOne({
       where: {
-        firstName: createCandidateDto.firstName,
-        lastName: createCandidateDto.lastName,
         email: createCandidateDto.email,
-        role: UserRole.candidate,
       },
     });
 
     if (candidate) {
       throw new HttpException(
-        'Candidate with given details already exists.',
+        'Candidate with given email already exists.',
         HttpStatus.BAD_REQUEST,
       );
     }
