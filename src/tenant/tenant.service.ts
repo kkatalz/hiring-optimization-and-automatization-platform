@@ -18,7 +18,6 @@ export class TenantService {
     const tenantWithSlug = await this.tenantRepository.findOne({
       where: {
         slug: createTenantDto.slug,
-        deleted: false,
       },
     });
 
@@ -32,7 +31,6 @@ export class TenantService {
     const tenantWithEmail = await this.tenantRepository.findOne({
       where: {
         email: createTenantDto.email,
-        deleted: false,
       },
     });
 
@@ -115,7 +113,6 @@ export class TenantService {
     const tenantWithGivenSlug = await this.tenantRepository.findOne({
       where: {
         slug,
-        deleted: false,
         id: Not(id),
       },
     });
@@ -134,7 +131,6 @@ export class TenantService {
     const tenantWithGivenEmail = await this.tenantRepository.findOne({
       where: {
         email,
-        deleted: false,
         id: Not(id),
       },
     });
