@@ -72,21 +72,38 @@ describe('TenantService', () => {
         );
       }
     });
+
+    it('should throw error if tenant with provided email already exists (deleted = false)', async () => {
+      try {
+        await service.create({
+          email: 'test1@dot.com',
+          slug: 'uniqueSlug',
+        });
+
+        expect.fail('Should have thrown a BAD_REQUEST error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal(
+          'Tenant with given email already exists.',
+        );
+      }
+    });
   });
 
-  it('should find all tenants', async () => {
-    const allTenants = await service.findAll();
+  describe('findAll', () => {
+    it('should find all tenants', async () => {
+      const allTenants = await service.findAll();
 
-    expect(allTenants).to.be.an('array');
-    expect(allTenants.length).to.equal(EXPECTED_ACTIVE_TENANTS_NUM);
+      expect(allTenants).to.be.an('array');
+      expect(allTenants.length).to.equal(EXPECTED_ACTIVE_TENANTS_NUM);
 
-    // Check the structure of the first item (TenantDto validation)
-    const firstTenant = allTenants[0];
+      // Check the structure of the first item (TenantDto validation)
+      const firstTenant = allTenants[0];
 
-    expect(firstTenant).to.have.all.keys('id', 'email', 'slug');
-    expect(firstTenant.id).to.be.a('string');
-    expect(firstTenant.email).to.be.a('string');
-    expect(firstTenant.slug).to.be.a('string');
+      expect(firstTenant).to.have.all.keys('id', 'email', 'slug');
+      expect(firstTenant.id).to.be.a('string');
+      expect(firstTenant.email).to.be.a('string');
+      expect(firstTenant.slug).to.be.a('string');
+    });
   });
 
   describe('update', () => {
@@ -109,7 +126,6 @@ describe('TenantService', () => {
         slug: 'test1',
       });
 
-      expect(updatedTenant).to.not.throw;
       expect(updatedTenant.email).to.deep.equal('test1@dot.com');
       expect(updatedTenant.slug).to.deep.equal('test1');
     });
@@ -125,6 +141,21 @@ describe('TenantService', () => {
       } catch (e) {
         expect(e.response).to.deep.equal(
           'Tenant with given slug already exists.',
+        );
+      }
+    });
+
+    it('should throw error if updateTenantDto has email that already exists', async () => {
+      try {
+        await service.update(testTenants[0].id, {
+          email: 'test2@dot.com',
+          slug: 'test1',
+        });
+
+        expect.fail('Should have thrown a BAD_REQUEST error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal(
+          'Tenant with given email already exists.',
         );
       }
     });
@@ -167,23 +198,27 @@ describe('TenantService', () => {
     });
   });
 
-  it('should find tenant dto by id', async () => {
-    try {
-      await service.findDtoById(nonExistentUUIDId);
+  describe('findDtoById', () => {
+    it('should throw error if tenant with given id not found', async () => {
+      try {
+        await service.findDtoById(nonExistentUUIDId);
 
-      expect.fail('Should have thrown a NOT_FOUND error but did not');
-    } catch (e) {
-      expect(e.response).to.deep.equal('Tenant with given id not found.');
-    }
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal('Tenant with given id not found.');
+      }
+    });
 
-    const tenant = await service.findDtoById(testTenants[0].id);
+    it('should find tenant dto by id', async () => {
+      const tenant = await service.findDtoById(testTenants[0].id);
 
-    expect(tenant.email).to.deep.equal('test1@dot.com');
-    expect(tenant.slug).to.deep.equal('test1');
+      expect(tenant.email).to.deep.equal('test1@dot.com');
+      expect(tenant.slug).to.deep.equal('test1');
 
-    expect(tenant).to.have.all.keys('id', 'email', 'slug');
-    expect(tenant.id).to.be.a('string');
-    expect(tenant.email).to.be.a('string');
-    expect(tenant.slug).to.be.a('string');
+      expect(tenant).to.have.all.keys('id', 'email', 'slug');
+      expect(tenant.id).to.be.a('string');
+      expect(tenant.email).to.be.a('string');
+      expect(tenant.slug).to.be.a('string');
+    });
   });
 });
