@@ -153,7 +153,7 @@ describe('CandidateProfileService', () => {
       } catch (e: any) {
         expect(e).to.have.property('status', 400);
         expect(e.response).to.be.equal(
-          'Candidate with given email already exists.',
+          'User with given email already exists. Choose a different email.',
         );
       }
     });

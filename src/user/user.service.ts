@@ -50,7 +50,7 @@ export class UserService {
 
     if (users.length > 0) {
       throw new HttpException(
-        'User with given email already exists.',
+        'User with given email already exists. Choose a different email.',
         HttpStatus.BAD_REQUEST,
       );
     }
