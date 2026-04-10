@@ -3,9 +3,9 @@ import { IsEmail, IsOptional, IsString } from 'class-validator';
 export class UpdateTenantDto {
   @IsEmail()
   @IsOptional()
-  readonly email: string;
+  readonly email?: string;
 
   @IsString()
   @IsOptional()
-  slug: string;
+  readonly slug?: string;
 }
