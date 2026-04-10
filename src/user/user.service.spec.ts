@@ -124,7 +124,9 @@ describe('UserService', () => {
         expect.fail('Should have thrown a BAD_REQUEST error but did not');
       } catch (e: any) {
         expect(e).to.have.property('status', 400);
-        expect(e.response).to.be.equal('User with given email already exists.');
+        expect(e.response).to.be.equal(
+          'User with given email already exists. Choose a different email.',
+        );
       }
     });
   });
