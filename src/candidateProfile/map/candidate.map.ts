@@ -6,10 +6,10 @@ export const candidateToCandidateProfileDto = (
   candidateProfile: CandidateProfile,
 ): CandidateProfileDto => {
   return {
-    userId: candidateProfile?.user?.id,
-    email: candidateProfile?.user?.email,
-    firstName: candidateProfile?.user?.firstName,
-    lastName: candidateProfile?.user?.lastName,
+    userId: candidateProfile.user.id,
+    email: candidateProfile.user.email,
+    firstName: candidateProfile.user.firstName,
+    lastName: candidateProfile.user.lastName,
     role: UserRole.candidate,
     yearsOfExperience: candidateProfile?.yearsOfExperience,
     country: candidateProfile?.country,
