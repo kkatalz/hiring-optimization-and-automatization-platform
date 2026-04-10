@@ -106,7 +106,7 @@ export class CandidateProfileService {
 
     if (candidate) {
       throw new HttpException(
-        'Candidate with given email already exists.',
+        'User with given email already exists. Choose a different email.',
         HttpStatus.BAD_REQUEST,
       );
     }
