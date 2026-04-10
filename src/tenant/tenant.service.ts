@@ -15,16 +15,28 @@ export class TenantService {
   ) {}
 
   async create(createTenantDto: CreateTenantDto): Promise<TenantDto> {
-    const tenant = await this.tenantRepository.findOne({
+    const tenantWithSlug = await this.tenantRepository.findOne({
       where: {
         slug: createTenantDto.slug,
-        deleted: false,
       },
     });
 
-    if (tenant) {
+    if (tenantWithSlug) {
       throw new HttpException(
         'Tenant with given slug already exists.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const tenantWithEmail = await this.tenantRepository.findOne({
+      where: {
+        email: createTenantDto.email,
+      },
+    });
+
+    if (tenantWithEmail) {
+      throw new HttpException(
+        'Tenant with given email already exists.',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -52,13 +64,12 @@ export class TenantService {
     if (updateTenantDto.slug)
       await this.validateSlugUniqueness(updateTenantDto.slug, id);
 
-    const { ...updatedFields } = updateTenantDto;
+    if (updateTenantDto.email)
+      await this.validateEmailUniqueness(updateTenantDto.email, id);
 
-    Object.keys(updatedFields).forEach((key) => {
-      if (updatedFields[key] !== undefined) {
-        tenant[key] = updatedFields[key];
-      }
-    });
+    if (updateTenantDto.email !== undefined)
+      tenant.email = updateTenantDto.email;
+    if (updateTenantDto.slug !== undefined) tenant.slug = updateTenantDto.slug;
 
     const updatedTenant = await this.tenantRepository.save(tenant);
 
@@ -102,13 +113,31 @@ export class TenantService {
     const tenantWithGivenSlug = await this.tenantRepository.findOne({
       where: {
         slug,
-        deleted: false,
         id: Not(id),
       },
     });
     if (tenantWithGivenSlug) {
       throw new HttpException(
         'Tenant with given slug already exists.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  private async validateEmailUniqueness(
+    email: string,
+    id: string,
+  ): Promise<void> {
+    const tenantWithGivenEmail = await this.tenantRepository.findOne({
+      where: {
+        email,
+        id: Not(id),
+      },
+    });
+
+    if (tenantWithGivenEmail) {
+      throw new HttpException(
+        'Tenant with given email already exists.',
         HttpStatus.BAD_REQUEST,
       );
     }
