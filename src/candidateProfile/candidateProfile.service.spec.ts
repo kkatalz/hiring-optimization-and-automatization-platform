@@ -74,11 +74,11 @@ describe('CandidateProfileService', () => {
       Vacancy: testVacancies,
       VacancySubmission: testVacancySubmissions,
     });
+  });
 
-    afterEach(async () => {
-      sinon.restore();
-      await cleanDatabase();
-    });
+  afterEach(async () => {
+    sinon.restore();
+    await cleanDatabase();
   });
 
   it('should be defined', () => {
@@ -399,6 +399,7 @@ describe('CandidateProfileService', () => {
     it('should throw error if candidate profile with given user id not found', async () => {
       try {
         await candidateProfileService.findCandidateByUserId(nonExistentUUIDId);
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
       } catch (error) {
         expect(error.message).to.equal(
           'Candidate profile with given user ID not found.',
