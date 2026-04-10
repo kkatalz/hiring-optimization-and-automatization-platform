@@ -73,7 +73,7 @@ describe('TenantService', () => {
       }
     });
 
-    it('should throw error if tenant with provided email already exists (deleted = false)', async () => {
+    it('should throw error if tenant with provided email already exists', async () => {
       try {
         await service.create({
           email: 'test1@dot.com',
