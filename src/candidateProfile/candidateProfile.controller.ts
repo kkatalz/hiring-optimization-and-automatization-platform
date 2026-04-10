@@ -52,7 +52,7 @@ export class CandidateProfileController {
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
-  @Post('get/within-tenant/filter')
+  @Post('filter')
   async findAllCandidates(
     @AuthUser() requester: UserDto,
     @Body() profileFilterDto?: CandidateProfileFilterDto,

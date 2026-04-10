@@ -17,7 +17,7 @@ export const filterByExperience = (
   query: SelectQueryBuilder<any>,
   filterDto: CommonFilterDto,
 ) => {
-  if (filterDto?.minYearsOfExperience) {
+  if (filterDto?.minYearsOfExperience != null) {
     query.andWhere(
       'candidateProfile.years_of_experience >= :minYearsOfExperience',
       {

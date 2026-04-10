@@ -65,6 +65,14 @@ export class CandidateProfileService {
     }
 
     if (profileFilterDto) {
+      if (profileFilterDto.search) {
+        const search = `%${profileFilterDto.search}%`;
+        query.andWhere(
+          '(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search)',
+          { search },
+        );
+      }
+
       filterByExperience(query, profileFilterDto);
       filterByCountriesCities(query, profileFilterDto);
 
@@ -92,16 +100,13 @@ export class CandidateProfileService {
   ): Promise<CandidateProfileDto> {
     const candidate = await this.userRepository.findOne({
       where: {
-        firstName: createCandidateDto.firstName,
-        lastName: createCandidateDto.lastName,
         email: createCandidateDto.email,
-        role: UserRole.candidate,
       },
     });
 
     if (candidate) {
       throw new HttpException(
-        'Candidate with given details already exists.',
+        'User with given email already exists. Choose a different email.',
         HttpStatus.BAD_REQUEST,
       );
     }

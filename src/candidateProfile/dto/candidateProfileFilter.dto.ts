@@ -11,6 +11,10 @@ import { LanguageProficiency } from '../../entities/hiring.enum';
 import { Type } from 'class-transformer';
 
 export class CandidateProfileFilterDto {
+  @IsOptional()
+  @IsString()
+  search?: string;
+
   @IsNumber()
   @IsOptional()
   @Min(0)
