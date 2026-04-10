@@ -25,7 +25,8 @@ export const candidateToCandidateProfileDto = (
       comment: s.comment,
       resume: s.resume,
       tags: s.tags,
-      expectedSalary: s.expectedSalary,
+      expectedSalary:
+        s.expectedSalary != null ? Number(s.expectedSalary) : null,
       createdAt: s.createdAt,
     })),
   };
