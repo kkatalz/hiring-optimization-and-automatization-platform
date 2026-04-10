@@ -50,7 +50,7 @@ export class CreateCandidateProfileDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => LanguageProficiency)
-  languages?: LanguageProficiency[];
+  languages: LanguageProficiency[];
 
   @IsOptional()
   @IsString()

@@ -6,10 +6,10 @@ export const candidateToCandidateProfileDto = (
   candidateProfile: CandidateProfile,
 ): CandidateProfileDto => {
   return {
-    userId: candidateProfile?.user.id,
-    email: candidateProfile?.user.email,
-    firstName: candidateProfile?.user.firstName,
-    lastName: candidateProfile?.user.lastName,
+    userId: candidateProfile?.user?.id,
+    email: candidateProfile?.user?.email,
+    firstName: candidateProfile?.user?.firstName,
+    lastName: candidateProfile?.user?.lastName,
     role: UserRole.candidate,
     yearsOfExperience: candidateProfile?.yearsOfExperience,
     country: candidateProfile?.country,
@@ -18,6 +18,15 @@ export const candidateToCandidateProfileDto = (
     resume: candidateProfile?.resume,
     resumeAiScore: candidateProfile?.resumeAiScore ?? null,
     resumeAiSentenceScores: candidateProfile?.resumeAiSentenceScores ?? null,
-    submissions: candidateProfile?.submissions,
+    submissions: candidateProfile?.submissions?.map((s) => ({
+      id: s.id,
+      vacancyId: s.vacancyId,
+      status: s.status,
+      comment: s.comment,
+      resume: s.resume,
+      tags: s.tags,
+      expectedSalary: s.expectedSalary,
+      createdAt: s.createdAt,
+    })),
   };
 };
