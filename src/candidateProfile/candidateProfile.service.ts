@@ -65,6 +65,14 @@ export class CandidateProfileService {
     }
 
     if (profileFilterDto) {
+      if (profileFilterDto.search) {
+        const search = `%${profileFilterDto.search}%`;
+        query.andWhere(
+          '(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search)',
+          { search },
+        );
+      }
+
       filterByExperience(query, profileFilterDto);
       filterByCountriesCities(query, profileFilterDto);
 

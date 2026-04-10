@@ -387,6 +387,62 @@ describe('CandidateProfileService', () => {
     });
   });
 
+  describe('search filter by name and email', () => {
+    it('should find candidate by partial first name (case-insensitive)', async () => {
+      const result = await candidateProfileService.findAllCandidatesWithFilters(
+        {
+          search: 'candidate_5',
+        },
+      );
+
+      expect(result.length).to.equal(1);
+      expect(result[0].firstName).to.equal(testUsers[5].firstName);
+    });
+
+    it('should find candidate by partial email', async () => {
+      const result = await candidateProfileService.findAllCandidatesWithFilters(
+        {
+          search: 'test6',
+        },
+      );
+
+      expect(result.length).to.equal(1);
+      expect(result[0].email).to.equal(testUsers[6].email);
+    });
+
+    it('should find candidates by shared name substring', async () => {
+      const result = await candidateProfileService.findAllCandidatesWithFilters(
+        {
+          search: 'Candidate_',
+        },
+      );
+
+      expect(result.length).to.equal(TOTAL_CANDIDATES);
+    });
+
+    it('should return empty when search matches no one', async () => {
+      const result = await candidateProfileService.findAllCandidatesWithFilters(
+        {
+          search: 'nonexistent',
+        },
+      );
+
+      expect(result).to.deep.equal([]);
+    });
+
+    it('should combine search with other filters', async () => {
+      const result = await candidateProfileService.findAllCandidatesWithFilters(
+        {
+          search: 'Candidate_',
+          countries: ['Ukraine'],
+        },
+      );
+
+      expect(result.length).to.equal(1);
+      expect(result[0].country).to.equal('Ukraine');
+    });
+  });
+
   describe('find candidate profile by user id', () => {
     it('should find candidate profile by user id', async () => {
       const candidateProfile: CandidateProfile =
