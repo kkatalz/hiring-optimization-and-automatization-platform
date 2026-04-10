@@ -7,10 +7,10 @@ export class Tenant {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
-  @Column({ length: 100 })
+  @Column({ length: 100, unique: true })
   slug: string;
 
   @Column({ default: false })
