@@ -359,6 +359,16 @@ export class VacancyService {
       }
     });
 
+    if (
+      vacancy.minSalary != null &&
+      vacancy.maxSalary != null &&
+      vacancy.maxSalary < vacancy.minSalary
+    ) {
+      throw new BadRequestException(
+        `maxSalary (${vacancy.maxSalary}) must be greater than or equal to minSalary (${vacancy.minSalary}).`,
+      );
+    }
+
     this.applyVacancyQuestionUpdates(updateVacancyDto, vacancy);
 
     const fieldsThatAffectMatchScore = [
