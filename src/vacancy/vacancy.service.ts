@@ -548,7 +548,6 @@ export class VacancyService {
       ...fields,
       tenantId: creator.tenantId,
       createdById: creator.id,
-      createdBy: creator,
     });
 
     return this.vacancyRepository.save(vacancy);
