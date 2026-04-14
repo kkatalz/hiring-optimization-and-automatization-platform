@@ -509,7 +509,11 @@ export class VacancyService {
     tenantId: string,
     questions: CreateVacancyQuestionInlineDto[],
   ): Promise<void> {
-    const linkPromises = questions.map(async (q) => {
+    const vacancyQuestions: VacancyQuestion[] = [];
+
+    // Process sequentially to avoid race condition when two questions with the
+    // same label/type both try to create the same Question record concurrently.
+    for (const q of questions) {
       let question = await this.questionService.findExistingQuestion(
         q,
         tenantId,
@@ -531,16 +535,16 @@ export class VacancyService {
         );
       }
 
-      return this.vacancyQuestionRepository.create({
-        vacancyId,
-        questionId: question.id,
-        isRequired: q.isRequired,
-        priority: q.priority ?? 1,
-        expectedValue: q.expectedValue,
-      });
-    });
-
-    const vacancyQuestions = await Promise.all(linkPromises);
+      vacancyQuestions.push(
+        this.vacancyQuestionRepository.create({
+          vacancyId,
+          questionId: question.id,
+          isRequired: q.isRequired,
+          priority: q.priority ?? 1,
+          expectedValue: q.expectedValue,
+        }),
+      );
+    }
 
     await this.vacancyQuestionRepository.save(vacancyQuestions);
   }
@@ -610,7 +614,7 @@ export class VacancyService {
 
   private applyVacancyQuestionUpdates(
     updateVacancyDto: UpdateVacancyDto,
-    vacancy: VacancyDto,
+    vacancy: Vacancy,
   ): void {
     if (!updateVacancyDto.vacancyQuestions || !vacancy.vacancyQuestions) return;
 
@@ -619,13 +623,26 @@ export class VacancyService {
         (vq) => vq.questionId === updatedQuestion.questionId,
       );
 
-      if (existingQuestion) {
-        existingQuestion.isRequired = updatedQuestion.isRequired;
-        existingQuestion.priority =
-          updatedQuestion.priority ?? existingQuestion.priority;
-        existingQuestion.expectedValue =
-          updatedQuestion.expectedValue ?? existingQuestion.expectedValue;
+      if (!existingQuestion) {
+        throw new BadRequestException(
+          `Question '${updatedQuestion.questionId}' is not linked to this vacancy. First, add a question to the vacancy. Then you can update it.`,
+        );
       }
+
+      if (updatedQuestion.expectedValue !== undefined) {
+        this.validateExpectedValue(
+          updatedQuestion.expectedValue,
+          updatedQuestion.type,
+          updatedQuestion.answerOptions,
+          updatedQuestion.label,
+        );
+      }
+
+      existingQuestion.isRequired = updatedQuestion.isRequired;
+      existingQuestion.priority =
+        updatedQuestion.priority ?? existingQuestion.priority;
+      existingQuestion.expectedValue =
+        updatedQuestion.expectedValue ?? existingQuestion.expectedValue;
     });
   }
 

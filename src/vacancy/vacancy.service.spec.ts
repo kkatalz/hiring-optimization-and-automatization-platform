@@ -747,7 +747,90 @@ describe('VacancyService', () => {
 
       expect(submissionAfter!.matchScore).to.equal(scoreBefore);
     });
+
+    it('should throw 400 when update includes a question not linked to the vacancy', async () => {
+      const vacancyId = testVacancies[0].id;
+      // testQuestions[1] is NOT linked to vacancy[0]
+      const unlinkedQuestionId = testQuestions[1].id;
+
+      try {
+        await service.update(vacancyId, {
+          name: testVacancies[0].name,
+          description: testVacancies[0].description,
+          vacancyQuestions: [
+            {
+              questionId: unlinkedQuestionId,
+              label: testQuestions[1].label,
+              type: testQuestions[1].type,
+              isRequired: true,
+            },
+          ],
+        });
+        expect.fail('Should have thrown a BAD_REQUEST error but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(400);
+        expect(e.response.message).to.include(
+          `Question '${unlinkedQuestionId}' is not linked to this vacancy`,
+        );
+      }
+    });
+
+    it('should throw 400 when update includes invalid expectedValue for boolean question', async () => {
+      const vacancyId = testVacancies[1].id;
+
+      try {
+        await service.update(vacancyId, {
+          name: testVacancies[1].name,
+          description: testVacancies[1].description,
+          vacancyQuestions: [
+            {
+              questionId: testQuestions[0].id,
+              label: testQuestions[0].label,
+              type: testQuestions[0].type,
+              isRequired: true,
+              priority: 1,
+              expectedValue: 'notBooleanValue',
+            },
+          ],
+        });
+        expect.fail('Should have thrown a BAD_REQUEST error but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(400);
+        expect(e.response.message).to.include(
+          `Expected value for boolean question '${testQuestions[0].label}' must be 'true' or 'false'`,
+        );
+      }
+    });
+
+    it('should throw 400 when update includes invalid expectedValue for dropdown question', async () => {
+      const vacancyId = testVacancies[1].id;
+
+      try {
+        await service.update(vacancyId, {
+          name: testVacancies[1].name,
+          description: testVacancies[1].description,
+          vacancyQuestions: [
+            {
+              questionId: testQuestions[2].id,
+              label: testQuestions[2].label,
+              type: testQuestions[2].type,
+              answerOptions: testQuestions[2].answerOptions,
+              isRequired: true,
+              priority: 2,
+              expectedValue: ['InvalidOption'],
+            },
+          ],
+        });
+        expect.fail('Should have thrown a BAD_REQUEST error but did not');
+      } catch (e: any) {
+        expect(e.status).to.equal(400);
+        expect(e.response.message).to.include(
+          `Expected value for dropdown question '${testQuestions[2].label}' must be one of`,
+        );
+      }
+    });
   });
+
   describe('remove', () => {
     it('should remove vacancy', async () => {
       const removeVacancyId = testVacancies[0].id;
