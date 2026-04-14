@@ -164,18 +164,26 @@ export class VacancyController {
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get(':vacancyId')
-  findByVacancyId(
+  async findByVacancyId(
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
+    @AuthUser() requester: UserDto,
   ): Promise<VacancyDto> {
-    return this.vacancyService.findVacancyById(vacancyId);
+    const vacancy = await this.vacancyService.findVacancyById(vacancyId);
+    validateTenantAccess(requester, vacancy.tenantId);
+    return vacancy;
   }
 
-  @Roles(UserRole.candidate)
+  @Roles(
+    UserRole.superAdmin,
+    UserRole.admin,
+    UserRole.recruiter,
+    UserRole.candidate,
+  )
   @Get('browse/:vacancyId')
-  findByVacancyIdForCandidates(
+  browseVacancyById(
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
-  ): Promise<CandidateVacancyDto> {
-    return this.vacancyService.findVacancyByIdForCandidates(vacancyId);
+  ): Promise<GeneralVacancyDto> {
+    return this.vacancyService.findVacancyByIdForBrowse(vacancyId);
   }
 
   @Roles(UserRole.admin, UserRole.recruiter)

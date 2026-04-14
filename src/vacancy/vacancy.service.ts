@@ -94,9 +94,9 @@ export class VacancyService {
     return vacancies.map(vacancyToGeneralVacancyDto);
   }
 
-  async findVacancyByIdForCandidates(
+  async findVacancyByIdForBrowse(
     vacancyId: string,
-  ): Promise<CandidateVacancyDto> {
+  ): Promise<GeneralVacancyDto> {
     const vacancy = await this.vacancyRepository
       .createQueryBuilder('vacancy')
       .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq')
@@ -108,7 +108,7 @@ export class VacancyService {
       throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
     }
 
-    return vacancyToCandidateVacancyDto(vacancy);
+    return vacancyToGeneralVacancyDto(vacancy);
   }
 
   private async fetchAllVacancies(tenantId?: string): Promise<Vacancy[]> {
