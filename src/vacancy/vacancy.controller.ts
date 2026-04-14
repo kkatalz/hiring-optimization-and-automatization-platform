@@ -155,7 +155,9 @@ export class VacancyController {
       validateTenantAccess(requester, query.tenantId);
     }
 
-    const extractedTenantId = query.tenantId ?? requester.tenantId;
+    const extractedTenantId =
+      query.tenantId ??
+      (requester.role === UserRole.superAdmin ? undefined : requester.tenantId);
 
     return await this.vacancyService.findAllVacanciesThatHaveQuestions(
       extractedTenantId,
