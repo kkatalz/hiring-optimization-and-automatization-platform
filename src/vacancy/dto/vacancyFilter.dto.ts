@@ -14,7 +14,7 @@ import {
   TimeCommitment,
 } from '../../entities/hiring.enum';
 
-export class CandidateVacancyFilterDto {
+export class VacancyFilterDto {
   @IsOptional()
   @IsString()
   name?: string;

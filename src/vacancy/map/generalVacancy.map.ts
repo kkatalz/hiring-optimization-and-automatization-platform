@@ -1,9 +1,9 @@
 import { Vacancy } from '../../entities/vacancy';
-import { CandidateVacancyDto } from '../dto/candidateVacancy.dto';
+import { GeneralVacancyDto } from '../dto/generalVacancy.dto';
 
-export const vacancyToCandidateVacancyDto = (
+export const vacancyToGeneralVacancyDto = (
   vacancy: Vacancy,
-): CandidateVacancyDto => {
+): GeneralVacancyDto => {
   const {
     id,
     name,

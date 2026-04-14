@@ -1,4 +1,4 @@
-export class CandidateVacancyQuestionDto {
+export class GeneralVacancyQuestionDto {
   vacancyId: string;
   questionId: string;
   isRequired: boolean;
