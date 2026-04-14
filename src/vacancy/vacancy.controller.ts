@@ -20,7 +20,7 @@ import { VacancyDto } from '../vacancy/dto/vacancy.dto';
 import { GeneralVacancyDto } from '../vacancy/dto/generalVacancy.dto';
 import { VacancyQuestionDto } from '../vacancy/dto/vacancyQuestion.dto';
 import { VacancyService } from '../vacancy/vacancy.service';
-import { CreateVacancyQuestionDto } from './dto/createVacancyQuesion.dto';
+import { CreateVacancyQuestionDto } from './dto/createVacancyQuestion.dto';
 import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
 import { VacancyFilterDto } from './dto/vacancyFilter.dto';
 import { PaginatedResponse, PaginationQueryDto } from '../types/pagination';

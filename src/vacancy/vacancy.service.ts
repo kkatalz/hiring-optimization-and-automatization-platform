@@ -24,7 +24,7 @@ import { VacancyQuestionDto } from '../vacancy/dto/vacancyQuestion.dto';
 import { vacancyQuestionToDto } from '../vacancy/map/vacancyQuestion.map';
 import { UserService } from '../user/user.service';
 import { QuestionService } from '../question/question.service';
-import { CreateVacancyQuestionDto } from './dto/createVacancyQuesion.dto';
+import { CreateVacancyQuestionDto } from './dto/createVacancyQuestion.dto';
 import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
 import { vacancyQuestionToDetailedDto } from './map/vacancyQuestionDetailed.map';
 import { CreateVacancyQuestionInlineDto } from './dto/createVacancyWithQuestions.dto';

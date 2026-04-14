@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  MaxLength,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -19,10 +20,12 @@ import { CustomWeights } from '../../vacancySubmission/types/matchingScore.inter
 export class UpdateVacancyDto {
   @IsOptional()
   @IsString()
+  @MaxLength(200)
   name: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(5000)
   description: string;
 
   @IsOptional()

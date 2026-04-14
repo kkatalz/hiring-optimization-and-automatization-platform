@@ -1,10 +1,4 @@
-import {
-  IsBoolean,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  Min,
-} from 'class-validator';
+import { IsBoolean, IsInt, IsNotEmpty, IsOptional, Min } from 'class-validator';
 import { ConvertStringToBool } from '../../decorators/convertStringToBool.decorator';
 import { Type } from 'class-transformer';
 
