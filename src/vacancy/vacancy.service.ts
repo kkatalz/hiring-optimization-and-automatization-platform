@@ -66,6 +66,7 @@ export class VacancyService {
     const [vacancies, total] = await this.vacancyRepository.findAndCount({
       where: tenantId ? { tenantId } : {},
       relations: ['vacancyQuestions'],
+      order: { createdAt: 'DESC' },
       skip: (p - 1) * l,
       take: l,
     });
@@ -84,6 +85,7 @@ export class VacancyService {
       .createQueryBuilder('vacancy')
       .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq')
       .loadRelationCountAndMap('vacancy.submissionCount', 'vacancy.submissions')
+      .orderBy('vacancy.createdAt', 'DESC')
       .skip((p - 1) * l)
       .take(l)
       .getManyAndCount();
@@ -278,6 +280,7 @@ export class VacancyService {
     }
 
     const [vacancies, total] = await vacancyQuery
+      .orderBy('vacancy.createdAt', 'DESC')
       .skip((p - 1) * l)
       .take(l)
       .getManyAndCount();
@@ -314,6 +317,7 @@ export class VacancyService {
     const [vacancies, total] = await this.vacancyRepository.findAndCount({
       where: { tenantId },
       relations: ['vacancyQuestions'],
+      order: { createdAt: 'DESC' },
       skip: (p - 1) * l,
       take: l,
     });
@@ -506,6 +510,7 @@ export class VacancyService {
     }
 
     const [vacancies, total] = await query
+      .orderBy('vacancy.createdAt', 'DESC')
       .skip((p - 1) * l)
       .take(l)
       .getManyAndCount();
@@ -755,6 +760,8 @@ export class VacancyService {
     if (sortBy && VacancyService.SQL_SORT_FIELDS.includes(sortBy)) {
       const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
       query.orderBy(`vacancy.${sortBy}`, direction, 'NULLS LAST');
+    } else {
+      query.orderBy('vacancy.createdAt', 'DESC');
     }
   }
 }
