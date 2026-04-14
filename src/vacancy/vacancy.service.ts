@@ -13,25 +13,31 @@ import {
 } from '@nestjs/common';
 import { QuestionType } from '../entities/question.enum';
 import { VacancyDto } from '../vacancy/dto/vacancy.dto';
-import { CandidateVacancyDto } from '../vacancy/dto/candidateVacancy.dto';
+import { GeneralVacancyDto } from '../vacancy/dto/generalVacancy.dto';
 import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
 import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
 import { UserDto } from '../user/dto/user.dto';
 import { UserRole } from '../entities/role.enum';
 import { vacancyToVacancyDto } from '../vacancy/map/vacancy.map';
-import { vacancyToCandidateVacancyDto } from '../vacancy/map/candidateVacancy.map';
+import { vacancyToGeneralVacancyDto } from '../vacancy/map/generalVacancy.map';
 import { VacancyQuestionDto } from '../vacancy/dto/vacancyQuestion.dto';
 import { vacancyQuestionToDto } from '../vacancy/map/vacancyQuestion.map';
 import { UserService } from '../user/user.service';
 import { QuestionService } from '../question/question.service';
-import { CreateVacancyQuestionDto } from './dto/createVacancyQuesion.dto';
+import { CreateVacancyQuestionDto } from './dto/createVacancyQuestion.dto';
 import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
 import { vacancyQuestionToDetailedDto } from './map/vacancyQuestionDetailed.map';
 import { CreateVacancyQuestionInlineDto } from './dto/createVacancyWithQuestions.dto';
 import { VacancySubmissionService } from '../vacancySubmission/vacancySubmission.service';
-import { CandidateVacancyFilterDto } from '../vacancy/dto/candidateVacancyFilter.dto';
-import { parseSalaryRange } from '../utils/parseSalaryRange';
+import { VacancyFilterDto } from '../vacancy/dto/vacancyFilter.dto';
 import { LanguageLevelRank } from '../entities/hiring.enum';
+import {
+  PaginatedResponse,
+  DEFAULT_PAGE,
+  DEFAULT_LIMIT,
+  paginateArray,
+  toPaginatedResponse,
+} from '../types/pagination';
 
 @Injectable()
 export class VacancyService {
@@ -49,51 +55,90 @@ export class VacancyService {
     private readonly vacancySubmissionService: VacancySubmissionService,
   ) {}
 
-  async findAll(): Promise<VacancyDto[]> {
-    const vacancies = await this.fetchAllVacancies();
-    return vacancies.map(vacancyToVacancyDto);
+  async findAll(
+    tenantId?: string,
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResponse<VacancyDto>> {
+    const p = page ?? DEFAULT_PAGE;
+    const l = limit ?? DEFAULT_LIMIT;
+
+    const [vacancies, total] = await this.vacancyRepository.findAndCount({
+      where: tenantId ? { tenantId } : {},
+      relations: ['vacancyQuestions'],
+      order: { createdAt: 'DESC' },
+      skip: (p - 1) * l,
+      take: l,
+    });
+
+    return toPaginatedResponse(vacancies.map(vacancyToVacancyDto), total, p, l);
   }
 
-  async findAllForCandidates(): Promise<CandidateVacancyDto[]> {
-    const vacancies = await this.vacancyRepository
+  async findAllForBrowse(
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResponse<GeneralVacancyDto>> {
+    const p = page ?? DEFAULT_PAGE;
+    const l = limit ?? DEFAULT_LIMIT;
+
+    const [vacancies, total] = await this.vacancyRepository
       .createQueryBuilder('vacancy')
       .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq')
       .loadRelationCountAndMap('vacancy.submissionCount', 'vacancy.submissions')
-      .getMany();
+      .orderBy('vacancy.createdAt', 'DESC')
+      .skip((p - 1) * l)
+      .take(l)
+      .getManyAndCount();
 
-    return vacancies.map(vacancyToCandidateVacancyDto);
+    return toPaginatedResponse(
+      vacancies.map(vacancyToGeneralVacancyDto),
+      total,
+      p,
+      l,
+    );
   }
 
   async findAllWithFilters(
-    filterDto?: CandidateVacancyFilterDto,
+    filterDto?: VacancyFilterDto,
     sortBy?: string,
     order?: 'ASC' | 'DESC',
-  ): Promise<VacancyDto[]> {
+    tenantId?: string,
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResponse<VacancyDto>> {
     const vacancies = await this.fetchVacanciesWithFilters(
       filterDto,
       sortBy,
       order,
+      false,
+      tenantId,
     );
-    return vacancies.map(vacancyToVacancyDto);
+    return paginateArray(vacancies.map(vacancyToVacancyDto), page, limit);
   }
 
-  async findAllWithFiltersForCandidates(
-    filterDto?: CandidateVacancyFilterDto,
+  async findAllWithFiltersForBrowse(
+    filterDto?: VacancyFilterDto,
     sortBy?: string,
     order?: 'ASC' | 'DESC',
-  ): Promise<CandidateVacancyDto[]> {
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResponse<GeneralVacancyDto>> {
     const vacancies = await this.fetchVacanciesWithFilters(
       filterDto,
       sortBy,
       order,
       true,
     );
-    return vacancies.map(vacancyToCandidateVacancyDto);
+    return paginateArray(
+      vacancies.map(vacancyToGeneralVacancyDto),
+      page,
+      limit,
+    );
   }
 
-  async findVacancyByIdForCandidates(
+  async findVacancyByIdForBrowse(
     vacancyId: string,
-  ): Promise<CandidateVacancyDto> {
+  ): Promise<GeneralVacancyDto> {
     const vacancy = await this.vacancyRepository
       .createQueryBuilder('vacancy')
       .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq')
@@ -105,20 +150,15 @@ export class VacancyService {
       throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
     }
 
-    return vacancyToCandidateVacancyDto(vacancy);
-  }
-
-  private async fetchAllVacancies(): Promise<Vacancy[]> {
-    return this.vacancyRepository.find({
-      relations: ['vacancyQuestions'],
-    });
+    return vacancyToGeneralVacancyDto(vacancy);
   }
 
   private async fetchVacanciesWithFilters(
-    filterDto?: CandidateVacancyFilterDto,
+    filterDto?: VacancyFilterDto,
     sortBy?: string,
     order?: 'ASC' | 'DESC',
     loadSubmissionCount = false,
+    tenantId?: string,
   ): Promise<Vacancy[]> {
     const query = this.vacancyRepository
       .createQueryBuilder('vacancy')
@@ -129,6 +169,10 @@ export class VacancyService {
         'vacancy.submissionCount',
         'vacancy.submissions',
       );
+    }
+
+    if (tenantId) {
+      query.andWhere('vacancy.tenant_id = :tenantId', { tenantId });
     }
 
     if (filterDto?.name) {
@@ -157,29 +201,23 @@ export class VacancyService {
       );
     }
 
-    // SQL-side sorting (for non-salary fields)
-    if (sortBy !== 'salary') {
-      this.applyVacancySorting(query, sortBy, order);
+    if (filterDto?.minSalary != null) {
+      query.andWhere(
+        'COALESCE(vacancy.max_salary, vacancy.min_salary) >= :minSalary',
+        { minSalary: filterDto.minSalary },
+      );
     }
+
+    if (filterDto?.maxSalary != null) {
+      query.andWhere(
+        'COALESCE(vacancy.min_salary, vacancy.max_salary) <= :maxSalary',
+        { maxSalary: filterDto.maxSalary },
+      );
+    }
+
+    this.applyVacancySorting(query, sortBy, order);
 
     let vacancies = await query.getMany();
-
-    // In-memory filters
-    if (filterDto?.minSalary != null || filterDto?.maxSalary != null) {
-      vacancies = vacancies.filter((v) => {
-        const range = parseSalaryRange(v.salary);
-
-        if (!range) return false;
-
-        if (filterDto.minSalary != null && range.max < filterDto.minSalary)
-          return false;
-
-        if (filterDto.maxSalary != null && range.min > filterDto.maxSalary)
-          return false;
-
-        return true;
-      });
-    }
 
     if (filterDto?.tags?.length) {
       const filterTags = new Set(filterDto.tags.map((t) => t.toLowerCase()));
@@ -210,17 +248,16 @@ export class VacancyService {
       });
     }
 
-    // In-memory sorting for salary (free-text field, can't sort in SQL)
-    if (sortBy === 'salary') {
-      vacancies = this.applySalarySorting(vacancies, order);
-    }
-
     return vacancies;
   }
 
   async findVacanciesWithSubmissions(
     requesterId: string,
-  ): Promise<VacancyDto[]> {
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResponse<VacancyDto>> {
+    const p = page ?? DEFAULT_PAGE;
+    const l = limit ?? DEFAULT_LIMIT;
     const requester = await this.userService.findById(requesterId);
 
     const vacancyQuery = this.vacancyRepository
@@ -244,8 +281,13 @@ export class VacancyService {
       }
     }
 
-    const vacancies = await vacancyQuery.getMany();
-    return vacancies.map(vacancyToVacancyDto);
+    const [vacancies, total] = await vacancyQuery
+      .orderBy('vacancy.createdAt', 'DESC')
+      .skip((p - 1) * l)
+      .take(l)
+      .getManyAndCount();
+
+    return toPaginatedResponse(vacancies.map(vacancyToVacancyDto), total, p, l);
   }
 
   async findVacancyById(vacancyId: string): Promise<VacancyDto> {
@@ -266,20 +308,23 @@ export class VacancyService {
     return vacancy;
   }
 
-  async findAllByTenantId(tenantId: string): Promise<VacancyDto[]> {
-    const vacanciesWithGivenTenant = await this.vacancyRepository.find({
+  async findAllByTenantId(
+    tenantId: string,
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResponse<VacancyDto>> {
+    const p = page ?? DEFAULT_PAGE;
+    const l = limit ?? DEFAULT_LIMIT;
+
+    const [vacancies, total] = await this.vacancyRepository.findAndCount({
       where: { tenantId },
       relations: ['vacancyQuestions'],
+      order: { createdAt: 'DESC' },
+      skip: (p - 1) * l,
+      take: l,
     });
 
-    if (!vacanciesWithGivenTenant?.length) {
-      throw new HttpException(
-        'No vacancies within provided tenant were found.',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    return vacanciesWithGivenTenant.map(vacancyToVacancyDto);
+    return toPaginatedResponse(vacancies.map(vacancyToVacancyDto), total, p, l);
   }
 
   async create(
@@ -314,6 +359,16 @@ export class VacancyService {
       }
     });
 
+    if (
+      vacancy.minSalary != null &&
+      vacancy.maxSalary != null &&
+      vacancy.maxSalary < vacancy.minSalary
+    ) {
+      throw new BadRequestException(
+        `maxSalary (${vacancy.maxSalary}) must be greater than or equal to minSalary (${vacancy.minSalary}).`,
+      );
+    }
+
     this.applyVacancyQuestionUpdates(updateVacancyDto, vacancy);
 
     const fieldsThatAffectMatchScore = [
@@ -321,7 +376,8 @@ export class VacancyService {
       updateVacancyDto.tags,
       updateVacancyDto.languageRequirements,
       updateVacancyDto.requiredYearsOfExperience,
-      updateVacancyDto.salary,
+      updateVacancyDto.minSalary,
+      updateVacancyDto.maxSalary,
       updateVacancyDto.customWeights,
     ];
 
@@ -451,15 +507,27 @@ export class VacancyService {
 
   async findAllVacanciesThatHaveQuestions(
     tenantId?: string,
-  ): Promise<VacancyDto[]> {
-    const vacancies = await this.vacancyRepository
-      .createQueryBuilder('vacancy')
-      .innerJoinAndSelect('vacancy.vacancyQuestions', 'vq')
-      .where(tenantId ? 'vacancy.tenantId = :tenantId' : '1=1')
-      .setParameter('tenantId', tenantId)
-      .getMany();
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResponse<VacancyDto>> {
+    const p = page ?? DEFAULT_PAGE;
+    const l = limit ?? DEFAULT_LIMIT;
 
-    return vacancies.map(vacancyToVacancyDto);
+    const query = this.vacancyRepository
+      .createQueryBuilder('vacancy')
+      .innerJoinAndSelect('vacancy.vacancyQuestions', 'vq');
+
+    if (tenantId) {
+      query.andWhere('vacancy.tenantId = :tenantId', { tenantId });
+    }
+
+    const [vacancies, total] = await query
+      .orderBy('vacancy.createdAt', 'DESC')
+      .skip((p - 1) * l)
+      .take(l)
+      .getManyAndCount();
+
+    return toPaginatedResponse(vacancies.map(vacancyToVacancyDto), total, p, l);
   }
 
   async findVacancyByIdWithSubmissionsAndAnswers(
@@ -467,7 +535,12 @@ export class VacancyService {
   ): Promise<Vacancy> {
     const vacancy = await this.vacancyRepository.findOne({
       where: { id: vacancyId },
-      relations: ['vacancyQuestions', 'submissions', 'submissions.answers'],
+      relations: [
+        'vacancyQuestions',
+        'vacancyQuestions.question',
+        'submissions',
+        'submissions.answers',
+      ],
     });
 
     if (!vacancy) {
@@ -485,7 +558,6 @@ export class VacancyService {
       ...fields,
       tenantId: creator.tenantId,
       createdById: creator.id,
-      createdBy: creator,
     });
 
     return this.vacancyRepository.save(vacancy);
@@ -500,7 +572,11 @@ export class VacancyService {
     tenantId: string,
     questions: CreateVacancyQuestionInlineDto[],
   ): Promise<void> {
-    const linkPromises = questions.map(async (q) => {
+    const vacancyQuestions: VacancyQuestion[] = [];
+
+    // Process sequentially to avoid race condition when two questions with the
+    // same label/type both try to create the same Question record concurrently.
+    for (const q of questions) {
       let question = await this.questionService.findExistingQuestion(
         q,
         tenantId,
@@ -522,16 +598,16 @@ export class VacancyService {
         );
       }
 
-      return this.vacancyQuestionRepository.create({
-        vacancyId,
-        questionId: question.id,
-        isRequired: q.isRequired,
-        priority: q.priority ?? 1,
-        expectedValue: q.expectedValue,
-      });
-    });
-
-    const vacancyQuestions = await Promise.all(linkPromises);
+      vacancyQuestions.push(
+        this.vacancyQuestionRepository.create({
+          vacancyId,
+          questionId: question.id,
+          isRequired: q.isRequired,
+          priority: q.priority ?? 1,
+          expectedValue: q.expectedValue,
+        }),
+      );
+    }
 
     await this.vacancyQuestionRepository.save(vacancyQuestions);
   }
@@ -601,7 +677,7 @@ export class VacancyService {
 
   private applyVacancyQuestionUpdates(
     updateVacancyDto: UpdateVacancyDto,
-    vacancy: VacancyDto,
+    vacancy: Vacancy,
   ): void {
     if (!updateVacancyDto.vacancyQuestions || !vacancy.vacancyQuestions) return;
 
@@ -610,13 +686,27 @@ export class VacancyService {
         (vq) => vq.questionId === updatedQuestion.questionId,
       );
 
-      if (existingQuestion) {
-        existingQuestion.isRequired = updatedQuestion.isRequired;
-        existingQuestion.priority =
-          updatedQuestion.priority ?? existingQuestion.priority;
-        existingQuestion.expectedValue =
-          updatedQuestion.expectedValue ?? existingQuestion.expectedValue;
+      if (!existingQuestion) {
+        throw new BadRequestException(
+          `Question '${updatedQuestion.questionId}' is not linked to this vacancy. First, add a question to the vacancy. Then you can update it.`,
+        );
       }
+
+      if (updatedQuestion.expectedValue !== undefined) {
+        this.validateExpectedValue(
+          updatedQuestion.expectedValue,
+          updatedQuestion.type,
+          updatedQuestion.answerOptions ??
+            existingQuestion.question?.answerOptions,
+          updatedQuestion.label,
+        );
+      }
+
+      existingQuestion.isRequired = updatedQuestion.isRequired;
+      existingQuestion.priority =
+        updatedQuestion.priority ?? existingQuestion.priority;
+      existingQuestion.expectedValue =
+        updatedQuestion.expectedValue ?? existingQuestion.expectedValue;
     });
   }
 
@@ -651,7 +741,8 @@ export class VacancyService {
           vacancyLanguageRequirements: vacancy.languageRequirements,
           vacancyRequiredYearsOfExperience: vacancy.requiredYearsOfExperience,
           vacancyTags: vacancy.tags,
-          vacancySalary: vacancy.salary,
+          vacancyMinSalary: vacancy.minSalary,
+          vacancyMaxSalary: vacancy.maxSalary,
           submissionTags: submission.tags,
           expectedSalary:
             submission.expectedSalary != null
@@ -668,6 +759,8 @@ export class VacancyService {
   private static readonly SQL_SORT_FIELDS = [
     'createdAt',
     'requiredYearsOfExperience',
+    'minSalary',
+    'maxSalary',
   ];
 
   private applyVacancySorting(
@@ -678,32 +771,8 @@ export class VacancyService {
     if (sortBy && VacancyService.SQL_SORT_FIELDS.includes(sortBy)) {
       const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
       query.orderBy(`vacancy.${sortBy}`, direction, 'NULLS LAST');
+    } else {
+      query.orderBy('vacancy.createdAt', 'DESC');
     }
-  }
-
-  private applySalarySorting(
-    vacancies: Vacancy[],
-    order?: 'ASC' | 'DESC',
-  ): Vacancy[] {
-    const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
-
-    // Precompute sortable salary midpoint
-    const decorated = vacancies.map((vacancy) => {
-      const range = parseSalaryRange(vacancy.salary);
-      const sortKey = range ? (range.min + range.max) / 2 : null;
-      return { vacancy, sortKey };
-    });
-
-    // Sort using the precomputed key; non-parseable salaries will go to the end
-    decorated.sort((a, b) => {
-      if (a.sortKey === null && b.sortKey === null) return 0;
-      if (a.sortKey === null) return 1;
-      if (b.sortKey === null) return -1;
-      return direction === 'ASC'
-        ? a.sortKey - b.sortKey
-        : b.sortKey - a.sortKey;
-    });
-
-    return decorated.map((item) => item.vacancy);
   }
 }

@@ -45,7 +45,6 @@ import {
   ScoreResult,
 } from './types/matchingScore.interface';
 import { SaplingService } from '../sapling/sapling.service';
-import { parseSalaryRange } from '../utils/parseSalaryRange';
 import { AiDetectionResult } from '../sapling/types/scores.interface';
 
 @Injectable()
@@ -136,7 +135,8 @@ export class VacancySubmissionService {
         vacancyLanguageRequirements: vacancy.languageRequirements,
         vacancyRequiredYearsOfExperience: vacancy.requiredYearsOfExperience,
         vacancyTags: vacancy.tags,
-        vacancySalary: vacancy.salary,
+        vacancyMinSalary: vacancy.minSalary,
+        vacancyMaxSalary: vacancy.maxSalary,
         submissionTags: createVacancySubmissionDto.tags,
         expectedSalary: createVacancySubmissionDto.expectedSalary,
         customWeights: vacancy.customWeights,
@@ -689,7 +689,8 @@ export class VacancySubmissionService {
         : null,
       w.salary > 0
         ? this.scoreSalary(
-            options?.vacancySalary,
+            options?.vacancyMinSalary,
+            options?.vacancyMaxSalary,
             options?.expectedSalary,
             w.salary,
           )
@@ -935,32 +936,32 @@ export class VacancySubmissionService {
 
   /** Salary component. Within budget = met. Bonus up to +3 for being below max.
    * More detailed logic:
-   * - 100 (ratio = 1): candidate's expectedSalary <= range.max — they're within budget
-   * - 0 (ratio = 0): candidate's expectedSalary > range.max — over budget, no partial credit
-   * - Bonus (pushes above 100): if candidate asks for less than range.max, up to +3 points proportional to how far below
+   * - 100 (ratio = 1): candidate's expectedSalary <= maxSalary — they're within budget
+   * - 0 (ratio = 0): candidate's expectedSalary > maxSalary — over budget, no partial credit
+   * - Bonus (pushes above 100): if candidate asks for less than maxSalary, up to +3 points proportional to how far below
    *  max they are: (max - expected) / (max - min) * 3. If min === max and candidate is below, flat +2.
    * So it's binary pass/fail against the budget ceiling, with a bonus rewarding cheaper candidates. There's no partial
    *  score for being slightly over budget — it's either 0 or full.
    */
   private scoreSalary(
-    vacancySalary?: string,
+    minSalary?: number | null,
+    maxSalary?: number | null,
     expectedSalary?: number | null,
     weight?: number,
   ): ScoreResult | null {
-    const range = parseSalaryRange(vacancySalary);
-    if (!range || expectedSalary == null) return null;
+    if (minSalary == null && maxSalary == null) return null;
+    if (expectedSalary == null) return null;
 
-    const ratio = expectedSalary <= range.max ? 1 : 0;
+    const max = maxSalary ?? minSalary!;
+    const min = minSalary ?? max;
+    const ratio = expectedSalary <= max ? 1 : 0;
 
     let bonus = 0;
-    if (expectedSalary < range.max) {
-      if (range.max === range.min) {
+    if (expectedSalary < max) {
+      if (max === min) {
         bonus = 2;
       } else {
-        bonus = Math.min(
-          3,
-          ((range.max - expectedSalary) / (range.max - range.min)) * 3,
-        );
+        bonus = Math.min(3, ((max - expectedSalary) / (max - min)) * 3);
       }
     }
 
@@ -969,7 +970,7 @@ export class VacancySubmissionService {
       ratio,
       weight: weight ?? 10,
       bonus,
-      log: `Salary: ${ratio ? 'within' : 'over'} budget (expected: ${expectedSalary}, range: ${range.min}-${range.max}, bonus: +${bonus.toFixed(2)} with provided weight - ${weight})`,
+      log: `Salary: ${ratio ? 'within' : 'over'} budget (expected: ${expectedSalary}, range: ${min}-${max}, bonus: +${bonus.toFixed(2)} with provided weight - ${weight})`,
     };
   }
 
@@ -1046,7 +1047,8 @@ export class VacancySubmissionService {
         vacancyLanguageRequirements: vacancy.languageRequirements,
         vacancyRequiredYearsOfExperience: vacancy.requiredYearsOfExperience,
         vacancyTags: vacancy.tags,
-        vacancySalary: vacancy.salary,
+        vacancyMinSalary: vacancy.minSalary,
+        vacancyMaxSalary: vacancy.maxSalary,
         submissionTags: submission.tags,
         expectedSalary: submission.expectedSalary,
         customWeights: vacancy.customWeights,

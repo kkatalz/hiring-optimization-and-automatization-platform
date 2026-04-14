@@ -7,12 +7,12 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UserDto } from '../user/dto/user.dto';
 import { LanguageProficiency, TimeCommitment } from './hiring.enum';
 import { CustomWeights } from '../vacancySubmission/types/matchingScore.interface';
 import { User } from './user';
 import { VacancyQuestion } from './vacancyQuestion';
 import { VacancySubmission } from './vacancySubmission';
+import { ColumnNumericTransformer } from '../utils/convertStringToNumberTransformer';
 
 @Entity({ name: 'vacancies' })
 export class Vacancy {
@@ -25,8 +25,25 @@ export class Vacancy {
   @Column('text')
   description: string;
 
-  @Column({ nullable: true })
-  salary?: string;
+  @Column({
+    name: 'min_salary',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+    transformer: new ColumnNumericTransformer(),
+  })
+  minSalary?: number | null;
+
+  @Column({
+    name: 'max_salary',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+    transformer: new ColumnNumericTransformer(),
+  })
+  maxSalary?: number | null;
 
   @Column({ name: 'tenant_id', nullable: true, type: 'uuid' })
   tenantId: string;
@@ -69,7 +86,7 @@ export class Vacancy {
     nullable: true,
   })
   @JoinColumn({ name: 'created_by_id' })
-  createdBy?: UserDto;
+  createdBy?: User;
 
   @OneToMany(() => VacancySubmission, (submission) => submission.vacancy)
   submissions?: VacancySubmission[];

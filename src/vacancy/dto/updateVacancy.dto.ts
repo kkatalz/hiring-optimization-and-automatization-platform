@@ -2,8 +2,10 @@ import {
   IsArray,
   IsEnum,
   IsInt,
+  IsNumber,
   IsOptional,
   IsString,
+  MaxLength,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -14,19 +16,31 @@ import {
 import { Type } from 'class-transformer';
 import { UpdateVacancyQuestionInlineDto } from './updateVacancyWithQuestions.dto';
 import { CustomWeights } from '../../vacancySubmission/types/matchingScore.interface';
+import { MaxSalaryGreaterThanMin } from '../../decorators/maxSalaryGreaterThanMin.decorator';
 
 export class UpdateVacancyDto {
   @IsOptional()
   @IsString()
-  name: string;
+  @MaxLength(200)
+  name?: string;
 
   @IsOptional()
   @IsString()
-  description: string;
+  @MaxLength(5000)
+  description?: string;
 
   @IsOptional()
-  @IsString()
-  salary?: string;
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  minSalary?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  @MaxSalaryGreaterThanMin()
+  maxSalary?: number;
 
   @IsOptional()
   @IsEnum(TimeCommitment)

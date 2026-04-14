@@ -17,12 +17,17 @@ import { validateTenantAccess } from '../utils/validate';
 import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
 import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
 import { VacancyDto } from '../vacancy/dto/vacancy.dto';
-import { CandidateVacancyDto } from '../vacancy/dto/candidateVacancy.dto';
+import { GeneralVacancyDto } from '../vacancy/dto/generalVacancy.dto';
 import { VacancyQuestionDto } from '../vacancy/dto/vacancyQuestion.dto';
 import { VacancyService } from '../vacancy/vacancy.service';
-import { CreateVacancyQuestionDto } from './dto/createVacancyQuesion.dto';
+import { CreateVacancyQuestionDto } from './dto/createVacancyQuestion.dto';
 import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
-import { CandidateVacancyFilterDto } from './dto/candidateVacancyFilter.dto';
+import { VacancyFilterDto } from './dto/vacancyFilter.dto';
+import { PaginatedResponse, PaginationQueryDto } from '../types/pagination';
+import {
+  VacancySortPaginationQueryDto,
+  VacancyWithQuestionsPaginationQueryDto,
+} from './dto/vacancyPaginationQuery.dto';
 
 @Controller('vacancies')
 export class VacancyController {
@@ -38,39 +43,81 @@ export class VacancyController {
     return this.vacancyService.create(createVacancyDto, creator);
   }
 
+  /**
+   * Returns vacancies scoped to the requester's tenant.
+   * SuperAdmins see all vacancies across tenants.
+   */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get()
-  findAllVacancies(): Promise<VacancyDto[]> {
-    return this.vacancyService.findAll();
+  findAllVacancies(
+    @AuthUser() requester: UserDto,
+    @Query() pagination: PaginationQueryDto,
+  ): Promise<PaginatedResponse<VacancyDto>> {
+    const tenantId =
+      requester.role === UserRole.superAdmin ? undefined : requester.tenantId;
+    return this.vacancyService.findAll(
+      tenantId,
+      pagination.page,
+      pagination.limit,
+    );
   }
 
-  @Roles(UserRole.candidate)
+  @Roles(
+    UserRole.superAdmin,
+    UserRole.admin,
+    UserRole.recruiter,
+    UserRole.candidate,
+  )
   @Get('browse')
-  findAllVacanciesForCandidates(): Promise<CandidateVacancyDto[]> {
-    return this.vacancyService.findAllForCandidates();
+  browseAllVacancies(
+    @Query() pagination: PaginationQueryDto,
+  ): Promise<PaginatedResponse<GeneralVacancyDto>> {
+    return this.vacancyService.findAllForBrowse(
+      pagination.page,
+      pagination.limit,
+    );
   }
 
+  /**
+   * Returns filtered vacancies scoped to the requester's tenant.
+   * SuperAdmins see all vacancies across tenants.
+   */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Post('search')
   searchVacancies(
-    @Body() filterDto: CandidateVacancyFilterDto,
-    @Query('sortBy') sortBy?: string,
-    @Query('order') order?: 'ASC' | 'DESC',
-  ): Promise<VacancyDto[]> {
-    return this.vacancyService.findAllWithFilters(filterDto, sortBy, order);
+    @Body() filterDto: VacancyFilterDto,
+    @AuthUser() requester: UserDto,
+    @Query() query: VacancySortPaginationQueryDto,
+  ): Promise<PaginatedResponse<VacancyDto>> {
+    const tenantId =
+      requester.role === UserRole.superAdmin ? undefined : requester.tenantId;
+    return this.vacancyService.findAllWithFilters(
+      filterDto,
+      query.sortBy,
+      query.order,
+      tenantId,
+      query.page,
+      query.limit,
+    );
   }
 
-  @Roles(UserRole.candidate)
+  @Roles(
+    UserRole.superAdmin,
+    UserRole.admin,
+    UserRole.recruiter,
+    UserRole.candidate,
+  )
   @Post('browse/search')
-  searchVacanciesForCandidates(
-    @Body() filterDto: CandidateVacancyFilterDto,
-    @Query('sortBy') sortBy?: string,
-    @Query('order') order?: 'ASC' | 'DESC',
-  ): Promise<CandidateVacancyDto[]> {
-    return this.vacancyService.findAllWithFiltersForCandidates(
+  browseVacanciesWithFilters(
+    @Body() filterDto: VacancyFilterDto,
+    @Query() query: VacancySortPaginationQueryDto,
+  ): Promise<PaginatedResponse<GeneralVacancyDto>> {
+    return this.vacancyService.findAllWithFiltersForBrowse(
       filterDto,
-      sortBy,
-      order,
+      query.sortBy,
+      query.order,
+      query.page,
+      query.limit,
     );
   }
 
@@ -82,32 +129,40 @@ export class VacancyController {
   @Get('with-submissions')
   findVacanciesWithSubmissions(
     @AuthUser() requester: UserDto,
-  ): Promise<VacancyDto[]> {
-    return this.vacancyService.findVacanciesWithSubmissions(requester.id);
+    @Query() pagination: PaginationQueryDto,
+  ): Promise<PaginatedResponse<VacancyDto>> {
+    return this.vacancyService.findVacanciesWithSubmissions(
+      requester.id,
+      pagination.page,
+      pagination.limit,
+    );
   }
 
   /**
    * Super admins can optionally filter by tenantId to see vacancies with questions for a specific tenant.
    * If super admin does not provide tenantId, they will see all vacancies with questions across all tenants.
-   
-   * Admins and recruiters will only see vacancies with questions for their own tenant. 
+   *
+   * Admins and recruiters will only see vacancies with questions for their own tenant.
    * If they provide a tenantId that does not match their own, they will receive an access error.
    */
-
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get('with-questions')
   async findAllVacanciesThatHaveQuestions(
     @AuthUser() requester: UserDto,
-    @Query('tenantId') tenantId?: string,
-  ): Promise<VacancyDto[]> {
-    if (tenantId) {
-      validateTenantAccess(requester, tenantId);
+    @Query() query: VacancyWithQuestionsPaginationQueryDto,
+  ): Promise<PaginatedResponse<VacancyDto>> {
+    if (query.tenantId) {
+      validateTenantAccess(requester, query.tenantId);
     }
 
-    const extractedTenantId = tenantId ?? requester.tenantId;
+    const extractedTenantId =
+      query.tenantId ??
+      (requester.role === UserRole.superAdmin ? undefined : requester.tenantId);
 
     return await this.vacancyService.findAllVacanciesThatHaveQuestions(
       extractedTenantId,
+      query.page,
+      query.limit,
     );
   }
 
@@ -116,9 +171,14 @@ export class VacancyController {
   findVacanciesByTenantId(
     @Param('tenantId', new ParseUUIDPipe()) tenantId: string,
     @AuthUser() viewer: UserDto,
-  ): Promise<VacancyDto[]> {
+    @Query() pagination: PaginationQueryDto,
+  ): Promise<PaginatedResponse<VacancyDto>> {
     validateTenantAccess(viewer, tenantId);
-    return this.vacancyService.findAllByTenantId(tenantId);
+    return this.vacancyService.findAllByTenantId(
+      tenantId,
+      pagination.page,
+      pagination.limit,
+    );
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
@@ -135,18 +195,26 @@ export class VacancyController {
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get(':vacancyId')
-  findByVacancyId(
+  async findByVacancyId(
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
+    @AuthUser() requester: UserDto,
   ): Promise<VacancyDto> {
-    return this.vacancyService.findVacancyById(vacancyId);
+    const vacancy = await this.vacancyService.findVacancyById(vacancyId);
+    validateTenantAccess(requester, vacancy.tenantId);
+    return vacancy;
   }
 
-  @Roles(UserRole.candidate)
+  @Roles(
+    UserRole.superAdmin,
+    UserRole.admin,
+    UserRole.recruiter,
+    UserRole.candidate,
+  )
   @Get('browse/:vacancyId')
-  findByVacancyIdForCandidates(
+  browseVacancyById(
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
-  ): Promise<CandidateVacancyDto> {
-    return this.vacancyService.findVacancyByIdForCandidates(vacancyId);
+  ): Promise<GeneralVacancyDto> {
+    return this.vacancyService.findVacancyByIdForBrowse(vacancyId);
   }
 
   @Roles(UserRole.admin, UserRole.recruiter)
