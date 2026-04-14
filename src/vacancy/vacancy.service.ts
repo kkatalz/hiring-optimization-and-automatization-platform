@@ -13,13 +13,13 @@ import {
 } from '@nestjs/common';
 import { QuestionType } from '../entities/question.enum';
 import { VacancyDto } from '../vacancy/dto/vacancy.dto';
-import { CandidateVacancyDto } from '../vacancy/dto/candidateVacancy.dto';
+import { GeneralVacancyDto } from '../vacancy/dto/generalVacancy.dto';
 import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
 import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
 import { UserDto } from '../user/dto/user.dto';
 import { UserRole } from '../entities/role.enum';
 import { vacancyToVacancyDto } from '../vacancy/map/vacancy.map';
-import { vacancyToCandidateVacancyDto } from '../vacancy/map/candidateVacancy.map';
+import { vacancyToGeneralVacancyDto } from '../vacancy/map/generalVacancy.map';
 import { VacancyQuestionDto } from '../vacancy/dto/vacancyQuestion.dto';
 import { vacancyQuestionToDto } from '../vacancy/map/vacancyQuestion.map';
 import { UserService } from '../user/user.service';
@@ -29,7 +29,7 @@ import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
 import { vacancyQuestionToDetailedDto } from './map/vacancyQuestionDetailed.map';
 import { CreateVacancyQuestionInlineDto } from './dto/createVacancyWithQuestions.dto';
 import { VacancySubmissionService } from '../vacancySubmission/vacancySubmission.service';
-import { CandidateVacancyFilterDto } from '../vacancy/dto/candidateVacancyFilter.dto';
+import { VacancyFilterDto } from '../vacancy/dto/vacancyFilter.dto';
 import { parseSalaryRange } from '../utils/parseSalaryRange';
 import { LanguageLevelRank } from '../entities/hiring.enum';
 
@@ -49,19 +49,19 @@ export class VacancyService {
     private readonly vacancySubmissionService: VacancySubmissionService,
   ) {}
 
-  async findAll(): Promise<VacancyDto[]> {
-    const vacancies = await this.fetchAllVacancies();
+  async findAll(tenantId?: string): Promise<VacancyDto[]> {
+    const vacancies = await this.fetchAllVacancies(tenantId);
     return vacancies.map(vacancyToVacancyDto);
   }
 
-  async findAllForCandidates(): Promise<CandidateVacancyDto[]> {
+  async findAllForBrowse(): Promise<GeneralVacancyDto[]> {
     const vacancies = await this.vacancyRepository
       .createQueryBuilder('vacancy')
       .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq')
       .loadRelationCountAndMap('vacancy.submissionCount', 'vacancy.submissions')
       .getMany();
 
-    return vacancies.map(vacancyToCandidateVacancyDto);
+    return vacancies.map(vacancyToGeneralVacancyDto);
   }
 
   async findAllWithFilters(
@@ -108,8 +108,9 @@ export class VacancyService {
     return vacancyToCandidateVacancyDto(vacancy);
   }
 
-  private async fetchAllVacancies(): Promise<Vacancy[]> {
+  private async fetchAllVacancies(tenantId?: string): Promise<Vacancy[]> {
     return this.vacancyRepository.find({
+      where: tenantId ? { tenantId } : {},
       relations: ['vacancyQuestions'],
     });
   }

@@ -17,12 +17,12 @@ import { validateTenantAccess } from '../utils/validate';
 import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
 import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
 import { VacancyDto } from '../vacancy/dto/vacancy.dto';
-import { CandidateVacancyDto } from '../vacancy/dto/candidateVacancy.dto';
+import { GeneralVacancyDto } from '../vacancy/dto/generalVacancy.dto';
 import { VacancyQuestionDto } from '../vacancy/dto/vacancyQuestion.dto';
 import { VacancyService } from '../vacancy/vacancy.service';
 import { CreateVacancyQuestionDto } from './dto/createVacancyQuesion.dto';
 import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
-import { CandidateVacancyFilterDto } from './dto/candidateVacancyFilter.dto';
+import { VacancyFilterDto } from './dto/vacancyFilter.dto';
 
 @Controller('vacancies')
 export class VacancyController {
@@ -38,16 +38,28 @@ export class VacancyController {
     return this.vacancyService.create(createVacancyDto, creator);
   }
 
+  /**
+   * Returns vacancies scoped to the requester's tenant.
+   * SuperAdmins see all vacancies across tenants.
+   */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get()
-  findAllVacancies(): Promise<VacancyDto[]> {
-    return this.vacancyService.findAll();
+  findAllVacancies(@AuthUser() requester: UserDto): Promise<VacancyDto[]> {
+    const tenantId =
+      requester.role === UserRole.superAdmin ? undefined : requester.tenantId;
+
+    return this.vacancyService.findAll(tenantId);
   }
 
-  @Roles(UserRole.candidate)
+  @Roles(
+    UserRole.superAdmin,
+    UserRole.admin,
+    UserRole.recruiter,
+    UserRole.candidate,
+  )
   @Get('browse')
-  findAllVacanciesForCandidates(): Promise<CandidateVacancyDto[]> {
-    return this.vacancyService.findAllForCandidates();
+  browseAllVacancies(): Promise<GeneralVacancyDto[]> {
+    return this.vacancyService.findAllForBrowse();
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
