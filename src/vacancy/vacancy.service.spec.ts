@@ -41,6 +41,7 @@ import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfil
 import { QuestionType } from '../entities/question.enum';
 import { Question } from '../entities/question';
 import { TimeCommitment, LanguageLevel } from '../entities/hiring.enum';
+import { PaginatedResponse } from '../types/pagination';
 
 describe('VacancyService', () => {
   let service: VacancyService;
@@ -103,32 +104,37 @@ describe('VacancyService', () => {
 
   describe('findAll', () => {
     it('should find all vacancies when no tenantId is provided', async () => {
-      const allVacanciesResult = await service.findAll();
+      const allVacanciesResult: PaginatedResponse<VacancyDto> =
+        await service.findAll();
 
-      expect(allVacanciesResult.length).to.equal(EXPECTED__VACANCIES_NUM);
-      expect(allVacanciesResult[0]).to.not.have.property('createdBy');
+      expect(allVacanciesResult.data.length).to.equal(EXPECTED__VACANCIES_NUM);
+      expect(allVacanciesResult.data[0]).to.not.have.property('createdBy');
     });
 
     it('should find only vacancies within the given tenant when tenantId is provided', async () => {
       const tenantId = testTenants[0].id;
-      const result = await service.findAll(tenantId);
+      const result: PaginatedResponse<VacancyDto> =
+        await service.findAll(tenantId);
 
-      expect(result.length).to.be.greaterThan(0);
-      result.forEach((vacancy) => {
+      expect(result.data.length).to.be.greaterThan(0);
+      result.data.forEach((vacancy) => {
         expect(vacancy.tenantId).to.equal(tenantId);
       });
     });
 
     it('should return empty array when tenantId has no vacancies', async () => {
-      const result = await service.findAll(testTenants[1].id);
+      const result: PaginatedResponse<VacancyDto> = await service.findAll(
+        testTenants[1].id,
+      );
 
-      expect(result).to.deep.equal([]);
+      expect(result.data).to.deep.equal([]);
     });
 
     it('should load vacancyQuestions relation', async () => {
-      const allVacancies = await service.findAll();
+      const allVacancies: PaginatedResponse<VacancyDto> =
+        await service.findAll();
 
-      const vacancyWithQuestions = allVacancies.find(
+      const vacancyWithQuestions = allVacancies.data.find(
         (v) => v.id === testVacancies[0].id,
       );
       expect(vacancyWithQuestions).to.not.be.undefined;
@@ -137,29 +143,42 @@ describe('VacancyService', () => {
         0,
       );
     });
+
+    it('should respect pagination parameters', async () => {
+      const page1 = await service.findAll(undefined, 1, 2);
+      expect(page1.data.length).to.equal(2);
+      expect(page1.total).to.equal(EXPECTED__VACANCIES_NUM);
+      expect(page1.page).to.equal(1);
+      expect(page1.limit).to.equal(2);
+      expect(page1.totalPages).to.equal(Math.ceil(EXPECTED__VACANCIES_NUM / 2));
+
+      const page2 = await service.findAll(undefined, 2, 2);
+      expect(page2.data.length).to.equal(EXPECTED__VACANCIES_NUM - 2);
+      expect(page2.page).to.equal(2);
+    });
   });
 
   describe('findVacanciesWithSubmissions', () => {
     it('should find all vacancies with submissions for SuperAdmin', async () => {
       const superAdmin = testUsers[4];
 
-      const vacanciesWithSubmissionsResult: VacancyDto[] =
+      const vacanciesWithSubmissionsResult: PaginatedResponse<VacancyDto> =
         await service.findVacanciesWithSubmissions(superAdmin.id);
 
-      expect(vacanciesWithSubmissionsResult.length).to.equal(
+      expect(vacanciesWithSubmissionsResult.data.length).to.equal(
         EXPECTED__VACANCIES_WITH_SUBM_NUM,
       );
     });
     it('should find all vacancies with submissions for recruiter only within their tenant', async () => {
       const recruiter = testUsers[1];
 
-      const vacanciesWithSubmissionsResult: VacancyDto[] =
+      const vacanciesWithSubmissionsResult: PaginatedResponse<VacancyDto> =
         await service.findVacanciesWithSubmissions(recruiter.id);
 
-      expect(vacanciesWithSubmissionsResult.length).to.equal(
+      expect(vacanciesWithSubmissionsResult.data.length).to.equal(
         EXPECTED__VACANCIES_WITH_SUBM_NUM,
       );
-      expect(vacanciesWithSubmissionsResult[0].tenantId).to.deep.equal(
+      expect(vacanciesWithSubmissionsResult.data[0].tenantId).to.deep.equal(
         recruiter.tenantId,
       );
     });
@@ -167,13 +186,13 @@ describe('VacancyService', () => {
     it('should find all vacancies with submissions for admin only within their tenant', async () => {
       const admin = testUsers[0];
 
-      const vacanciesWithSubmissionsResult: VacancyDto[] =
+      const vacanciesWithSubmissionsResult: PaginatedResponse<VacancyDto> =
         await service.findVacanciesWithSubmissions(admin.id);
 
-      expect(vacanciesWithSubmissionsResult.length).to.equal(
+      expect(vacanciesWithSubmissionsResult.data.length).to.equal(
         EXPECTED__VACANCIES_WITH_SUBM_NUM,
       );
-      expect(vacanciesWithSubmissionsResult[0].tenantId).to.deep.equal(
+      expect(vacanciesWithSubmissionsResult.data[0].tenantId).to.deep.equal(
         admin.tenantId,
       );
     });
@@ -195,11 +214,10 @@ describe('VacancyService', () => {
       // testUsers[3] is a recruiter in tenant[1] which has no vacancy submissions
       const recruiterTenant1 = testUsers[3];
 
-      const result: VacancyDto[] = await service.findVacanciesWithSubmissions(
-        recruiterTenant1.id,
-      );
+      const result: PaginatedResponse<VacancyDto> =
+        await service.findVacanciesWithSubmissions(recruiterTenant1.id);
 
-      expect(result).to.deep.equal([]);
+      expect(result.data).to.deep.equal([]);
     });
   });
 
@@ -227,26 +245,20 @@ describe('VacancyService', () => {
     it('should find all vacancies by tenant id within this id', async () => {
       const tenantId = testTenants[0].id;
 
-      const vacanciesDtoResult: VacancyDto[] =
+      const vacanciesDtoResult: PaginatedResponse<VacancyDto> =
         await service.findAllByTenantId(tenantId);
 
-      expect(vacanciesDtoResult.length).to.equal(EXPECTED__VACANCIES_NUM);
+      expect(vacanciesDtoResult.data.length).to.equal(EXPECTED__VACANCIES_NUM);
 
-      vacanciesDtoResult.forEach((vacancy) => {
+      vacanciesDtoResult.data.forEach((vacancy) => {
         expect(vacancy.tenantId).to.equal(tenantId);
       });
     });
 
-    it('should throw if vacancy by within given provided tenant id is not found', async () => {
-      try {
-        await service.findAllByTenantId(nonExistentUUIDId);
-
-        expect.fail('Should have thrown a NOT_FOUND error but did not');
-      } catch (e) {
-        expect(e.message).to.deep.equal(
-          'No vacancies within provided tenant were found.',
-        );
-      }
+    it('should return empty array when no vacancies exist for the given tenant', async () => {
+      const result = await service.findAllByTenantId(nonExistentUUIDId);
+      expect(result.data).to.deep.equal([]);
+      expect(result.total).to.equal(0);
     });
   });
 
@@ -273,7 +285,7 @@ describe('VacancyService', () => {
       expect(createVacancyResult.createdById).to.equal(admin.id);
 
       const totalVacancies = await service.findAll();
-      expect(totalVacancies.length).to.equal(EXPECTED__VACANCIES_NUM + 1);
+      expect(totalVacancies.data.length).to.equal(EXPECTED__VACANCIES_NUM + 1);
     });
 
     it('should create vacancy with inline questions that do not yet exist', async () => {
@@ -838,7 +850,7 @@ describe('VacancyService', () => {
       await service.remove(removeVacancyId);
 
       const totalVacancies = await service.findAll();
-      expect(totalVacancies.length).to.equal(EXPECTED__VACANCIES_NUM - 1);
+      expect(totalVacancies.data.length).to.equal(EXPECTED__VACANCIES_NUM - 1);
 
       const vacancyIsNotFound = await vacancyRepository.findOne({
         where: { id: removeVacancyId },
@@ -864,7 +876,7 @@ describe('VacancyService', () => {
       const allVacanciesWithQuestions =
         await service.findAllVacanciesThatHaveQuestions();
 
-      expect(allVacanciesWithQuestions.length).to.equal(
+      expect(allVacanciesWithQuestions.data.length).to.equal(
         EXPECTED_NUMBER_OF_VACANCIES_WITH_QUESTIONS,
       );
     });
@@ -1056,7 +1068,7 @@ describe('VacancyService', () => {
       const allVacanciesWithQuestions =
         await service.findAllVacanciesThatHaveQuestions();
 
-      expect(allVacanciesWithQuestions.length).to.equal(
+      expect(allVacanciesWithQuestions.data.length).to.equal(
         EXPECTED_NUMBER_OF_VACANCIES_WITH_QUESTIONS,
       );
     });
@@ -1136,7 +1148,7 @@ describe('VacancyService', () => {
     it('should find all vacancies that have questions linked', async () => {
       const result = await service.findAllVacanciesThatHaveQuestions();
 
-      expect(result.length).to.equal(
+      expect(result.data.length).to.equal(
         EXPECTED_NUMBER_OF_VACANCIES_WITH_QUESTIONS,
       );
     });
@@ -1146,10 +1158,10 @@ describe('VacancyService', () => {
 
       const result = await service.findAllVacanciesThatHaveQuestions(tenantId);
 
-      expect(result.length).to.equal(
+      expect(result.data.length).to.equal(
         EXPECTED_NUMBER_OF_VACANCIES_WITH_QUESTIONS,
       );
-      result.forEach((v) => expect(v.tenantId).to.equal(tenantId));
+      result.data.forEach((v) => expect(v.tenantId).to.equal(tenantId));
     });
 
     it('should return empty when no vacancies with questions exist for given tenant', async () => {
@@ -1157,7 +1169,7 @@ describe('VacancyService', () => {
 
       const result = await service.findAllVacanciesThatHaveQuestions(tenantId);
 
-      expect(result).to.deep.equal([]);
+      expect(result.data).to.deep.equal([]);
     });
   });
 
@@ -1183,7 +1195,7 @@ describe('VacancyService', () => {
     it('should return all vacancies when no filters provided', async () => {
       const result = await service.findAllWithFilters();
 
-      expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
+      expect(result.data.length).to.equal(EXPECTED__VACANCIES_NUM);
     });
 
     it('should scope results to tenant when tenantId is provided', async () => {
@@ -1195,8 +1207,8 @@ describe('VacancyService', () => {
         tenantId,
       );
 
-      expect(result.length).to.be.greaterThan(0);
-      result.forEach((v) => expect(v.tenantId).to.equal(tenantId));
+      expect(result.data.length).to.be.greaterThan(0);
+      result.data.forEach((v) => expect(v.tenantId).to.equal(tenantId));
     });
 
     it('should return empty array when tenantId has no vacancies and filters provided', async () => {
@@ -1207,14 +1219,14 @@ describe('VacancyService', () => {
         testTenants[1].id,
       );
 
-      expect(result).to.deep.equal([]);
+      expect(result.data).to.deep.equal([]);
     });
 
     it('should filter by name (case-insensitive partial match)', async () => {
       const result = await service.findAllWithFilters({ name: 'zoo' });
 
-      expect(result.length).to.equal(2);
-      result.forEach((v) => expect(v.name.toLowerCase()).to.include('zoo'));
+      expect(result.data.length).to.equal(2);
+      result.data.forEach((v) => expect(v.name.toLowerCase()).to.include('zoo'));
     });
 
     it('should filter by name with no match', async () => {
@@ -1222,7 +1234,7 @@ describe('VacancyService', () => {
         name: 'nonexistent',
       });
 
-      expect(result.length).to.equal(0);
+      expect(result.data.length).to.equal(0);
     });
 
     it('should filter by single timeCommitment', async () => {
@@ -1230,8 +1242,8 @@ describe('VacancyService', () => {
         timeCommitment: [TimeCommitment.FULL_TIME],
       });
 
-      expect(result.length).to.equal(1);
-      expect(result[0].timeCommitment).to.equal(TimeCommitment.FULL_TIME);
+      expect(result.data.length).to.equal(1);
+      expect(result.data[0].timeCommitment).to.equal(TimeCommitment.FULL_TIME);
     });
 
     it('should filter by multiple timeCommitment values (OR logic)', async () => {
@@ -1239,7 +1251,7 @@ describe('VacancyService', () => {
         timeCommitment: [TimeCommitment.FULL_TIME, TimeCommitment.PART_TIME],
       });
 
-      expect(result.length).to.equal(2);
+      expect(result.data.length).to.equal(2);
     });
 
     it('should filter by minRequiredExperience (NULLs included)', async () => {
@@ -1248,8 +1260,8 @@ describe('VacancyService', () => {
       });
 
       // Backend Engineer (5) + Zoo keeper (null) + Zoo keeper helper 1 (null)
-      expect(result.length).to.equal(3);
-      const names = result.map((v) => v.name);
+      expect(result.data.length).to.equal(3);
+      const names = result.data.map((v) => v.name);
       expect(names).to.include('Backend Engineer');
       expect(names).to.include('Zoo keeper');
       expect(names).to.include('Zoo keeper helper 1');
@@ -1261,8 +1273,8 @@ describe('VacancyService', () => {
       });
 
       // Frontend Developer (3) + Zoo keeper (null) + Zoo keeper helper 1 (null)
-      expect(result.length).to.equal(3);
-      const names = result.map((v) => v.name);
+      expect(result.data.length).to.equal(3);
+      const names = result.data.map((v) => v.name);
       expect(names).to.include('Frontend Developer');
       expect(names).to.include('Zoo keeper');
       expect(names).to.include('Zoo keeper helper 1');
@@ -1275,8 +1287,10 @@ describe('VacancyService', () => {
       });
 
       // Frontend Developer (3) + Zoo keeper (null) + Zoo keeper helper 1 (null)
-      expect(result.length).to.equal(3);
-      const withExp = result.filter((v) => v.requiredYearsOfExperience != null);
+      expect(result.data.length).to.equal(3);
+      const withExp = result.data.filter(
+        (v) => v.requiredYearsOfExperience != null,
+      );
       expect(withExp.length).to.equal(1);
       expect(withExp[0].requiredYearsOfExperience).to.equal(3);
     });
@@ -1285,16 +1299,16 @@ describe('VacancyService', () => {
       const result = await service.findAllWithFilters({ minSalary: 2000 });
 
       // Only "Frontend Developer" (3000-5000) matches
-      expect(result.length).to.equal(1);
-      expect(result[0].name).to.equal('Frontend Developer');
+      expect(result.data.length).to.equal(1);
+      expect(result.data[0].name).to.equal('Frontend Developer');
     });
 
     it('should filter by maxSalary', async () => {
       const result = await service.findAllWithFilters({ maxSalary: 800 });
 
       // "Zoo keeper" (1000-1100) excluded, "Zoo keeper helper 1" (500-700) included
-      expect(result.length).to.equal(1);
-      expect(result[0].name).to.equal('Zoo keeper helper 1');
+      expect(result.data.length).to.equal(1);
+      expect(result.data[0].name).to.equal('Zoo keeper helper 1');
     });
 
     it('should filter by salary range', async () => {
@@ -1307,14 +1321,14 @@ describe('VacancyService', () => {
       // "Zoo keeper helper 1" (500-700) — range overlaps [600,1200], included
       // "Frontend Developer" (3000-5000) — min 3000 > 1200, excluded
       // "Backend Engineer" (competitive) — no parseable salary, excluded
-      expect(result.length).to.equal(2);
+      expect(result.data.length).to.equal(2);
     });
 
     it('should exclude vacancies with no parseable salary when salary filter is set', async () => {
       const result = await service.findAllWithFilters({ minSalary: 1 });
 
       // "Backend Engineer" has salary "competitive" — not parseable, excluded
-      const names = result.map((v) => v.name);
+      const names = result.data.map((v) => v.name);
       expect(names).to.not.include('Backend Engineer');
     });
 
@@ -1325,7 +1339,7 @@ describe('VacancyService', () => {
 
       // vacancy[2] has ['React', 'TypeScript', 'Frontend']
       // vacancy[3] has ['Node.js', 'TypeScript', 'Backend']
-      expect(result.length).to.equal(2);
+      expect(result.data.length).to.equal(2);
     });
 
     it('should filter by tags case-insensitively', async () => {
@@ -1334,7 +1348,7 @@ describe('VacancyService', () => {
       });
 
       // vacancy[2] has 'TypeScript', vacancy[3] has 'TypeScript' — both match
-      expect(result.length).to.equal(2);
+      expect(result.data.length).to.equal(2);
     });
 
     it('should return empty when no tags match', async () => {
@@ -1342,7 +1356,7 @@ describe('VacancyService', () => {
         tags: ['Rust'],
       });
 
-      expect(result.length).to.equal(0);
+      expect(result.data.length).to.equal(0);
     });
 
     it('should filter by language code only', async () => {
@@ -1351,8 +1365,8 @@ describe('VacancyService', () => {
       });
 
       // Only "Frontend Developer" requires uk
-      expect(result.length).to.equal(1);
-      expect(result[0].name).to.equal('Frontend Developer');
+      expect(result.data.length).to.equal(1);
+      expect(result.data[0].name).to.equal('Frontend Developer');
     });
 
     it('should filter by language code and level', async () => {
@@ -1361,7 +1375,7 @@ describe('VacancyService', () => {
       });
 
       // vacancy[2] requires en B2, vacancy[3] requires en C1 (>= B2)
-      expect(result.length).to.equal(2);
+      expect(result.data.length).to.equal(2);
     });
 
     it('should exclude vacancy when language level is below filter', async () => {
@@ -1370,7 +1384,7 @@ describe('VacancyService', () => {
       });
 
       // vacancy[2] requires en B2 (< C2), vacancy[3] requires en C1 (< C2)
-      expect(result.length).to.equal(0);
+      expect(result.data.length).to.equal(0);
     });
 
     it('should combine multiple filters', async () => {
@@ -1380,19 +1394,19 @@ describe('VacancyService', () => {
       });
 
       // Only "Frontend Developer" has TypeScript AND PART_TIME
-      expect(result.length).to.equal(1);
-      expect(result[0].name).to.equal('Frontend Developer');
+      expect(result.data.length).to.equal(1);
+      expect(result.data[0].name).to.equal('Frontend Developer');
     });
 
     it('should sort by createdAt ASC', async () => {
       const result = await service.findAllWithFilters({}, 'createdAt', 'ASC');
 
-      expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
-      for (let i = 1; i < result.length; i++) {
+      expect(result.data.length).to.equal(EXPECTED__VACANCIES_NUM);
+      for (let i = 1; i < result.data.length; i++) {
         expect(
-          new Date(result[i].createdAt!).getTime(),
+          new Date(result.data[i].createdAt!).getTime(),
         ).to.be.greaterThanOrEqual(
-          new Date(result[i - 1].createdAt!).getTime(),
+          new Date(result.data[i - 1].createdAt!).getTime(),
         );
       }
     });
@@ -1400,10 +1414,12 @@ describe('VacancyService', () => {
     it('should sort by createdAt DESC', async () => {
       const result = await service.findAllWithFilters({}, 'createdAt', 'DESC');
 
-      expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
-      for (let i = 1; i < result.length; i++) {
-        expect(new Date(result[i].createdAt!).getTime()).to.be.lessThanOrEqual(
-          new Date(result[i - 1].createdAt!).getTime(),
+      expect(result.data.length).to.equal(EXPECTED__VACANCIES_NUM);
+      for (let i = 1; i < result.data.length; i++) {
+        expect(
+          new Date(result.data[i].createdAt!).getTime(),
+        ).to.be.lessThanOrEqual(
+          new Date(result.data[i - 1].createdAt!).getTime(),
         );
       }
     });
@@ -1416,7 +1432,9 @@ describe('VacancyService', () => {
       );
 
       // Non-null values should come first in DESC order, nulls last
-      const withExp = result.filter((v) => v.requiredYearsOfExperience != null);
+      const withExp = result.data.filter(
+        (v) => v.requiredYearsOfExperience != null,
+      );
       for (let i = 1; i < withExp.length; i++) {
         expect(withExp[i].requiredYearsOfExperience!).to.be.lessThanOrEqual(
           withExp[i - 1].requiredYearsOfExperience!,
@@ -1431,9 +1449,9 @@ describe('VacancyService', () => {
       // Zoo keeper: 1000-1100 (mid 1050)
       // Frontend Developer: 3000-5000 (mid 4000)
       // Backend Engineer: "competitive" (non-parseable → last)
-      expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
+      expect(result.data.length).to.equal(EXPECTED__VACANCIES_NUM);
 
-      const names = result.map((v) => v.name);
+      const names = result.data.map((v) => v.name);
       expect(names[0]).to.equal('Zoo keeper helper 1');
       expect(names[1]).to.equal('Zoo keeper');
       expect(names[2]).to.equal('Frontend Developer');
@@ -1443,7 +1461,7 @@ describe('VacancyService', () => {
     it('should sort by salary DESC (by midpoint, non-parseable last)', async () => {
       const result = await service.findAllWithFilters({}, 'salary', 'DESC');
 
-      const names = result.map((v) => v.name);
+      const names = result.data.map((v) => v.name);
       expect(names[0]).to.equal('Frontend Developer');
       expect(names[1]).to.equal('Zoo keeper');
       expect(names[2]).to.equal('Zoo keeper helper 1');
@@ -1457,7 +1475,7 @@ describe('VacancyService', () => {
         'ASC',
       );
 
-      expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
+      expect(result.data.length).to.equal(EXPECTED__VACANCIES_NUM);
     });
 
     it('should return empty result when filters match nothing', async () => {
@@ -1467,21 +1485,22 @@ describe('VacancyService', () => {
         minSalary: 999999,
       });
 
-      expect(result.length).to.equal(0);
+      expect(result.data.length).to.equal(0);
     });
   });
 
   describe('findAllForBrowse', () => {
     it('should return all vacancies', async () => {
-      const result: GeneralVacancyDto[] = await service.findAllForBrowse();
+      const result: PaginatedResponse<GeneralVacancyDto> =
+        await service.findAllForBrowse();
 
-      expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
+      expect(result.data.length).to.equal(EXPECTED__VACANCIES_NUM);
     });
 
     it('should not expose sensitive fields', async () => {
       const result = await service.findAllForBrowse();
 
-      result.forEach((vacancy) => {
+      result.data.forEach((vacancy) => {
         expect(vacancy).to.not.have.property('createdById');
         expect(vacancy).to.not.have.property('customWeights');
         expect(vacancy).to.not.have.property('tenantId');
@@ -1492,7 +1511,7 @@ describe('VacancyService', () => {
     it('should not expose expectedValue or priority in vacancyQuestions', async () => {
       const result = await service.findAllForBrowse();
 
-      const withQuestions = result.find(
+      const withQuestions = result.data.find(
         (v) =>
           v.vacancyQuestions !== undefined && v.vacancyQuestions.length > 0,
       );
@@ -1512,13 +1531,13 @@ describe('VacancyService', () => {
     it('should return all vacancies when no filters provided', async () => {
       const result = await service.findAllWithFiltersForBrowse();
 
-      expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
+      expect(result.data.length).to.equal(EXPECTED__VACANCIES_NUM);
     });
 
     it('should not expose sensitive fields', async () => {
       const result = await service.findAllWithFiltersForBrowse();
 
-      result.forEach((vacancy) => {
+      result.data.forEach((vacancy) => {
         expect(vacancy).to.not.have.property('createdById');
         expect(vacancy).to.not.have.property('customWeights');
         expect(vacancy).to.not.have.property('tenantId');
@@ -1531,8 +1550,10 @@ describe('VacancyService', () => {
         name: 'zoo',
       });
 
-      expect(result.length).to.equal(2);
-      result.forEach((v) => expect(v.name.toLowerCase()).to.include('zoo'));
+      expect(result.data.length).to.equal(2);
+      result.data.forEach((v) =>
+        expect(v.name.toLowerCase()).to.include('zoo'),
+      );
     });
 
     it('should sort correctly', async () => {
@@ -1542,12 +1563,12 @@ describe('VacancyService', () => {
         'ASC',
       );
 
-      expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
-      for (let i = 1; i < result.length; i++) {
+      expect(result.data.length).to.equal(EXPECTED__VACANCIES_NUM);
+      for (let i = 1; i < result.data.length; i++) {
         expect(
-          new Date(result[i].createdAt!).getTime(),
+          new Date(result.data[i].createdAt!).getTime(),
         ).to.be.greaterThanOrEqual(
-          new Date(result[i - 1].createdAt!).getTime(),
+          new Date(result.data[i - 1].createdAt!).getTime(),
         );
       }
     });

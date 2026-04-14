@@ -32,6 +32,13 @@ import { VacancySubmissionService } from '../vacancySubmission/vacancySubmission
 import { VacancyFilterDto } from '../vacancy/dto/vacancyFilter.dto';
 import { parseSalaryRange } from '../utils/parseSalaryRange';
 import { LanguageLevelRank } from '../entities/hiring.enum';
+import {
+  PaginatedResponse,
+  DEFAULT_PAGE,
+  DEFAULT_LIMIT,
+  paginateArray,
+  toPaginatedResponse,
+} from '../types/pagination';
 
 @Injectable()
 export class VacancyService {
@@ -49,19 +56,45 @@ export class VacancyService {
     private readonly vacancySubmissionService: VacancySubmissionService,
   ) {}
 
-  async findAll(tenantId?: string): Promise<VacancyDto[]> {
-    const vacancies = await this.fetchAllVacancies(tenantId);
-    return vacancies.map(vacancyToVacancyDto);
+  async findAll(
+    tenantId?: string,
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResponse<VacancyDto>> {
+    const p = page ?? DEFAULT_PAGE;
+    const l = limit ?? DEFAULT_LIMIT;
+
+    const [vacancies, total] = await this.vacancyRepository.findAndCount({
+      where: tenantId ? { tenantId } : {},
+      relations: ['vacancyQuestions'],
+      skip: (p - 1) * l,
+      take: l,
+    });
+
+    return toPaginatedResponse(vacancies.map(vacancyToVacancyDto), total, p, l);
   }
 
-  async findAllForBrowse(): Promise<GeneralVacancyDto[]> {
-    const vacancies = await this.vacancyRepository
+  async findAllForBrowse(
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResponse<GeneralVacancyDto>> {
+    const p = page ?? DEFAULT_PAGE;
+    const l = limit ?? DEFAULT_LIMIT;
+
+    const [vacancies, total] = await this.vacancyRepository
       .createQueryBuilder('vacancy')
       .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq')
       .loadRelationCountAndMap('vacancy.submissionCount', 'vacancy.submissions')
-      .getMany();
+      .skip((p - 1) * l)
+      .take(l)
+      .getManyAndCount();
 
-    return vacancies.map(vacancyToGeneralVacancyDto);
+    return toPaginatedResponse(
+      vacancies.map(vacancyToGeneralVacancyDto),
+      total,
+      p,
+      l,
+    );
   }
 
   async findAllWithFilters(
@@ -69,7 +102,9 @@ export class VacancyService {
     sortBy?: string,
     order?: 'ASC' | 'DESC',
     tenantId?: string,
-  ): Promise<VacancyDto[]> {
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResponse<VacancyDto>> {
     const vacancies = await this.fetchVacanciesWithFilters(
       filterDto,
       sortBy,
@@ -77,21 +112,27 @@ export class VacancyService {
       false,
       tenantId,
     );
-    return vacancies.map(vacancyToVacancyDto);
+    return paginateArray(vacancies.map(vacancyToVacancyDto), page, limit);
   }
 
   async findAllWithFiltersForBrowse(
     filterDto?: VacancyFilterDto,
     sortBy?: string,
     order?: 'ASC' | 'DESC',
-  ): Promise<GeneralVacancyDto[]> {
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResponse<GeneralVacancyDto>> {
     const vacancies = await this.fetchVacanciesWithFilters(
       filterDto,
       sortBy,
       order,
       true,
     );
-    return vacancies.map(vacancyToGeneralVacancyDto);
+    return paginateArray(
+      vacancies.map(vacancyToGeneralVacancyDto),
+      page,
+      limit,
+    );
   }
 
   async findVacancyByIdForBrowse(
@@ -109,13 +150,6 @@ export class VacancyService {
     }
 
     return vacancyToGeneralVacancyDto(vacancy);
-  }
-
-  private async fetchAllVacancies(tenantId?: string): Promise<Vacancy[]> {
-    return this.vacancyRepository.find({
-      where: tenantId ? { tenantId } : {},
-      relations: ['vacancyQuestions'],
-    });
   }
 
   private async fetchVacanciesWithFilters(
@@ -229,7 +263,11 @@ export class VacancyService {
 
   async findVacanciesWithSubmissions(
     requesterId: string,
-  ): Promise<VacancyDto[]> {
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResponse<VacancyDto>> {
+    const p = page ?? DEFAULT_PAGE;
+    const l = limit ?? DEFAULT_LIMIT;
     const requester = await this.userService.findById(requesterId);
 
     const vacancyQuery = this.vacancyRepository
@@ -253,8 +291,12 @@ export class VacancyService {
       }
     }
 
-    const vacancies = await vacancyQuery.getMany();
-    return vacancies.map(vacancyToVacancyDto);
+    const [vacancies, total] = await vacancyQuery
+      .skip((p - 1) * l)
+      .take(l)
+      .getManyAndCount();
+
+    return toPaginatedResponse(vacancies.map(vacancyToVacancyDto), total, p, l);
   }
 
   async findVacancyById(vacancyId: string): Promise<VacancyDto> {
@@ -275,20 +317,22 @@ export class VacancyService {
     return vacancy;
   }
 
-  async findAllByTenantId(tenantId: string): Promise<VacancyDto[]> {
-    const vacanciesWithGivenTenant = await this.vacancyRepository.find({
+  async findAllByTenantId(
+    tenantId: string,
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResponse<VacancyDto>> {
+    const p = page ?? DEFAULT_PAGE;
+    const l = limit ?? DEFAULT_LIMIT;
+
+    const [vacancies, total] = await this.vacancyRepository.findAndCount({
       where: { tenantId },
       relations: ['vacancyQuestions'],
+      skip: (p - 1) * l,
+      take: l,
     });
 
-    if (!vacanciesWithGivenTenant?.length) {
-      throw new HttpException(
-        'No vacancies within provided tenant were found.',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    return vacanciesWithGivenTenant.map(vacancyToVacancyDto);
+    return toPaginatedResponse(vacancies.map(vacancyToVacancyDto), total, p, l);
   }
 
   async create(
@@ -460,15 +504,26 @@ export class VacancyService {
 
   async findAllVacanciesThatHaveQuestions(
     tenantId?: string,
-  ): Promise<VacancyDto[]> {
-    const vacancies = await this.vacancyRepository
-      .createQueryBuilder('vacancy')
-      .innerJoinAndSelect('vacancy.vacancyQuestions', 'vq')
-      .where(tenantId ? 'vacancy.tenantId = :tenantId' : '1=1')
-      .setParameter('tenantId', tenantId)
-      .getMany();
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResponse<VacancyDto>> {
+    const p = page ?? DEFAULT_PAGE;
+    const l = limit ?? DEFAULT_LIMIT;
 
-    return vacancies.map(vacancyToVacancyDto);
+    const query = this.vacancyRepository
+      .createQueryBuilder('vacancy')
+      .innerJoinAndSelect('vacancy.vacancyQuestions', 'vq');
+
+    if (tenantId) {
+      query.andWhere('vacancy.tenantId = :tenantId', { tenantId });
+    }
+
+    const [vacancies, total] = await query
+      .skip((p - 1) * l)
+      .take(l)
+      .getManyAndCount();
+
+    return toPaginatedResponse(vacancies.map(vacancyToVacancyDto), total, p, l);
   }
 
   async findVacancyByIdWithSubmissionsAndAnswers(
