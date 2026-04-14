@@ -24,6 +24,10 @@ import { CreateVacancyQuestionDto } from './dto/createVacancyQuestion.dto';
 import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
 import { VacancyFilterDto } from './dto/vacancyFilter.dto';
 import { PaginatedResponse, PaginationQueryDto } from '../types/pagination';
+import {
+  VacancySortPaginationQueryDto,
+  VacancyWithQuestionsPaginationQueryDto,
+} from './dto/vacancyPaginationQuery.dto';
 
 @Controller('vacancies')
 export class VacancyController {
@@ -83,19 +87,17 @@ export class VacancyController {
   searchVacancies(
     @Body() filterDto: VacancyFilterDto,
     @AuthUser() requester: UserDto,
-    @Query() pagination: PaginationQueryDto,
-    @Query('sortBy') sortBy?: string,
-    @Query('order') order?: 'ASC' | 'DESC',
+    @Query() query: VacancySortPaginationQueryDto,
   ): Promise<PaginatedResponse<VacancyDto>> {
     const tenantId =
       requester.role === UserRole.superAdmin ? undefined : requester.tenantId;
     return this.vacancyService.findAllWithFilters(
       filterDto,
-      sortBy,
-      order,
+      query.sortBy,
+      query.order,
       tenantId,
-      pagination.page,
-      pagination.limit,
+      query.page,
+      query.limit,
     );
   }
 
@@ -108,16 +110,14 @@ export class VacancyController {
   @Post('browse/search')
   browseVacanciesWithFilters(
     @Body() filterDto: VacancyFilterDto,
-    @Query() pagination: PaginationQueryDto,
-    @Query('sortBy') sortBy?: string,
-    @Query('order') order?: 'ASC' | 'DESC',
+    @Query() query: VacancySortPaginationQueryDto,
   ): Promise<PaginatedResponse<GeneralVacancyDto>> {
     return this.vacancyService.findAllWithFiltersForBrowse(
       filterDto,
-      sortBy,
-      order,
-      pagination.page,
-      pagination.limit,
+      query.sortBy,
+      query.order,
+      query.page,
+      query.limit,
     );
   }
 
@@ -149,19 +149,18 @@ export class VacancyController {
   @Get('with-questions')
   async findAllVacanciesThatHaveQuestions(
     @AuthUser() requester: UserDto,
-    @Query() pagination: PaginationQueryDto,
-    @Query('tenantId') tenantId?: string,
+    @Query() query: VacancyWithQuestionsPaginationQueryDto,
   ): Promise<PaginatedResponse<VacancyDto>> {
-    if (tenantId) {
-      validateTenantAccess(requester, tenantId);
+    if (query.tenantId) {
+      validateTenantAccess(requester, query.tenantId);
     }
 
-    const extractedTenantId = tenantId ?? requester.tenantId;
+    const extractedTenantId = query.tenantId ?? requester.tenantId;
 
     return await this.vacancyService.findAllVacanciesThatHaveQuestions(
       extractedTenantId,
-      pagination.page,
-      pagination.limit,
+      query.page,
+      query.limit,
     );
   }
 
