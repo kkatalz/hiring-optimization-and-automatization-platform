@@ -202,15 +202,17 @@ export class VacancyService {
     }
 
     if (filterDto?.minSalary != null) {
-      query.andWhere('vacancy.max_salary >= :minSalary', {
-        minSalary: filterDto.minSalary,
-      });
+      query.andWhere(
+        'COALESCE(vacancy.max_salary, vacancy.min_salary) >= :minSalary',
+        { minSalary: filterDto.minSalary },
+      );
     }
 
     if (filterDto?.maxSalary != null) {
-      query.andWhere('vacancy.min_salary <= :maxSalary', {
-        maxSalary: filterDto.maxSalary,
-      });
+      query.andWhere(
+        'COALESCE(vacancy.min_salary, vacancy.max_salary) <= :maxSalary',
+        { maxSalary: filterDto.maxSalary },
+      );
     }
 
     this.applyVacancySorting(query, sortBy, order);
