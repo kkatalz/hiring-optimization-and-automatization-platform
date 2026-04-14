@@ -62,24 +62,41 @@ export class VacancyController {
     return this.vacancyService.findAllForBrowse();
   }
 
+  /**
+   * Returns filtered vacancies scoped to the requester's tenant.
+   * SuperAdmins see all vacancies across tenants.
+   */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Post('search')
   searchVacancies(
-    @Body() filterDto: CandidateVacancyFilterDto,
+    @Body() filterDto: VacancyFilterDto,
+    @AuthUser() requester: UserDto,
     @Query('sortBy') sortBy?: string,
     @Query('order') order?: 'ASC' | 'DESC',
   ): Promise<VacancyDto[]> {
-    return this.vacancyService.findAllWithFilters(filterDto, sortBy, order);
+    const tenantId =
+      requester.role === UserRole.superAdmin ? undefined : requester.tenantId;
+    return this.vacancyService.findAllWithFilters(
+      filterDto,
+      sortBy,
+      order,
+      tenantId,
+    );
   }
 
-  @Roles(UserRole.candidate)
+  @Roles(
+    UserRole.superAdmin,
+    UserRole.admin,
+    UserRole.recruiter,
+    UserRole.candidate,
+  )
   @Post('browse/search')
-  searchVacanciesForCandidates(
-    @Body() filterDto: CandidateVacancyFilterDto,
+  browseVacanciesWithFilters(
+    @Body() filterDto: VacancyFilterDto,
     @Query('sortBy') sortBy?: string,
     @Query('order') order?: 'ASC' | 'DESC',
-  ): Promise<CandidateVacancyDto[]> {
-    return this.vacancyService.findAllWithFiltersForCandidates(
+  ): Promise<GeneralVacancyDto[]> {
+    return this.vacancyService.findAllWithFiltersForBrowse(
       filterDto,
       sortBy,
       order,

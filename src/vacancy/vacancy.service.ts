@@ -65,30 +65,33 @@ export class VacancyService {
   }
 
   async findAllWithFilters(
-    filterDto?: CandidateVacancyFilterDto,
+    filterDto?: VacancyFilterDto,
     sortBy?: string,
     order?: 'ASC' | 'DESC',
+    tenantId?: string,
   ): Promise<VacancyDto[]> {
     const vacancies = await this.fetchVacanciesWithFilters(
       filterDto,
       sortBy,
       order,
+      false,
+      tenantId,
     );
     return vacancies.map(vacancyToVacancyDto);
   }
 
-  async findAllWithFiltersForCandidates(
-    filterDto?: CandidateVacancyFilterDto,
+  async findAllWithFiltersForBrowse(
+    filterDto?: VacancyFilterDto,
     sortBy?: string,
     order?: 'ASC' | 'DESC',
-  ): Promise<CandidateVacancyDto[]> {
+  ): Promise<GeneralVacancyDto[]> {
     const vacancies = await this.fetchVacanciesWithFilters(
       filterDto,
       sortBy,
       order,
       true,
     );
-    return vacancies.map(vacancyToCandidateVacancyDto);
+    return vacancies.map(vacancyToGeneralVacancyDto);
   }
 
   async findVacancyByIdForCandidates(
@@ -116,10 +119,11 @@ export class VacancyService {
   }
 
   private async fetchVacanciesWithFilters(
-    filterDto?: CandidateVacancyFilterDto,
+    filterDto?: VacancyFilterDto,
     sortBy?: string,
     order?: 'ASC' | 'DESC',
     loadSubmissionCount = false,
+    tenantId?: string,
   ): Promise<Vacancy[]> {
     const query = this.vacancyRepository
       .createQueryBuilder('vacancy')
@@ -130,6 +134,10 @@ export class VacancyService {
         'vacancy.submissionCount',
         'vacancy.submissions',
       );
+    }
+
+    if (tenantId) {
+      query.andWhere('vacancy.tenant_id = :tenantId', { tenantId });
     }
 
     if (filterDto?.name) {
