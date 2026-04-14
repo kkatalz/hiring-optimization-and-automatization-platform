@@ -17,6 +17,7 @@ import {
 import { Type } from 'class-transformer';
 import { CreateVacancyQuestionInlineDto } from './createVacancyWithQuestions.dto';
 import { CustomWeights } from '../../vacancySubmission/types/matchingScore.interface';
+import { MaxSalaryGreaterThanMin } from '../../decorators/maxSalaryGreaterThanMin.decorator';
 
 export class CreateVacancyDto {
   @IsNotEmpty()
@@ -39,6 +40,7 @@ export class CreateVacancyDto {
   @IsNumber()
   @Min(0)
   @Type(() => Number)
+  @MaxSalaryGreaterThanMin()
   maxSalary?: number;
 
   @IsOptional()
