@@ -22,12 +22,12 @@ export class UpdateVacancyDto {
   @IsOptional()
   @IsString()
   @MaxLength(200)
-  name: string;
+  name?: string;
 
   @IsOptional()
   @IsString()
   @MaxLength(5000)
-  description: string;
+  description?: string;
 
   @IsOptional()
   @IsNumber()
