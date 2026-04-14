@@ -29,7 +29,7 @@ import {
 import { testSubmissionAnswers } from '../../test/fixtures/testSubmissionAnswers';
 import { CreateVacancyDto } from '../vacancy/dto/createVacancy.dto';
 import { VacancyDto } from '../vacancy/dto/vacancy.dto';
-import { CandidateVacancyDto } from '../vacancy/dto/candidateVacancy.dto';
+import { GeneralVacancyDto } from '../vacancy/dto/generalVacancy.dto';
 import { Repository } from 'typeorm';
 import { UpdateVacancyDto } from '../vacancy/dto/updateVacancy.dto';
 import { nonExistentUUIDId } from '../../test/utils';
@@ -95,26 +95,48 @@ describe('VacancyService', () => {
 
   afterEach(async () => await cleanDatabase());
 
-  it('should be defined', () => {
-    expect(!!service).to.deep.equal(true);
+  describe('setup', () => {
+    it('should be defined', () => {
+      expect(!!service).to.deep.equal(true);
+    });
   });
 
-  it('should find all vacancies', async () => {
-    const allVacaniesResult = await service.findAll();
+  describe('findAll', () => {
+    it('should find all vacancies when no tenantId is provided', async () => {
+      const allVacanciesResult = await service.findAll();
 
-    expect(allVacaniesResult.length).to.equal(EXPECTED__VACANCIES_NUM);
-    expect(allVacaniesResult[0]).to.not.have.property('createdBy');
-  });
+      expect(allVacanciesResult.length).to.equal(EXPECTED__VACANCIES_NUM);
+      expect(allVacanciesResult[0]).to.not.have.property('createdBy');
+    });
 
-  it('should load vacancyQuestions relation in findAll', async () => {
-    const allVacancies = await service.findAll();
+    it('should find only vacancies within the given tenant when tenantId is provided', async () => {
+      const tenantId = testTenants[0].id;
+      const result = await service.findAll(tenantId);
 
-    const vacancyWithQuestions = allVacancies.find(
-      (v) => v.id === testVacancies[0].id,
-    );
-    expect(vacancyWithQuestions).to.not.be.undefined;
-    expect(vacancyWithQuestions!.vacancyQuestions).to.be.an('array');
-    expect(vacancyWithQuestions!.vacancyQuestions!.length).to.be.greaterThan(0);
+      expect(result.length).to.be.greaterThan(0);
+      result.forEach((vacancy) => {
+        expect(vacancy.tenantId).to.equal(tenantId);
+      });
+    });
+
+    it('should return empty array when tenantId has no vacancies', async () => {
+      const result = await service.findAll(testTenants[1].id);
+
+      expect(result).to.deep.equal([]);
+    });
+
+    it('should load vacancyQuestions relation', async () => {
+      const allVacancies = await service.findAll();
+
+      const vacancyWithQuestions = allVacancies.find(
+        (v) => v.id === testVacancies[0].id,
+      );
+      expect(vacancyWithQuestions).to.not.be.undefined;
+      expect(vacancyWithQuestions!.vacancyQuestions).to.be.an('array');
+      expect(vacancyWithQuestions!.vacancyQuestions!.length).to.be.greaterThan(
+        0,
+      );
+    });
   });
 
   describe('findVacanciesWithSubmissions', () => {
@@ -1081,6 +1103,30 @@ describe('VacancyService', () => {
       expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
     });
 
+    it('should scope results to tenant when tenantId is provided', async () => {
+      const tenantId = testTenants[0].id;
+      const result = await service.findAllWithFilters(
+        {},
+        undefined,
+        undefined,
+        tenantId,
+      );
+
+      expect(result.length).to.be.greaterThan(0);
+      result.forEach((v) => expect(v.tenantId).to.equal(tenantId));
+    });
+
+    it('should return empty array when tenantId has no vacancies and filters provided', async () => {
+      const result = await service.findAllWithFilters(
+        {},
+        undefined,
+        undefined,
+        testTenants[1].id,
+      );
+
+      expect(result).to.deep.equal([]);
+    });
+
     it('should filter by name (case-insensitive partial match)', async () => {
       const result = await service.findAllWithFilters({ name: 'zoo' });
 
@@ -1147,9 +1193,7 @@ describe('VacancyService', () => {
 
       // Frontend Developer (3) + Zoo keeper (null) + Zoo keeper helper 1 (null)
       expect(result.length).to.equal(3);
-      const withExp = result.filter(
-        (v) => v.requiredYearsOfExperience != null,
-      );
+      const withExp = result.filter((v) => v.requiredYearsOfExperience != null);
       expect(withExp.length).to.equal(1);
       expect(withExp[0].requiredYearsOfExperience).to.equal(3);
     });
@@ -1344,16 +1388,15 @@ describe('VacancyService', () => {
     });
   });
 
-  describe('findAllForCandidates', () => {
+  describe('findAllForBrowse', () => {
     it('should return all vacancies', async () => {
-      const result: CandidateVacancyDto[] =
-        await service.findAllForCandidates();
+      const result: GeneralVacancyDto[] = await service.findAllForBrowse();
 
       expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
     });
 
     it('should not expose sensitive fields', async () => {
-      const result = await service.findAllForCandidates();
+      const result = await service.findAllForBrowse();
 
       result.forEach((vacancy) => {
         expect(vacancy).to.not.have.property('createdById');
@@ -1364,7 +1407,7 @@ describe('VacancyService', () => {
     });
 
     it('should not expose expectedValue or priority in vacancyQuestions', async () => {
-      const result = await service.findAllForCandidates();
+      const result = await service.findAllForBrowse();
 
       const withQuestions = result.find(
         (v) =>
@@ -1382,15 +1425,15 @@ describe('VacancyService', () => {
     });
   });
 
-  describe('findAllWithFiltersForCandidates', () => {
+  describe('findAllWithFiltersForBrowse', () => {
     it('should return all vacancies when no filters provided', async () => {
-      const result = await service.findAllWithFiltersForCandidates();
+      const result = await service.findAllWithFiltersForBrowse();
 
       expect(result.length).to.equal(EXPECTED__VACANCIES_NUM);
     });
 
     it('should not expose sensitive fields', async () => {
-      const result = await service.findAllWithFiltersForCandidates();
+      const result = await service.findAllWithFiltersForBrowse();
 
       result.forEach((vacancy) => {
         expect(vacancy).to.not.have.property('createdById');
@@ -1401,7 +1444,7 @@ describe('VacancyService', () => {
     });
 
     it('should apply filters correctly', async () => {
-      const result = await service.findAllWithFiltersForCandidates({
+      const result = await service.findAllWithFiltersForBrowse({
         name: 'zoo',
       });
 
@@ -1410,7 +1453,7 @@ describe('VacancyService', () => {
     });
 
     it('should sort correctly', async () => {
-      const result = await service.findAllWithFiltersForCandidates(
+      const result = await service.findAllWithFiltersForBrowse(
         {},
         'createdAt',
         'ASC',
@@ -1427,17 +1470,18 @@ describe('VacancyService', () => {
     });
   });
 
-  describe('findVacancyByIdForCandidates', () => {
+  describe('findVacancyByIdForBrowse', () => {
     it('should find vacancy by id', async () => {
-      const result: CandidateVacancyDto =
-        await service.findVacancyByIdForCandidates(testVacancies[0].id);
+      const result: GeneralVacancyDto = await service.findVacancyByIdForBrowse(
+        testVacancies[0].id,
+      );
 
       expect(result.id).to.equal(testVacancies[0].id);
       expect(result.name).to.equal(testVacancies[0].name);
     });
 
     it('should not expose sensitive fields', async () => {
-      const result = await service.findVacancyByIdForCandidates(
+      const result = await service.findVacancyByIdForBrowse(
         testVacancies[0].id,
       );
 
@@ -1448,7 +1492,7 @@ describe('VacancyService', () => {
     });
 
     it('should not expose expectedValue or priority in vacancyQuestions', async () => {
-      const result = await service.findVacancyByIdForCandidates(
+      const result = await service.findVacancyByIdForBrowse(
         testVacancies[0].id,
       );
 
@@ -1461,7 +1505,7 @@ describe('VacancyService', () => {
 
     it('should throw NOT_FOUND for non-existent vacancy', async () => {
       try {
-        await service.findVacancyByIdForCandidates(nonExistentUUIDId);
+        await service.findVacancyByIdForBrowse(nonExistentUUIDId);
         expect.fail('Should have thrown a NOT_FOUND error but did not');
       } catch (e: any) {
         expect(e.response).to.deep.equal('Vacancy is not found.');
