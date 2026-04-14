@@ -949,20 +949,19 @@ export class VacancySubmissionService {
     expectedSalary?: number | null,
     weight?: number,
   ): ScoreResult | null {
-    if (maxSalary == null || expectedSalary == null) return null;
+    if (minSalary == null && maxSalary == null) return null;
+    if (expectedSalary == null) return null;
 
-    const min = minSalary ?? maxSalary;
-    const ratio = expectedSalary <= maxSalary ? 1 : 0;
+    const max = maxSalary ?? minSalary!;
+    const min = minSalary ?? max;
+    const ratio = expectedSalary <= max ? 1 : 0;
 
     let bonus = 0;
-    if (expectedSalary < maxSalary) {
-      if (maxSalary === min) {
+    if (expectedSalary < max) {
+      if (max === min) {
         bonus = 2;
       } else {
-        bonus = Math.min(
-          3,
-          ((maxSalary - expectedSalary) / (maxSalary - min)) * 3,
-        );
+        bonus = Math.min(3, ((max - expectedSalary) / (max - min)) * 3);
       }
     }
 
@@ -971,7 +970,7 @@ export class VacancySubmissionService {
       ratio,
       weight: weight ?? 10,
       bonus,
-      log: `Salary: ${ratio ? 'within' : 'over'} budget (expected: ${expectedSalary}, range: ${min}-${maxSalary}, bonus: +${bonus.toFixed(2)} with provided weight - ${weight})`,
+      log: `Salary: ${ratio ? 'within' : 'over'} budget (expected: ${expectedSalary}, range: ${min}-${max}, bonus: +${bonus.toFixed(2)} with provided weight - ${weight})`,
     };
   }
 
