@@ -518,7 +518,12 @@ export class VacancyService {
   ): Promise<Vacancy> {
     const vacancy = await this.vacancyRepository.findOne({
       where: { id: vacancyId },
-      relations: ['vacancyQuestions', 'submissions', 'submissions.answers'],
+      relations: [
+        'vacancyQuestions',
+        'vacancyQuestions.question',
+        'submissions',
+        'submissions.answers',
+      ],
     });
 
     if (!vacancy) {
@@ -675,7 +680,8 @@ export class VacancyService {
         this.validateExpectedValue(
           updatedQuestion.expectedValue,
           updatedQuestion.type,
-          updatedQuestion.answerOptions,
+          updatedQuestion.answerOptions ??
+            existingQuestion.question?.answerOptions,
           updatedQuestion.label,
         );
       }
