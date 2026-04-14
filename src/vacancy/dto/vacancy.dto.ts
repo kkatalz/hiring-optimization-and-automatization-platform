@@ -10,7 +10,8 @@ export class VacancyDto {
   id: string;
   name: string;
   description: string;
-  salary?: string;
+  minSalary?: number | null;
+  maxSalary?: number | null;
   tenantId: string;
   createdById: string;
   submissions?: VacancySubmission[];

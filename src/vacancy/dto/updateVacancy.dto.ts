@@ -2,6 +2,7 @@ import {
   IsArray,
   IsEnum,
   IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   Min,
@@ -25,8 +26,16 @@ export class UpdateVacancyDto {
   description: string;
 
   @IsOptional()
-  @IsString()
-  salary?: string;
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  minSalary?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  maxSalary?: number;
 
   @IsOptional()
   @IsEnum(TimeCommitment)

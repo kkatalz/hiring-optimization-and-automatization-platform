@@ -30,7 +30,6 @@ import { vacancyQuestionToDetailedDto } from './map/vacancyQuestionDetailed.map'
 import { CreateVacancyQuestionInlineDto } from './dto/createVacancyWithQuestions.dto';
 import { VacancySubmissionService } from '../vacancySubmission/vacancySubmission.service';
 import { VacancyFilterDto } from '../vacancy/dto/vacancyFilter.dto';
-import { parseSalaryRange } from '../utils/parseSalaryRange';
 import { LanguageLevelRank } from '../entities/hiring.enum';
 import {
   PaginatedResponse,
@@ -200,29 +199,21 @@ export class VacancyService {
       );
     }
 
-    // SQL-side sorting (for non-salary fields)
-    if (sortBy !== 'salary') {
-      this.applyVacancySorting(query, sortBy, order);
-    }
-
-    let vacancies = await query.getMany();
-
-    // In-memory filters
-    if (filterDto?.minSalary != null || filterDto?.maxSalary != null) {
-      vacancies = vacancies.filter((v) => {
-        const range = parseSalaryRange(v.salary);
-
-        if (!range) return false;
-
-        if (filterDto.minSalary != null && range.max < filterDto.minSalary)
-          return false;
-
-        if (filterDto.maxSalary != null && range.min > filterDto.maxSalary)
-          return false;
-
-        return true;
+    if (filterDto?.minSalary != null) {
+      query.andWhere('vacancy.max_salary >= :minSalary', {
+        minSalary: filterDto.minSalary,
       });
     }
+
+    if (filterDto?.maxSalary != null) {
+      query.andWhere('vacancy.min_salary <= :maxSalary', {
+        maxSalary: filterDto.maxSalary,
+      });
+    }
+
+    this.applyVacancySorting(query, sortBy, order);
+
+    let vacancies = await query.getMany();
 
     if (filterDto?.tags?.length) {
       const filterTags = new Set(filterDto.tags.map((t) => t.toLowerCase()));
@@ -251,11 +242,6 @@ export class VacancyService {
           }),
         );
       });
-    }
-
-    // In-memory sorting for salary (free-text field, can't sort in SQL)
-    if (sortBy === 'salary') {
-      vacancies = this.applySalarySorting(vacancies, order);
     }
 
     return vacancies;
@@ -374,7 +360,8 @@ export class VacancyService {
       updateVacancyDto.tags,
       updateVacancyDto.languageRequirements,
       updateVacancyDto.requiredYearsOfExperience,
-      updateVacancyDto.salary,
+      updateVacancyDto.minSalary,
+      updateVacancyDto.maxSalary,
       updateVacancyDto.customWeights,
     ];
 
@@ -732,7 +719,8 @@ export class VacancyService {
           vacancyLanguageRequirements: vacancy.languageRequirements,
           vacancyRequiredYearsOfExperience: vacancy.requiredYearsOfExperience,
           vacancyTags: vacancy.tags,
-          vacancySalary: vacancy.salary,
+          vacancyMinSalary: vacancy.minSalary,
+          vacancyMaxSalary: vacancy.maxSalary,
           submissionTags: submission.tags,
           expectedSalary:
             submission.expectedSalary != null
@@ -749,6 +737,8 @@ export class VacancyService {
   private static readonly SQL_SORT_FIELDS = [
     'createdAt',
     'requiredYearsOfExperience',
+    'minSalary',
+    'maxSalary',
   ];
 
   private applyVacancySorting(
@@ -760,31 +750,5 @@ export class VacancyService {
       const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
       query.orderBy(`vacancy.${sortBy}`, direction, 'NULLS LAST');
     }
-  }
-
-  private applySalarySorting(
-    vacancies: Vacancy[],
-    order?: 'ASC' | 'DESC',
-  ): Vacancy[] {
-    const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
-
-    // Precompute sortable salary midpoint
-    const decorated = vacancies.map((vacancy) => {
-      const range = parseSalaryRange(vacancy.salary);
-      const sortKey = range ? (range.min + range.max) / 2 : null;
-      return { vacancy, sortKey };
-    });
-
-    // Sort using the precomputed key; non-parseable salaries will go to the end
-    decorated.sort((a, b) => {
-      if (a.sortKey === null && b.sortKey === null) return 0;
-      if (a.sortKey === null) return 1;
-      if (b.sortKey === null) return -1;
-      return direction === 'ASC'
-        ? a.sortKey - b.sortKey
-        : b.sortKey - a.sortKey;
-    });
-
-    return decorated.map((item) => item.vacancy);
   }
 }

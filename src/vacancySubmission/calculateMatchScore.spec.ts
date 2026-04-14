@@ -326,7 +326,8 @@ describe('calculateMatchScore (unit)', () => {
   describe('salary only (no questions)', () => {
     it('should return 100 + bonus when salary is at budget minimum', () => {
       const options: MatchScoreOptions = {
-        vacancySalary: '1000-2000 USD',
+        vacancyMinSalary: 1000,
+        vacancyMaxSalary: 2000,
         expectedSalary: 1000,
       };
 
@@ -338,7 +339,8 @@ describe('calculateMatchScore (unit)', () => {
 
     it('should return 100 when salary is exactly at budget max', () => {
       const options: MatchScoreOptions = {
-        vacancySalary: '1000-2000 USD',
+        vacancyMinSalary: 1000,
+        vacancyMaxSalary: 2000,
         expectedSalary: 2000,
       };
 
@@ -350,7 +352,8 @@ describe('calculateMatchScore (unit)', () => {
 
     it('should return 100 + proportional bonus within range', () => {
       const options: MatchScoreOptions = {
-        vacancySalary: '1000-2000 USD',
+        vacancyMinSalary: 1000,
+        vacancyMaxSalary: 2000,
         expectedSalary: 1500,
       };
 
@@ -362,7 +365,8 @@ describe('calculateMatchScore (unit)', () => {
 
     it('should return 0 when salary is over budget', () => {
       const options: MatchScoreOptions = {
-        vacancySalary: '1000-2000 USD',
+        vacancyMinSalary: 1000,
+        vacancyMaxSalary: 2000,
         expectedSalary: 3000,
       };
 
@@ -372,9 +376,10 @@ describe('calculateMatchScore (unit)', () => {
       expect(score).to.equal(0);
     });
 
-    it('should handle single salary value', () => {
+    it('should handle single salary value (min === max)', () => {
       const options: MatchScoreOptions = {
-        vacancySalary: '2000 USD',
+        vacancyMinSalary: 2000,
+        vacancyMaxSalary: 2000,
         expectedSalary: 1500,
       };
 
@@ -384,15 +389,16 @@ describe('calculateMatchScore (unit)', () => {
       expect(score).to.equal(102);
     });
 
-    it('should return 0 for unparseable salary text', () => {
+    it('should return 0 when salary fields are null', () => {
       const options: MatchScoreOptions = {
-        vacancySalary: 'competitive',
+        vacancyMinSalary: null,
+        vacancyMaxSalary: null,
         expectedSalary: 1500,
       };
 
       const score = service.calculateMatchScore([], [], options);
 
-      // salary range not parseable → salary component skipped
+      // salary range not available → salary component skipped
       expect(score).to.equal(0);
     });
   });
@@ -419,7 +425,8 @@ describe('calculateMatchScore (unit)', () => {
         candidateLanguages: [{ code: 'en', level: LanguageLevel.B2 }],
         vacancyRequiredYearsOfExperience: 3,
         candidateYearsOfExperience: 3,
-        vacancySalary: '1000-2000 USD',
+        vacancyMinSalary: 1000,
+        vacancyMaxSalary: 2000,
         expectedSalary: 2000, // at max, no salary bonus
       };
 
@@ -443,7 +450,8 @@ describe('calculateMatchScore (unit)', () => {
         ],
         vacancyRequiredYearsOfExperience: 3,
         candidateYearsOfExperience: 5, // +2 extra years
-        vacancySalary: '1000-2000 USD',
+        vacancyMinSalary: 1000,
+        vacancyMaxSalary: 2000,
         expectedSalary: 1000, // +3 salary bonus
       };
 
@@ -464,7 +472,8 @@ describe('calculateMatchScore (unit)', () => {
         ],
         vacancyRequiredYearsOfExperience: 10,
         candidateYearsOfExperience: 3, // 3/10
-        vacancySalary: '1000-2000 USD',
+        vacancyMinSalary: 1000,
+        vacancyMaxSalary: 2000,
         expectedSalary: 5000, // over budget
       };
 
@@ -557,15 +566,16 @@ describe('calculateMatchScore (unit)', () => {
   // --- Edge cases ---
 
   describe('edge cases', () => {
-    it('should handle salary with comma-formatted numbers', () => {
+    it('should handle salary with numeric min/max values', () => {
       const options: MatchScoreOptions = {
-        vacancySalary: '1,000-2,000 USD',
+        vacancyMinSalary: 1000,
+        vacancyMaxSalary: 2000,
         expectedSalary: 1500,
       };
 
       const score = service.calculateMatchScore([], [], options);
 
-      // parsed as 1000-2000, bonus = (2000-1500)/(2000-1000)*3 = 1.5
+      // bonus = (2000-1500)/(2000-1000)*3 = 1.5
       expect(score).to.equal(101.5);
     });
 
@@ -614,7 +624,8 @@ describe('calculateMatchScore (unit)', () => {
 
     it('should cap salary bonus at +3', () => {
       const options: MatchScoreOptions = {
-        vacancySalary: '1000-2000 USD',
+        vacancyMinSalary: 1000,
+        vacancyMaxSalary: 2000,
         expectedSalary: 0, // way below min
       };
 
@@ -733,7 +744,8 @@ describe('calculateMatchScore (unit)', () => {
       const questions = [boolQuestion('q1', 'true')];
       const answers = [answer('q1', 'true')];
       const options: MatchScoreOptions = {
-        vacancySalary: '1000-2000 USD',
+        vacancyMinSalary: 1000,
+        vacancyMaxSalary: 2000,
         expectedSalary: 1000, // would give +3 salary bonus
         customWeights: { questions: 50, salary: 0 },
       };
@@ -754,7 +766,8 @@ describe('calculateMatchScore (unit)', () => {
         candidateLanguages: [{ code: 'en', level: LanguageLevel.B2 }], // 100% languages
         vacancyRequiredYearsOfExperience: 4,
         candidateYearsOfExperience: 2, // 50% experience
-        vacancySalary: '1000-2000 USD',
+        vacancyMinSalary: 1000,
+        vacancyMaxSalary: 2000,
         expectedSalary: 2000, // 100% salary, no bonus
         customWeights: {
           questions: 10,

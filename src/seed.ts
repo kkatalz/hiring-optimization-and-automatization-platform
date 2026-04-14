@@ -99,20 +99,20 @@ async function seed() {
 
     // ── 4. Vacancies ────────────────────────────────────────────
     await qr.query(`
-      INSERT INTO vacancies (id, name, description, salary, tenant_id, created_by_id, time_commitment, language_requirements, required_years_of_experience, tags, needs_reclustering) VALUES
+      INSERT INTO vacancies (id, name, description, min_salary, max_salary, tenant_id, created_by_id, time_commitment, language_requirements, required_years_of_experience, tags, needs_reclustering) VALUES
         ('${V_FRONTEND}', 'Senior Frontend Developer',
          'We are looking for a Senior Frontend Developer with React experience to join our product team.',
-         '4000-6000 USD', '${T1}', '${U_REC1_ACME}', 'FULL_TIME',
+         4000, 6000, '${T1}', '${U_REC1_ACME}', 'FULL_TIME',
          '[{"code":"en","level":"B2"}]', 3, '["React","TypeScript","Frontend"]', false),
 
         ('${V_BACKEND}', 'Junior Backend Developer',
          'Entry-level backend position. Node.js and PostgreSQL knowledge preferred.',
-         '1500-2500 USD', '${T1}', '${U_REC1_ACME}', 'FULL_TIME',
+         1500, 2500, '${T1}', '${U_REC1_ACME}', 'FULL_TIME',
          '[{"code":"en","level":"B1"}]', 1, '["Node.js","PostgreSQL","Backend"]', false),
 
         ('${V_UX}', 'Part-time UX Designer',
          'Looking for a creative UX designer for part-time engagement on multiple projects.',
-         '2000-3000 USD', '${T1}', '${U_REC2_ACME}', 'PART_TIME',
+         2000, 3000, '${T1}', '${U_REC2_ACME}', 'PART_TIME',
          '[{"code":"en","level":"B2"},{"code":"de","level":"A2"}]', 2, '["UX","Figma","Design"]', false)
     `);
 

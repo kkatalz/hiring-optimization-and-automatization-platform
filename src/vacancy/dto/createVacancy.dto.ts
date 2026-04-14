@@ -3,6 +3,7 @@ import {
   IsEnum,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   MaxLength,
@@ -29,9 +30,16 @@ export class CreateVacancyDto {
   description: string;
 
   @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  salary?: string;
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  minSalary?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  maxSalary?: number;
 
   @IsOptional()
   @IsEnum(TimeCommitment)

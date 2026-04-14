@@ -42,7 +42,8 @@ export interface MatchScoreOptions {
   vacancyLanguageRequirements?: LanguageProficiency[];
   vacancyRequiredYearsOfExperience?: number;
   vacancyTags?: string[];
-  vacancySalary?: string;
+  vacancyMinSalary?: number | null;
+  vacancyMaxSalary?: number | null;
   submissionTags?: string[];
   expectedSalary?: number | null;
   customWeights?: CustomWeights;

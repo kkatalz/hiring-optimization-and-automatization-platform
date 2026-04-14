@@ -267,7 +267,8 @@ describe('VacancyService', () => {
       const createVacancyDto: CreateVacancyDto = {
         name: 'Zoo keeper',
         description: 'I want to be zookeper!',
-        salary: '1000-1100 USD',
+        minSalary: 1000,
+        maxSalary: 1100,
       };
 
       const admin = testUsers[0];
@@ -521,7 +522,8 @@ describe('VacancyService', () => {
         updateVacancyDto,
       );
 
-      expect(updateVacancyResult.salary).to.equal(testVacancies[0].salary);
+      expect(updateVacancyResult.minSalary).to.equal(testVacancies[0].minSalary);
+      expect(updateVacancyResult.maxSalary).to.equal(testVacancies[0].maxSalary);
       expect(updateVacancyResult.name).to.equal(updateVacancyDto.name);
       expect(updateVacancyResult.description).to.equal(
         updateVacancyDto.description,
@@ -540,7 +542,8 @@ describe('VacancyService', () => {
       );
 
       expect(result.name).to.equal('Only name updated');
-      expect(result.salary).to.equal(testVacancies[0].salary);
+      expect(result.minSalary).to.equal(testVacancies[0].minSalary);
+      expect(result.maxSalary).to.equal(testVacancies[0].maxSalary);
     });
 
     it('should throw NOT_FOUND when updating non-existent vacancy', async () => {
@@ -1320,14 +1323,14 @@ describe('VacancyService', () => {
       // "Zoo keeper" (1000-1100) — range overlaps [600,1200], included
       // "Zoo keeper helper 1" (500-700) — range overlaps [600,1200], included
       // "Frontend Developer" (3000-5000) — min 3000 > 1200, excluded
-      // "Backend Engineer" (competitive) — no parseable salary, excluded
+      // "Backend Engineer" (null, null) — null salary, excluded
       expect(result.data.length).to.equal(2);
     });
 
-    it('should exclude vacancies with no parseable salary when salary filter is set', async () => {
+    it('should exclude vacancies with null salary when salary filter is set', async () => {
       const result = await service.findAllWithFilters({ minSalary: 1 });
 
-      // "Backend Engineer" has salary "competitive" — not parseable, excluded
+      // "Backend Engineer" has minSalary: null, maxSalary: null — excluded
       const names = result.data.map((v) => v.name);
       expect(names).to.not.include('Backend Engineer');
     });
@@ -1442,13 +1445,13 @@ describe('VacancyService', () => {
       }
     });
 
-    it('should sort by salary ASC (by midpoint, non-parseable last)', async () => {
-      const result = await service.findAllWithFilters({}, 'salary', 'ASC');
+    it('should sort by minSalary ASC (nulls last)', async () => {
+      const result = await service.findAllWithFilters({}, 'minSalary', 'ASC');
 
-      // Zoo keeper helper 1: 500-700 (mid 600)
-      // Zoo keeper: 1000-1100 (mid 1050)
-      // Frontend Developer: 3000-5000 (mid 4000)
-      // Backend Engineer: "competitive" (non-parseable → last)
+      // Zoo keeper helper 1: minSalary 500
+      // Zoo keeper: minSalary 1000
+      // Frontend Developer: minSalary 3000
+      // Backend Engineer: minSalary null → last
       expect(result.data.length).to.equal(EXPECTED__VACANCIES_NUM);
 
       const names = result.data.map((v) => v.name);
@@ -1458,8 +1461,8 @@ describe('VacancyService', () => {
       expect(names[3]).to.equal('Backend Engineer');
     });
 
-    it('should sort by salary DESC (by midpoint, non-parseable last)', async () => {
-      const result = await service.findAllWithFilters({}, 'salary', 'DESC');
+    it('should sort by minSalary DESC (nulls last)', async () => {
+      const result = await service.findAllWithFilters({}, 'minSalary', 'DESC');
 
       const names = result.data.map((v) => v.name);
       expect(names[0]).to.equal('Frontend Developer');
