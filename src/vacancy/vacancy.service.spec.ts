@@ -522,8 +522,12 @@ describe('VacancyService', () => {
         updateVacancyDto,
       );
 
-      expect(updateVacancyResult.minSalary).to.equal(testVacancies[0].minSalary);
-      expect(updateVacancyResult.maxSalary).to.equal(testVacancies[0].maxSalary);
+      expect(updateVacancyResult.minSalary).to.equal(
+        testVacancies[0].minSalary,
+      );
+      expect(updateVacancyResult.maxSalary).to.equal(
+        testVacancies[0].maxSalary,
+      );
       expect(updateVacancyResult.name).to.equal(updateVacancyDto.name);
       expect(updateVacancyResult.description).to.equal(
         updateVacancyDto.description,
@@ -637,7 +641,7 @@ describe('VacancyService', () => {
             type: testQuestions[2].type,
             isRequired: true,
             priority: 2,
-            expectedValue: 'Bachelor',
+            expectedValue: ['Bachelor'],
           },
         ],
       };
@@ -683,7 +687,7 @@ describe('VacancyService', () => {
             type: testQuestions[2].type,
             isRequired: true,
             priority: 2,
-            expectedValue: 'Bachelor',
+            expectedValue: ['Bachelor'],
           },
         ],
       };
@@ -1229,7 +1233,9 @@ describe('VacancyService', () => {
       const result = await service.findAllWithFilters({ name: 'zoo' });
 
       expect(result.data.length).to.equal(2);
-      result.data.forEach((v) => expect(v.name.toLowerCase()).to.include('zoo'));
+      result.data.forEach((v) =>
+        expect(v.name.toLowerCase()).to.include('zoo'),
+      );
     });
 
     it('should filter by name with no match', async () => {
