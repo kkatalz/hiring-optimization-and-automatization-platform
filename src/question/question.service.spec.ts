@@ -144,6 +144,26 @@ describe('QuestionService', () => {
         );
       }
     });
+
+    it('should create a dropdown with the same label and type but different answerOptions in the same tenant', async () => {
+      const tenantId = testTenants[0].id;
+      const existing = testQuestions[2];
+
+      const createDto: CreateQuestionDto = {
+        label: existing.label,
+        type: existing.type,
+        answerOptions: ['Option A', 'Option B'],
+      };
+
+      const result = await service.create(createDto, tenantId);
+
+      expect(result.label).to.equal(existing.label);
+      expect(result.type).to.equal(QuestionType.dropdown);
+      expect(result.answerOptions).to.deep.equal(['Option A', 'Option B']);
+
+      const allQuestions = await service.findAll();
+      expect(allQuestions.length).to.equal(EXPECTED_QUESTIONS_NUM + 1);
+    });
   });
 
   describe('findAll', () => {
@@ -168,14 +188,10 @@ describe('QuestionService', () => {
       expect(result).to.deep.equal([]);
     });
 
-    it('should throw a NOT_FOUND error when tenantId does not exist', async () => {
-      try {
-        await service.findAll(nonExistentUUIDId);
-        expect.fail('Should have thrown a NOT_FOUND error but did not');
-      } catch (e: any) {
-        expect(e).to.have.property('status', 404);
-        expect(e.response).to.equal('Tenant with given id not found.');
-      }
+    it('should return an empty array when tenantId does not exist', async () => {
+      const result = await service.findAll(nonExistentUUIDId);
+
+      expect(result).to.deep.equal([]);
     });
   });
 
@@ -205,61 +221,117 @@ describe('QuestionService', () => {
 
   describe('update', () => {
     it('should update the label and leave other fields unchanged', async () => {
-      const question = testQuestions[1]; // text question
+      const entity = await service.findById(testQuestions[1].id); // text question
       const updateDto: UpdateQuestionDto = {
         label: 'Describe your work experience in detail',
       };
 
-      const result = await service.update(question.id, updateDto);
+      const result = await service.update(entity, updateDto);
 
-      expect(result.id).to.equal(question.id);
+      expect(result.id).to.equal(entity.id);
       expect(result.label).to.equal(updateDto.label);
       expect(result.type).to.equal(QuestionType.text);
-      expect(result.tenantId).to.equal(question.tenantId);
+      expect(result.tenantId).to.equal(entity.tenantId);
     });
 
     it('should clear answerOptions when type changes from dropdown to boolean', async () => {
-      const question = testQuestions[2]; // dropdown with answerOptions
+      const entity = await service.findById(testQuestions[2].id); // dropdown
       const updateDto: UpdateQuestionDto = { type: QuestionType.boolean };
 
-      const result = await service.update(question.id, updateDto);
+      const result = await service.update(entity, updateDto);
 
-      expect(result.label).to.equal(question.label);
+      expect(result.label).to.equal(entity.label);
       expect(result.type).to.equal(QuestionType.boolean);
       expect(result.answerOptions).to.be.empty;
     });
 
     it('should clear answerOptions when type changes from dropdown to text', async () => {
-      const question = testQuestions[2]; // dropdown with answerOptions
+      const entity = await service.findById(testQuestions[2].id); // dropdown
       const updateDto: UpdateQuestionDto = { type: QuestionType.text };
 
-      const result = await service.update(question.id, updateDto);
+      const result = await service.update(entity, updateDto);
 
-      expect(result.label).to.equal(question.label);
+      expect(result.label).to.equal(entity.label);
       expect(result.type).to.equal(QuestionType.text);
       expect(result.answerOptions).to.be.empty;
     });
 
     it('should preserve answerOptions when updating only the label of a dropdown question', async () => {
-      const question = testQuestions[2]; // dropdown
+      const entity = await service.findById(testQuestions[2].id); // dropdown
+      const originalOptions = entity.answerOptions;
       const updateDto: UpdateQuestionDto = {
         label: 'What is your highest qualification?',
       };
 
-      const result = await service.update(question.id, updateDto);
+      const result = await service.update(entity, updateDto);
 
       expect(result.label).to.equal(updateDto.label);
-      expect(result.answerOptions).to.deep.equal(question.answerOptions);
+      expect(result.answerOptions).to.deep.equal(originalOptions);
     });
 
-    it('should throw 404 when question is not found', async () => {
+    it('should promote a text question to dropdown with provided answerOptions', async () => {
+      const entity = await service.findById(testQuestions[1].id); // text question
+      const updateDto: UpdateQuestionDto = {
+        type: QuestionType.dropdown,
+        answerOptions: ['Yes', 'No', 'Maybe'],
+      };
+
+      const result = await service.update(entity, updateDto);
+
+      expect(result.type).to.equal(QuestionType.dropdown);
+      expect(result.answerOptions).to.deep.equal(['Yes', 'No', 'Maybe']);
+      expect(result.label).to.equal(entity.label);
+    });
+
+    it('should throw a CONFLICT when updated label and type collide with another question in the same tenant', async () => {
+      // testQuestions[1] is a text question in tenant[0];
+      // testQuestions[0] is a boolean question in tenant[0].
+      // Repointing [1] to (testQuestions[0].label, boolean) duplicates [0].
+      const entity = await service.findById(testQuestions[1].id);
+      const sibling = testQuestions[0];
+
+      const updateDto: UpdateQuestionDto = {
+        label: sibling.label,
+        type: sibling.type,
+      };
+
       try {
-        await service.update(nonExistentUUIDId, { label: 'x' });
-        expect.fail('Should have thrown a NOT_FOUND error but did not');
+        await service.update(entity, updateDto);
+        expect.fail('Should have thrown a CONFLICT error but did not');
       } catch (e: any) {
-        expect(e).to.have.property('status', 404);
-        expect(e.response).to.equal('Question not found.');
+        expect(e).to.have.property('status', 409);
+        expect(e.response).to.equal(
+          'Question with the same label and type already exists within this tenant.',
+        );
       }
+    });
+
+    it('should allow update when matching label and type exist only in a different tenant', async () => {
+      // testQuestions[3] is a boolean question in tenant[1].
+      // Updating tenant[0]'s text question to that same (label, type) should succeed.
+      const entity = await service.findById(testQuestions[1].id);
+      const otherTenantQuestion = testQuestions[3];
+
+      const updateDto: UpdateQuestionDto = {
+        label: otherTenantQuestion.label,
+        type: otherTenantQuestion.type,
+      };
+
+      const result = await service.update(entity, updateDto);
+
+      expect(result.label).to.equal(otherTenantQuestion.label);
+      expect(result.type).to.equal(otherTenantQuestion.type);
+      expect(result.tenantId).to.equal(testTenants[0].id);
+    });
+
+    it('should not treat the question as its own duplicate (no-op update)', async () => {
+      const entity = await service.findById(testQuestions[2].id); // dropdown
+      const updateDto: UpdateQuestionDto = { label: entity.label };
+
+      const result = await service.update(entity, updateDto);
+
+      expect(result.id).to.equal(entity.id);
+      expect(result.label).to.equal(entity.label);
     });
   });
 
@@ -354,26 +426,29 @@ describe('QuestionService', () => {
 
   describe('remove', () => {
     it('should remove the question and return its QuestionDto', async () => {
-      const question = testQuestions[0];
+      const fixture = testQuestions[0];
+      const entity = await service.findById(fixture.id);
 
-      const result = await service.remove(question.id);
+      const result = await service.remove(entity);
 
-      expect(result.id).to.equal(question.id);
-      expect(result.label).to.equal(question.label);
-      expect(result.tenantId).to.equal(question.tenantId);
+      expect(result.id).to.equal(fixture.id);
+      expect(result.label).to.equal(fixture.label);
+      expect(result.tenantId).to.equal(fixture.tenantId);
 
       const deletedInDb = await questionRepository.findOne({
-        where: { id: question.id },
+        where: { id: fixture.id },
       });
       expect(deletedInDb).to.equal(null);
 
       const allQuestions = await service.findAll();
       expect(allQuestions.length).to.equal(EXPECTED_QUESTIONS_NUM - 1);
     });
+  });
 
+  describe('findById', () => {
     it('should throw 404 when question is not found', async () => {
       try {
-        await service.remove(nonExistentUUIDId);
+        await service.findById(nonExistentUUIDId);
         expect.fail('Should have thrown a NOT_FOUND error but did not');
       } catch (e: any) {
         expect(e).to.have.property('status', 404);
