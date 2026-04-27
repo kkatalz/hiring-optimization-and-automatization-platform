@@ -22,7 +22,7 @@ export class QuestionService {
     createQuestionDto: CreateQuestionDto,
     tenantId: string,
   ): Promise<QuestionDto> {
-    if (tenantId) await this.tenantService.findDtoById(tenantId);
+    await this.tenantService.findDtoById(tenantId);
 
     const existingQuestion = await this.findExistingQuestion(
       createQuestionDto,
