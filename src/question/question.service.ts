@@ -22,7 +22,7 @@ export class QuestionService {
     createQuestionDto: CreateQuestionDto,
     tenantId: string,
   ): Promise<QuestionDto> {
-    if (tenantId) await this.tenantService.findDtoById(tenantId);
+    await this.tenantService.findDtoById(tenantId);
 
     const existingQuestion = await this.findExistingQuestion(
       createQuestionDto,
@@ -31,7 +31,7 @@ export class QuestionService {
 
     if (existingQuestion) {
       throw new HttpException(
-        'Question with the same label and type already exists within this tenant.',
+        'Question with the same label, type (and answer options for dropdowns) already exists within this tenant.',
         HttpStatus.CONFLICT,
       );
     }
@@ -47,8 +47,6 @@ export class QuestionService {
   }
 
   async findAll(tenantId?: string): Promise<QuestionDto[]> {
-    if (tenantId) await this.tenantService.findDtoById(tenantId);
-
     const questions = await this.questionRepository.find({
       where: tenantId ? { tenantId } : {},
     });
@@ -63,17 +61,29 @@ export class QuestionService {
   }
 
   async update(
-    id: string,
+    question: Question,
     updateQuestionDto: UpdateQuestionDto,
   ): Promise<QuestionDto> {
-    const question = await this.findById(id);
+    const newType = updateQuestionDto.type ?? question.type;
+    const newLabel = updateQuestionDto.label ?? question.label;
+    const newAnswerOptions =
+      updateQuestionDto.answerOptions ?? question.answerOptions;
+
+    const existingQuestion = await this.findExistingQuestion(
+      { label: newLabel, type: newType, answerOptions: newAnswerOptions },
+      question.tenantId,
+    );
+
+    if (existingQuestion && existingQuestion.id !== question.id) {
+      throw new HttpException(
+        'Question with the same label, type (and answer options for dropdowns) already exists within this tenant.',
+        HttpStatus.CONFLICT,
+      );
+    }
 
     this.questionRepository.merge(question, updateQuestionDto);
 
-    if (
-      updateQuestionDto.type === QuestionType.text ||
-      updateQuestionDto.type === QuestionType.boolean
-    )
+    if (newType === QuestionType.text || newType === QuestionType.boolean)
       question.answerOptions = [];
 
     const updatedQuestion = await this.questionRepository.save(question);
@@ -81,9 +91,7 @@ export class QuestionService {
     return questionToQuestionDto(updatedQuestion);
   }
 
-  async remove(id: string): Promise<QuestionDto> {
-    const question = await this.findById(id);
-
+  async remove(question: Question): Promise<QuestionDto> {
     const dto = questionToQuestionDto(question);
 
     await this.questionRepository.remove(question);
@@ -91,11 +99,14 @@ export class QuestionService {
     return dto;
   }
 
+  /** Checks if a question with the same label, type, and (if dropdown) answer options already exists within the tenant.
+   * Used to enforce the uniqueness constraint for questions.
+   */
   async findExistingQuestion(
     question: CreateQuestionDto,
     tenantId: string,
   ): Promise<QuestionDto | null> {
-    const foundQuestion = await this.questionRepository.findOne({
+    const matchingQuestions = await this.questionRepository.find({
       where: {
         tenantId,
         label: question.label,
@@ -103,23 +114,22 @@ export class QuestionService {
       },
     });
 
-    if (!foundQuestion) return null;
+    if (!matchingQuestions.length) return null;
 
-    // If it's not a dropdown, we don't need to check answerOptions.
+    // If it's not a dropdown, the (tenantId, label, type) tuple is unique, so the first match is the duplicate.
     if (question.type !== QuestionType.dropdown)
-      return questionToQuestionDto(foundQuestion);
+      return questionToQuestionDto(matchingQuestions[0]);
 
-    // For dropdowns, handle potential undefined/null by defaulting to empty array
-    const existingOptions = JSON.stringify(foundQuestion.answerOptions || []);
+    // For dropdowns, only the row whose answerOptions exactly match counts as a duplicate.
     const incomingOptions = JSON.stringify(question.answerOptions || []);
+    const duplicate = matchingQuestions.find(
+      (q) => JSON.stringify(q.answerOptions || []) === incomingOptions,
+    );
 
-    if (existingOptions === incomingOptions)
-      return questionToQuestionDto(foundQuestion);
-
-    return null;
+    return duplicate ? questionToQuestionDto(duplicate) : null;
   }
 
-  private async findById(id: string): Promise<Question> {
+  async findById(id: string): Promise<Question> {
     const question = await this.questionRepository.findOne({
       where: { id },
     });

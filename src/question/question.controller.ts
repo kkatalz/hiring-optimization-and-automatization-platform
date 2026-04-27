@@ -87,11 +87,11 @@ export class QuestionController {
     @Body() updateQuestionDto: UpdateQuestionDto,
     @AuthUser() user: UserDto,
   ) {
-    const question = await this.questionService.findDtoById(id);
+    const question = await this.questionService.findById(id);
 
     validateTenantAccess(user, question.tenantId);
 
-    return this.questionService.update(id, updateQuestionDto);
+    return this.questionService.update(question, updateQuestionDto);
   }
 
   /**
@@ -104,10 +104,10 @@ export class QuestionController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @AuthUser() user: UserDto,
   ) {
-    const question = await this.questionService.findDtoById(id);
+    const question = await this.questionService.findById(id);
 
     validateTenantAccess(user, question.tenantId);
 
-    return this.questionService.remove(id);
+    return this.questionService.remove(question);
   }
 }
