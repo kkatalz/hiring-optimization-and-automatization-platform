@@ -99,11 +99,14 @@ export class QuestionService {
     return dto;
   }
 
+  /** Checks if a question with the same label, type, and (if dropdown) answer options already exists within the tenant.
+   * Used to enforce the uniqueness constraint for questions.
+   */
   async findExistingQuestion(
     question: CreateQuestionDto,
     tenantId: string,
   ): Promise<QuestionDto | null> {
-    const foundQuestion = await this.questionRepository.findOne({
+    const matchingQuestions = await this.questionRepository.find({
       where: {
         tenantId,
         label: question.label,
@@ -111,20 +114,19 @@ export class QuestionService {
       },
     });
 
-    if (!foundQuestion) return null;
+    if (!matchingQuestions.length) return null;
 
-    // If it's not a dropdown, we don't need to check answerOptions.
+    // If it's not a dropdown, the (tenantId, label, type) tuple is unique, so the first match is the duplicate.
     if (question.type !== QuestionType.dropdown)
-      return questionToQuestionDto(foundQuestion);
+      return questionToQuestionDto(matchingQuestions[0]);
 
-    // For dropdowns, handle potential undefined/null by defaulting to empty array
-    const existingOptions = JSON.stringify(foundQuestion.answerOptions || []);
+    // For dropdowns, only the row whose answerOptions exactly match counts as a duplicate.
     const incomingOptions = JSON.stringify(question.answerOptions || []);
+    const duplicate = matchingQuestions.find(
+      (q) => JSON.stringify(q.answerOptions || []) === incomingOptions,
+    );
 
-    if (existingOptions === incomingOptions)
-      return questionToQuestionDto(foundQuestion);
-
-    return null;
+    return duplicate ? questionToQuestionDto(duplicate) : null;
   }
 
   async findById(id: string): Promise<Question> {

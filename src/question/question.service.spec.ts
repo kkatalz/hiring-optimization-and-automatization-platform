@@ -333,6 +333,35 @@ describe('QuestionService', () => {
       expect(result.id).to.equal(entity.id);
       expect(result.label).to.equal(entity.label);
     });
+
+    it('should detect a CONFLICT when updated dropdown options match a sibling dropdown sharing the same label', async () => {
+      // Two dropdowns can coexist with the same label/type if their options differ.
+      // Updating one to share the other's options would make them true duplicates.
+      const tenantId = testTenants[0].id;
+      const sibling = await service.create(
+        {
+          label: testQuestions[2].label,
+          type: QuestionType.dropdown,
+          answerOptions: ['Option A', 'Option B'],
+        },
+        tenantId,
+      );
+
+      const entity = await service.findById(testQuestions[2].id);
+      const updateDto: UpdateQuestionDto = {
+        answerOptions: sibling.answerOptions,
+      };
+
+      try {
+        await service.update(entity, updateDto);
+        expect.fail('Should have thrown a CONFLICT error but did not');
+      } catch (e: any) {
+        expect(e).to.have.property('status', 409);
+        expect(e.response).to.equal(
+          'Question with the same label and type already exists within this tenant.',
+        );
+      }
+    });
   });
 
   describe('findExistingQuestion', () => {
