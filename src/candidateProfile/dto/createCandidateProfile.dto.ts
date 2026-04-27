@@ -1,4 +1,5 @@
 import {
+  ArrayUnique,
   IsArray,
   IsEmail,
   IsInt,
@@ -48,6 +49,9 @@ export class CreateCandidateProfileDto {
 
   @IsNotEmpty()
   @IsArray()
+  @ArrayUnique((lang: LanguageProficiency) => lang.code, {
+    message: 'languages must not contain duplicate language codes',
+  })
   @ValidateNested({ each: true })
   @Type(() => LanguageProficiency)
   languages: LanguageProficiency[];

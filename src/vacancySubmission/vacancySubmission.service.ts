@@ -865,11 +865,15 @@ export class VacancySubmissionService {
   ): ScoreResult | null {
     if (!requirements?.length) return null;
 
+    // Defense against duplicate rows; new profiles are blocked at the DTO level.
+    const uniqueCandidateLanguages =
+      this.keepHighestLevelPerCode(candidateLangs);
+
     let metCount = 0;
     let levelBonus = 0;
 
     for (const req of requirements) {
-      const match = candidateLangs?.find((cl) => {
+      const match = uniqueCandidateLanguages.find((cl) => {
         if (req.code && cl.code !== req.code) return false;
         if (req.level) {
           if (!cl.level) return false;
@@ -898,7 +902,7 @@ export class VacancySubmissionService {
     const requiredCodes = new Set(
       requirements.map((r) => r.code).filter(Boolean),
     );
-    const extraLangBonus = (candidateLangs || []).filter(
+    const extraLangBonus = uniqueCandidateLanguages.filter(
       (cl) => cl.code && !requiredCodes.has(cl.code),
     ).length;
 
@@ -907,8 +911,39 @@ export class VacancySubmissionService {
       ratio,
       weight: weight ?? 8,
       bonus: levelBonus + extraLangBonus,
-      log: `Languages: ${metCount}/${requirements.length} required (levelBonus: +${levelBonus}, extraLangs: +${extraLangBonus}, weight: ${weight}) { required: [${requirements.map((r) => `${r.code}:${r.level}`).join(', ')}], candidate: [${(candidateLangs || []).map((l) => `${l.code}:${l.level}`).join(', ')}] }`,
+      log: `Languages: ${metCount}/${requirements.length} required (levelBonus: +${levelBonus}, extraLangs: +${extraLangBonus}, weight: ${weight}) { required: [${requirements.map((r) => `${r.code}:${r.level}`).join(', ')}], candidate: [${uniqueCandidateLanguages.map((l) => `${l.code}:${l.level}`).join(', ')}] }`,
     };
+  }
+
+  /** For each language code, keep only the highest-level entry. Entries without a code are passed through. */
+  private keepHighestLevelPerCode(
+    langs?: LanguageProficiency[],
+  ): LanguageProficiency[] {
+    if (!langs?.length) return [];
+
+    const byCode = new Map<string, LanguageProficiency>();
+    const noCode: LanguageProficiency[] = [];
+
+    for (const lang of langs) {
+      if (!lang.code) {
+        noCode.push(lang);
+        continue;
+      }
+      const existing = byCode.get(lang.code);
+      if (!existing) {
+        byCode.set(lang.code, lang);
+        continue;
+      }
+      const existingRank = existing.level
+        ? LanguageLevelRank.indexOf(existing.level)
+        : -1;
+      const candidateRank = lang.level
+        ? LanguageLevelRank.indexOf(lang.level)
+        : -1;
+      if (candidateRank > existingRank) byCode.set(lang.code, lang);
+    }
+
+    return [...byCode.values(), ...noCode];
   }
 
   /** Experience component (weight: 20 if not set otherwise). +1 per extra year above required (max +5). */
