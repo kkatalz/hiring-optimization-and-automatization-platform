@@ -47,8 +47,6 @@ export class QuestionService {
   }
 
   async findAll(tenantId?: string): Promise<QuestionDto[]> {
-    if (tenantId) await this.tenantService.findDtoById(tenantId);
-
     const questions = await this.questionRepository.find({
       where: tenantId ? { tenantId } : {},
     });
@@ -93,9 +91,7 @@ export class QuestionService {
     return questionToQuestionDto(updatedQuestion);
   }
 
-  async remove(id: string): Promise<QuestionDto> {
-    const question = await this.findById(id);
-
+  async remove(question: Question): Promise<QuestionDto> {
     const dto = questionToQuestionDto(question);
 
     await this.questionRepository.remove(question);
@@ -131,7 +127,7 @@ export class QuestionService {
     return null;
   }
 
-  private async findById(id: string): Promise<Question> {
+  async findById(id: string): Promise<Question> {
     const question = await this.questionRepository.findOne({
       where: { id },
     });
