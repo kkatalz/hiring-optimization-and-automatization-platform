@@ -851,7 +851,7 @@ export class VacancySubmissionService {
     };
   }
 
-  /** Languages component (weight: 8 if not set otherwise). +1 per level above required, +1 per extra language (max +3). */
+  /** Languages component (weight: 8 if not set otherwise). +1 per level above required, +1 per extra language (uncapped). */
   private scoreLanguages(
     requirements?: LanguageProficiency[],
     candidateLangs?: LanguageProficiency[],
@@ -892,12 +892,9 @@ export class VacancySubmissionService {
     const requiredCodes = new Set(
       requirements.map((r) => r.code).filter(Boolean),
     );
-    const extraLangBonus = Math.min(
-      (candidateLangs || []).filter(
-        (cl) => cl.code && !requiredCodes.has(cl.code),
-      ).length,
-      3,
-    );
+    const extraLangBonus = (candidateLangs || []).filter(
+      (cl) => cl.code && !requiredCodes.has(cl.code),
+    ).length;
 
     return {
       dimension: 'Languages',

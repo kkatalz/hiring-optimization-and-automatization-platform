@@ -213,7 +213,7 @@ describe('calculateMatchScore (unit)', () => {
       expect(score).to.equal(102);
     });
 
-    it('should give extra language bonus (max +3)', () => {
+    it('should give +1 per extra language (uncapped)', () => {
       const options: MatchScoreOptions = {
         vacancyLanguageRequirements: [{ code: 'en', level: LanguageLevel.B2 }],
         candidateLanguages: [
@@ -227,8 +227,8 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore([], [], options);
 
-      // base = 100, extra langs = 4 but capped at +3
-      expect(score).to.equal(103);
+      // base = 100, extra langs = 4 → +4 bonus (no cap)
+      expect(score).to.equal(104);
     });
 
     it('should return proportional score when some required languages not met', () => {
@@ -603,7 +603,7 @@ describe('calculateMatchScore (unit)', () => {
       expect(score).to.equal(105);
     });
 
-    it('should cap extra language bonus at +3', () => {
+    it('should not cap extra language bonus (each extra language counts +1)', () => {
       const options: MatchScoreOptions = {
         vacancyLanguageRequirements: [{ code: 'en', level: LanguageLevel.A1 }],
         candidateLanguages: [
@@ -618,8 +618,8 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore([], [], options);
 
-      // base = 100, 5 extra langs but capped at +3
-      expect(score).to.equal(103);
+      // base = 100, 5 extra langs → +5 bonus (uncapped)
+      expect(score).to.equal(105);
     });
 
     it('should cap salary bonus at +3', () => {
