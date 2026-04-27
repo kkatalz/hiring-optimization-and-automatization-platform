@@ -63,17 +63,29 @@ export class QuestionService {
   }
 
   async update(
-    id: string,
+    question: Question,
     updateQuestionDto: UpdateQuestionDto,
   ): Promise<QuestionDto> {
-    const question = await this.findById(id);
+    const newType = updateQuestionDto.type ?? question.type;
+    const newLabel = updateQuestionDto.label ?? question.label;
+    const newAnswerOptions =
+      updateQuestionDto.answerOptions ?? question.answerOptions;
+
+    const existingQuestion = await this.findExistingQuestion(
+      { label: newLabel, type: newType, answerOptions: newAnswerOptions },
+      question.tenantId,
+    );
+
+    if (existingQuestion && existingQuestion.id !== question.id) {
+      throw new HttpException(
+        'Question with the same label and type already exists within this tenant.',
+        HttpStatus.CONFLICT,
+      );
+    }
 
     this.questionRepository.merge(question, updateQuestionDto);
 
-    if (
-      updateQuestionDto.type === QuestionType.text ||
-      updateQuestionDto.type === QuestionType.boolean
-    )
+    if (newType === QuestionType.text || newType === QuestionType.boolean)
       question.answerOptions = [];
 
     const updatedQuestion = await this.questionRepository.save(question);
