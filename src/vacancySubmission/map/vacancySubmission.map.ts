@@ -1,6 +1,7 @@
 import { VacancySubmission } from '../../entities/vacancySubmission';
 import { VacancySubmissionDto } from '../../vacancySubmission/dto/vacancySubmission.dto';
 import { candidateToCandidateProfileDto } from '../../candidateProfile/map/candidate.map';
+import { QuestionAnswerFilterEntry } from '../dto/vacancySubmissionFilter.dto';
 
 export const vacancySubmToVacancySubmDto = ({
   id,
@@ -24,6 +25,10 @@ export const vacancySubmToVacancySubmDto = ({
   candidateProfile,
   answers,
 }: VacancySubmission): VacancySubmissionDto => {
+  const answerEntries: QuestionAnswerFilterEntry[] | undefined = answers?.map(
+    ({ questionId, value }) => ({ questionId, value }),
+  );
+
   return {
     id,
     comment,
@@ -46,6 +51,6 @@ export const vacancySubmToVacancySubmDto = ({
     candidateProfile: candidateProfile
       ? candidateToCandidateProfileDto(candidateProfile)
       : undefined,
-    answers,
+    answers: answerEntries,
   };
 };

@@ -80,6 +80,8 @@ export class VacancySubmissionController {
   ): Promise<VacancySubmissionDto[]> {
     const resolvedTenantId = extractUserTenantId(viewer, tenantId);
 
+    validateTenantAccess(viewer, resolvedTenantId);
+
     return await this.vacancySubmissionService.findAllSubmissionsWithinTenantWithFilters(
       resolvedTenantId,
       filterSubmissionsDto,
