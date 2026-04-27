@@ -328,8 +328,7 @@ export class VacancySubmissionService {
   async approve(submissionId: string): Promise<VacancySubmissionDto> {
     const submission = await this.findOneById(submissionId);
 
-    if (submission.status !== VacancySubmissionStatus.approved)
-      submission.status = VacancySubmissionStatus.approved;
+    submission.status = VacancySubmissionStatus.approved;
 
     const savedSubmission =
       await this.vacancySubmissionRepository.save(submission);
@@ -340,8 +339,7 @@ export class VacancySubmissionService {
   async reject(submissionId: string): Promise<VacancySubmissionDto> {
     const submission = await this.findOneById(submissionId);
 
-    if (submission.status !== VacancySubmissionStatus.rejected)
-      submission.status = VacancySubmissionStatus.rejected;
+    submission.status = VacancySubmissionStatus.rejected;
 
     const savedSubmission =
       await this.vacancySubmissionRepository.save(submission);
@@ -479,10 +477,7 @@ export class VacancySubmissionService {
     const answers = createVacancySubmissionDto.answers || [];
 
     // Exit if no questions exist and no answers provided
-    if (answers.length === 0 && allVacancyQuestions.length === 0) {
-      createVacancySubmissionDto.answers = [];
-      return;
-    }
+    if (answers.length === 0 && allVacancyQuestions.length === 0) return;
 
     //  Validate that provided answers belong to this vacancy and have valid values
     this.validateProvidedAnswers(answers, allVacancyQuestions);
