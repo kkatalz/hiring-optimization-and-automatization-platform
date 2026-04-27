@@ -327,22 +327,26 @@ export class VacancySubmissionService {
 
   async approve(submissionId: string): Promise<VacancySubmissionDto> {
     const submission = await this.findOneById(submissionId);
+    let savedSubmission = submission;
 
-    submission.status = VacancySubmissionStatus.approved;
+    if (submission.status === VacancySubmissionStatus.rejected) {
+      submission.status = VacancySubmissionStatus.approved;
 
-    const savedSubmission =
-      await this.vacancySubmissionRepository.save(submission);
+      savedSubmission = await this.vacancySubmissionRepository.save(submission);
+    }
 
     return vacancySubmToVacancySubmDto(savedSubmission);
   }
 
   async reject(submissionId: string): Promise<VacancySubmissionDto> {
     const submission = await this.findOneById(submissionId);
+    let savedSubmission = submission;
 
-    submission.status = VacancySubmissionStatus.rejected;
+    if (submission.status === VacancySubmissionStatus.approved) {
+      submission.status = VacancySubmissionStatus.rejected;
 
-    const savedSubmission =
-      await this.vacancySubmissionRepository.save(submission);
+      savedSubmission = await this.vacancySubmissionRepository.save(submission);
+    }
 
     return vacancySubmToVacancySubmDto(savedSubmission);
   }
