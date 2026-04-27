@@ -142,9 +142,13 @@ describe('CandidateProfileService', () => {
     });
 
     it('should throw if candidate with provided email already exists', async () => {
+      // Cast: fixture languages are typed loosely (LanguageProficiency, code optional)
+      // but every test entry has code, satisfying CandidateLanguageProficiency at runtime.
       const createCandidateDto: CreateCandidateProfileDto = {
         ...testUsers[5],
         ...testCandidatesProfiles[0],
+        languages: testCandidatesProfiles[0]
+          .languages as CreateCandidateProfileDto['languages'],
       };
 
       try {
