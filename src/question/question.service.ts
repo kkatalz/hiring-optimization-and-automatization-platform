@@ -31,7 +31,7 @@ export class QuestionService {
 
     if (existingQuestion) {
       throw new HttpException(
-        'Question with the same label and type already exists within this tenant.',
+        'Question with the same label, type (and answer options for dropdowns) already exists within this tenant.',
         HttpStatus.CONFLICT,
       );
     }
@@ -76,7 +76,7 @@ export class QuestionService {
 
     if (existingQuestion && existingQuestion.id !== question.id) {
       throw new HttpException(
-        'Question with the same label and type already exists within this tenant.',
+        'Question with the same label, type (and answer options for dropdowns) already exists within this tenant.',
         HttpStatus.CONFLICT,
       );
     }

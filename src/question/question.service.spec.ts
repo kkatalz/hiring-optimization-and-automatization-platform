@@ -118,7 +118,7 @@ describe('QuestionService', () => {
       } catch (e: any) {
         expect(e).to.have.property('status', 409);
         expect(e.response).to.equal(
-          'Question with the same label and type already exists within this tenant.',
+          'Question with the same label, type (and answer options for dropdowns) already exists within this tenant.',
         );
       }
     });
@@ -140,7 +140,7 @@ describe('QuestionService', () => {
       } catch (e: any) {
         expect(e).to.have.property('status', 409);
         expect(e.response).to.equal(
-          'Question with the same label and type already exists within this tenant.',
+          'Question with the same label, type (and answer options for dropdowns) already exists within this tenant.',
         );
       }
     });
@@ -301,7 +301,7 @@ describe('QuestionService', () => {
       } catch (e: any) {
         expect(e).to.have.property('status', 409);
         expect(e.response).to.equal(
-          'Question with the same label and type already exists within this tenant.',
+          'Question with the same label, type (and answer options for dropdowns) already exists within this tenant.',
         );
       }
     });
@@ -349,6 +349,7 @@ describe('QuestionService', () => {
 
       const entity = await service.findById(testQuestions[2].id);
       const updateDto: UpdateQuestionDto = {
+        type: QuestionType.dropdown,
         answerOptions: sibling.answerOptions,
       };
 
@@ -358,7 +359,7 @@ describe('QuestionService', () => {
       } catch (e: any) {
         expect(e).to.have.property('status', 409);
         expect(e.response).to.equal(
-          'Question with the same label and type already exists within this tenant.',
+          'Question with the same label, type (and answer options for dropdowns) already exists within this tenant.',
         );
       }
     });
