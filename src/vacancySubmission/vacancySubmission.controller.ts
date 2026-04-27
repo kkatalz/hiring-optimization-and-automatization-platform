@@ -201,17 +201,9 @@ export class VacancySubmissionController {
       throw new BadRequestException('File is required.');
     }
 
-    const extension = file.originalname.split('.').pop()?.toLowerCase();
-    if (extension !== 'pdf' && extension !== 'docx') {
-      throw new BadRequestException(
-        'Unsupported file type. Only PDF and DOCX are allowed.',
-      );
-    }
-
     return await this.vacancySubmissionService.parseResumeFile(
       submissionId,
       file,
-      extension,
     );
   }
 

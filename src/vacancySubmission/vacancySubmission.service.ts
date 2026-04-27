@@ -643,7 +643,7 @@ export class VacancySubmissionService {
    * Bonuses (added on top, push above 100):
    *   - Dropdown: +1 per extra selected option beyond expected
    *   - Tags: +1 per extra custom tag beyond vacancy's list
-   *   - Languages: +1 per level above required, +1 per extra language (max +3)
+   *   - Languages: +1 per level above required, +1 per extra language (uncapped)
    *   - Experience: +1 per extra year (max +5)
    *   - Salary: up to +3 for being below budget max
    */
@@ -746,7 +746,7 @@ export class VacancySubmissionService {
     const questionDetails: string[] = [];
 
     for (const vq of scorable) {
-      const weight = vq.priority > 0 ? 1 / vq.priority : 1;
+      const priorityWeight = vq.priority > 0 ? 1 / vq.priority : 1;
       const candidateAnswer = answerMap.get(vq.questionId);
 
       let isMatch: number;
@@ -811,8 +811,8 @@ export class VacancySubmissionService {
         `"${vq.label}": expected=[${expected}] answered=[${answered}] match=${isMatch}`,
       );
 
-      weightedSum += weight * isMatch;
-      weightTotal += weight;
+      weightedSum += priorityWeight * isMatch;
+      weightTotal += priorityWeight;
     }
 
     const ratio = weightedSum / weightTotal;
@@ -972,9 +972,15 @@ export class VacancySubmissionService {
   async parseResumeFile(
     submissionId: string,
     file: Express.Multer.File,
-    extension: string,
   ): Promise<VacancySubmissionDto> {
     const submission = await this.findOneById(submissionId);
+
+    const extension = file.originalname.split('.').pop()?.toLowerCase();
+    if (extension !== 'pdf' && extension !== 'docx') {
+      throw new BadRequestException(
+        'Unsupported file type. Only PDF and DOCX are allowed.',
+      );
+    }
 
     const extractedText =
       await this.saplingService.extractTextFromResumeDependingOnExtension(
@@ -1011,17 +1017,11 @@ export class VacancySubmissionService {
   async recalculateMatchScore(
     submissionId: string,
   ): Promise<VacancySubmissionDto> {
-    const submission = await this.vacancySubmissionRepository.findOne({
-      where: { id: submissionId },
-      relations: ['answers', 'candidateProfile', 'candidateProfile.user'],
-    });
-
-    if (!submission) {
-      throw new HttpException(
-        'Vacancy Submission not found.',
-        HttpStatus.NOT_FOUND,
-      );
-    }
+    const submission = await this.findOneById(submissionId, [
+      'answers',
+      'candidateProfile',
+      'candidateProfile.user',
+    ]);
 
     const vacancy = await this.vacancyService.findVacancyById(
       submission.vacancyId,
@@ -1054,9 +1054,13 @@ export class VacancySubmissionService {
     return vacancySubmToVacancySubmDto(saved);
   }
 
-  async findOneById(id: string): Promise<VacancySubmission> {
+  async findOneById(
+    id: string,
+    relations: string[] = [],
+  ): Promise<VacancySubmission> {
     const submission = await this.vacancySubmissionRepository.findOne({
       where: { id },
+      relations,
     });
 
     if (!submission) {
