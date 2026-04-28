@@ -77,8 +77,8 @@ export class ClusteringService {
     for (const vq of vacancyQuestions) {
       if (vq.type === QuestionType.text) continue;
 
-      // Safety check - this should not happen due to validation (weights are 1 by default),
-      // but we want to avoid breaking the entire score if it does
+      // Safety check - this should not happen due to validation (priority defaults to 1
+      // and should be >= 1), but we want to avoid breaking the entire score if it does
       const weight = vq.priority > 0 ? 1 / vq.priority : 1;
       const answer = answerMap.get(vq.questionId);
 
