@@ -136,23 +136,25 @@ export class ClusteringService {
     return vector;
   }
 
-  async clusterSubmissions(vacancyId: string): Promise<void> {
-    const vacancy = await this.vacancyService.findVacancyById(vacancyId);
-
+  async clusterSubmissions(vacancy: VacancyDto): Promise<void> {
     const submissions =
       await this.vacancySubmissionService.findSubmissionsWithAnswersByVacancyId(
-        vacancyId,
+        vacancy.id,
       );
 
     if (submissions.length < 2) {
       this.logger.warn(
-        `Not enough submissions to cluster for vacancy ${vacancyId}. At least 2 are required.`,
+        `Not enough submissions to cluster for vacancy ${vacancy.id}. At least 2 are required.`,
+      );
+      await this.vacancyRepository.update(
+        { id: vacancy.id },
+        { needsReclustering: false },
       );
       return;
     }
 
     const vacancyQuestions =
-      await this.vacancyService.findAllQuestionsByVacancyId(vacancyId);
+      await this.vacancyService.findAllQuestionsByVacancyId(vacancy.id);
 
     const allVacancyTags = vacancy.tags || [];
 
@@ -170,7 +172,13 @@ export class ClusteringService {
     );
 
     // If vectors are empty (no features), skip clustering
-    if (vectors[0].length === 0) return;
+    if (vectors[0].length === 0) {
+      await this.vacancyRepository.update(
+        { id: vacancy.id },
+        { needsReclustering: false },
+      );
+      return;
+    }
 
     const numberOfSubmissions = submissions.length;
 
@@ -193,10 +201,9 @@ export class ClusteringService {
     );
   }
 
-  async findSimilar(submissionId: string): Promise<VacancySubmissionDto[]> {
-    const submission =
-      await this.vacancySubmissionService.findOneById(submissionId);
-
+  async findSimilar(
+    submission: VacancySubmission,
+  ): Promise<VacancySubmissionDto[]> {
     if (submission.clusterId == null) {
       throw new HttpException(
         'Submission has not been clustered yet. Run clustering first.',
@@ -210,7 +217,7 @@ export class ClusteringService {
     );
 
     return similar
-      .filter((s) => s.id !== submissionId)
+      .filter((s) => s.id !== submission.id)
       .map(vacancySubmToVacancySubmDto);
   }
 
@@ -218,21 +225,23 @@ export class ClusteringService {
   async handleClusteringCron(): Promise<void> {
     this.logger.log('Running scheduled clustering for stale vacancies...');
 
-    const vacancies = await this.vacancyRepository.find({
+    const vacancyIds = await this.vacancyRepository.find({
       where: { needsReclustering: true },
+      select: ['id'],
     });
 
-    if (vacancies.length === 0) {
+    if (vacancyIds.length === 0) {
       this.logger.log('No vacancies need reclustering. Skipping.');
       return;
     }
 
-    for (const vacancy of vacancies) {
+    for (const { id } of vacancyIds) {
       try {
-        await this.clusterSubmissions(vacancy.id);
+        const vacancy = await this.vacancyService.findVacancyById(id);
+        await this.clusterSubmissions(vacancy);
       } catch (error) {
         this.logger.error(
-          `Failed to cluster vacancy ${vacancy.id}: ${error instanceof Error ? error.message : error}`,
+          `Failed to cluster vacancy ${id}: ${error instanceof Error ? error.message : error}`,
         );
       }
     }

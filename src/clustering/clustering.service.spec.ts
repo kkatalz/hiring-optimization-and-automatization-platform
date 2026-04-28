@@ -37,8 +37,6 @@ import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfil
 import { testQuestions } from '../../test/fixtures/testQuestions';
 import { LanguageLevel, LanguageProficiency } from '../entities/hiring.enum';
 
-// ── Clustering-specific fixtures ──
-
 const CLUSTERING_VACANCY_ID = 'cc000000-cccc-cccc-cccc-000000000001';
 
 const clusteringVacancy: Vacancy = {
@@ -171,6 +169,8 @@ const clusteringAnswers: SubmissionAnswer[] = [
 describe('ClusteringService', () => {
   let service: ClusteringService;
   let submissionRepository: Repository<VacancySubmission>;
+  let vacancyService: VacancyService;
+  let vacancySubmissionService: VacancySubmissionService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -202,6 +202,10 @@ describe('ClusteringService', () => {
     }).compile();
 
     service = module.get<ClusteringService>(ClusteringService);
+    vacancyService = module.get<VacancyService>(VacancyService);
+    vacancySubmissionService = module.get<VacancySubmissionService>(
+      VacancySubmissionService,
+    );
     submissionRepository = module.get<Repository<VacancySubmission>>(
       getRepositoryToken(VacancySubmission),
     );
@@ -223,8 +227,6 @@ describe('ClusteringService', () => {
   it('should be defined', () => {
     expect(!!service).to.equal(true);
   });
-
-  // ── buildFeatureVector ──
 
   describe('buildFeatureVector', () => {
     const vacancyQuestions: VacancyQuestionDetailedDto[] = [
@@ -302,7 +304,7 @@ describe('ClusteringService', () => {
       // experience: min(5,10)/10 = 0.5
       expect(vector[10]).to.be.closeTo(0.5, 0.001);
 
-      // languages: en C1 >= B2 → 1, de not present → 0
+      // languages: en C1 >= B2 -> 1, de not present -> 0
       expect(vector[11]).to.equal(1);
       expect(vector[12]).to.equal(0);
 
@@ -350,7 +352,7 @@ describe('ClusteringService', () => {
       // experience: min(3,10)/10 = 0.3
       expect(vector[10]).to.be.closeTo(0.3, 0.001);
 
-      // languages: en not present → 0, de B1 >= A2 → 1
+      // languages: en not present -> 0, de B1 >= A2 -> 1
       expect(vector[11]).to.equal(0);
       expect(vector[12]).to.equal(1);
     });
@@ -386,10 +388,10 @@ describe('ClusteringService', () => {
       expect(vector[8]).to.equal(0);
       expect(vector[9]).to.equal(0);
 
-      // experience: no candidateProfile → 0/10 = 0
+      // experience: no candidateProfile -> 0/10 = 0
       expect(vector[10]).to.equal(0);
 
-      // languages: no candidateProfile → 0, 0
+      // languages: no candidateProfile -> 0, 0
       expect(vector[11]).to.equal(0);
       expect(vector[12]).to.equal(0);
     });
@@ -415,10 +417,9 @@ describe('ClusteringService', () => {
       expect(vector[5]).to.equal(0.5);
     });
 
-    // ── Experience encoding ──
-
+    // Experience encoding
     it('should encode experience as ratio capped at 1.0', () => {
-      // 5 years vs 10 required → 0.5
+      // 5 years vs 10 required -> 0.5
       const sub5yrs = {
         answers: [],
         expectedSalary: null,
@@ -437,7 +438,7 @@ describe('ClusteringService', () => {
       // salary(1) + experience(1) = index 1
       expect(vec5[1]).to.be.closeTo(0.5, 0.001);
 
-      // 15 years vs 10 required → capped at 1.0
+      // 15 years vs 10 required -> capped at 1.0
       const sub15yrs = {
         answers: [],
         expectedSalary: null,
@@ -456,8 +457,7 @@ describe('ClusteringService', () => {
       expect(vec15[1]).to.be.closeTo(1.0, 0.001);
     });
 
-    // ── Language encoding ──
-
+    // Language encoding
     it('should encode language match as 1 when candidate meets or exceeds required level', () => {
       const submission = {
         answers: [],
@@ -483,7 +483,7 @@ describe('ClusteringService', () => {
         ],
         0,
       );
-      // salary(1) + lang en(1) + lang de(1) — no experience since requiredYears=0
+      // salary(1) + lang en(1) + lang de(1) - no experience since requiredYears=0
       expect(vector[1]).to.equal(1); // en meets
       expect(vector[2]).to.equal(1); // de exceeds
     });
@@ -510,8 +510,6 @@ describe('ClusteringService', () => {
       // salary(1) + lang en(1)
       expect(vector[1]).to.equal(0); // A1 < B2
     });
-
-    // ── Full vector length ──
 
     it('should produce vector with correct length including experience and language dimensions', () => {
       const submission = {
@@ -540,8 +538,7 @@ describe('ClusteringService', () => {
       expect(vector).to.have.lengthOf(13);
     });
 
-    // ── Missing data defaults ──
-
+    // Missing data defaults
     it('should default to 0 when candidateProfile has no experience or languages', () => {
       const submission = {
         answers: [],
@@ -611,11 +608,12 @@ describe('ClusteringService', () => {
     });
   });
 
-  // ── clusterSubmissions ──
-
   describe('clusterSubmissions', () => {
     it('should assign clusterId to all submissions within a vacancy', async () => {
-      await service.clusterSubmissions(CLUSTERING_VACANCY_ID);
+      const vacancy = await vacancyService.findVacancyById(
+        CLUSTERING_VACANCY_ID,
+      );
+      await service.clusterSubmissions(vacancy);
 
       const submissions = await submissionRepository.find({
         where: { vacancyId: CLUSTERING_VACANCY_ID },
@@ -632,8 +630,11 @@ describe('ClusteringService', () => {
       await submissionRepository.delete(clusteringSubmissions[1].id);
       await submissionRepository.delete(clusteringSubmissions[2].id);
 
+      const vacancy = await vacancyService.findVacancyById(
+        CLUSTERING_VACANCY_ID,
+      );
       // Should complete without error
-      await service.clusterSubmissions(CLUSTERING_VACANCY_ID);
+      await service.clusterSubmissions(vacancy);
 
       const remaining = await submissionRepository.findOne({
         where: { id: clusteringSubmissions[0].id },
@@ -643,19 +644,11 @@ describe('ClusteringService', () => {
       expect(remaining!.clusterId).to.be.null;
     });
 
-    it('should throw NOT_FOUND for non-existent vacancy', async () => {
-      try {
-        await service.clusterSubmissions(
-          '00000000-0000-0000-0000-000000000000',
-        );
-        expect.fail('Should have thrown an error');
-      } catch (e: any) {
-        expect(e.status).to.equal(404);
-      }
-    });
-
     it('should group similar submissions into the same cluster', async () => {
-      await service.clusterSubmissions(CLUSTERING_VACANCY_ID);
+      const vacancy = await vacancyService.findVacancyById(
+        CLUSTERING_VACANCY_ID,
+      );
+      await service.clusterSubmissions(vacancy);
 
       const sub1 = await submissionRepository.findOne({
         where: { id: clusteringSubmissions[0].id },
@@ -674,18 +667,22 @@ describe('ClusteringService', () => {
     });
   });
 
-  // ── findSimilar ──
-
   describe('findSimilar', () => {
     it('should return other submissions in the same cluster', async () => {
       // First, run clustering
-      await service.clusterSubmissions(CLUSTERING_VACANCY_ID);
+      const vacancy = await vacancyService.findVacancyById(
+        CLUSTERING_VACANCY_ID,
+      );
+      await service.clusterSubmissions(vacancy);
 
       const sub1 = await submissionRepository.findOne({
         where: { id: clusteringSubmissions[0].id },
       });
 
-      const similar = await service.findSimilar(clusteringSubmissions[0].id);
+      const submission = await vacancySubmissionService.findOneById(
+        clusteringSubmissions[0].id,
+      );
+      const similar = await service.findSimilar(submission);
 
       // Should not include the submission itself
       const ids = similar.map((s) => s.id);
@@ -697,18 +694,12 @@ describe('ClusteringService', () => {
       }
     });
 
-    it('should throw NOT_FOUND for non-existent submission', async () => {
-      try {
-        await service.findSimilar('00000000-0000-0000-0000-000000000000');
-        expect.fail('Should have thrown an error');
-      } catch (e: any) {
-        expect(e.status).to.equal(404);
-      }
-    });
-
     it('should throw BAD_REQUEST when submission is not clustered yet', async () => {
+      const submission = await vacancySubmissionService.findOneById(
+        clusteringSubmissions[0].id,
+      );
       try {
-        await service.findSimilar(clusteringSubmissions[0].id);
+        await service.findSimilar(submission);
         expect.fail('Should have thrown an error');
       } catch (e: any) {
         expect(e.status).to.equal(400);

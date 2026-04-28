@@ -23,12 +23,11 @@ export class ClusteringController {
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
     @AuthUser() requester: UserDto,
   ): Promise<{ message: string }> {
-    const vacancyTenantId =
-      await this.vacancyService.getTenantIdByVacancyId(vacancyId);
+    const vacancy = await this.vacancyService.findVacancyById(vacancyId);
 
-    validateTenantAccess(requester, vacancyTenantId);
+    validateTenantAccess(requester, vacancy.tenantId);
 
-    await this.clusteringService.clusterSubmissions(vacancyId);
+    await this.clusteringService.clusterSubmissions(vacancy);
 
     return { message: 'Clustering completed successfully.' };
   }
@@ -39,13 +38,11 @@ export class ClusteringController {
     @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
     @AuthUser() requester: UserDto,
   ): Promise<VacancySubmissionDto[]> {
-    const tenantId =
-      await this.vacancySubmissionService.getTenantIdBySubmissionId(
-        submissionId,
-      );
+    const submission =
+      await this.vacancySubmissionService.findOneById(submissionId);
 
-    validateTenantAccess(requester, tenantId);
+    validateTenantAccess(requester, submission.tenantId);
 
-    return this.clusteringService.findSimilar(submissionId);
+    return this.clusteringService.findSimilar(submission);
   }
 }
