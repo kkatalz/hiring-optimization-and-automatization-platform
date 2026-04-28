@@ -352,7 +352,7 @@ describe('SaplingService', () => {
           throw error;
         expect(error).to.be.instanceOf(ServiceUnavailableException);
         expect(error.message).to.equal(
-          'Text extraction service is unavailable. Sapling api key is missing.AI detection service is unavailable. Sapling api key is missing.',
+          'Text extraction service is unavailable. Sapling api key is missing.',
         );
       } finally {
         process.env.SAPLING_API_KEY = original;
