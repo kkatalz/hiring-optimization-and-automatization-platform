@@ -1,7 +1,10 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { SaplingService } from './sapling.service';
-import { ServiceUnavailableException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 
 describe('SaplingService', () => {
   let service: SaplingService;
@@ -395,6 +398,118 @@ describe('SaplingService', () => {
       );
 
       expect(result).to.equal(null);
+    });
+
+    it('should return null when API returns non-ok status', async () => {
+      const freshService = new SaplingService();
+
+      sinon.stub(process, 'env').value({
+        ...process.env,
+        SAPLING_API_KEY: 'test-key',
+      });
+
+      sinon.stub(global, 'fetch').resolves({
+        ok: false,
+        status: 500,
+        text: sinon.stub().resolves('error body'),
+      } as any);
+
+      const result = await freshService.extractTextFromDocx(
+        Buffer.from('fake-docx'),
+        'test.docx',
+      );
+
+      expect(result).to.equal(null);
+    });
+  });
+
+  describe('extractTextFromPdf (additional)', () => {
+    it('should return null when fetch throws', async () => {
+      const freshService = new SaplingService();
+
+      sinon.stub(process, 'env').value({
+        ...process.env,
+        SAPLING_API_KEY: 'test-key',
+      });
+
+      sinon.stub(global, 'fetch').rejects(new Error('Network error'));
+
+      const result = await freshService.extractTextFromPdf(
+        Buffer.from('fake-pdf'),
+        'test.pdf',
+      );
+
+      expect(result).to.equal(null);
+    });
+  });
+
+  describe('extractTextFromResumeDependingOnExtension', () => {
+    it('should delegate to extractTextFromPdf for "pdf" extension', async () => {
+      const freshService = new SaplingService();
+      const pdfStub = sinon
+        .stub(freshService, 'extractTextFromPdf')
+        .resolves('pdf text');
+
+      const file = {
+        buffer: Buffer.from('fake-pdf'),
+        originalname: 'resume.pdf',
+      } as Express.Multer.File;
+
+      const result =
+        await freshService.extractTextFromResumeDependingOnExtension(
+          file,
+          'pdf',
+        );
+
+      expect(result).to.equal('pdf text');
+      expect(pdfStub.calledOnceWith(file.buffer, file.originalname)).to.equal(
+        true,
+      );
+    });
+
+    it('should delegate to extractTextFromDocx for "docx" extension', async () => {
+      const freshService = new SaplingService();
+      const docxStub = sinon
+        .stub(freshService, 'extractTextFromDocx')
+        .resolves('docx text');
+
+      const file = {
+        buffer: Buffer.from('fake-docx'),
+        originalname: 'resume.docx',
+      } as Express.Multer.File;
+
+      const result =
+        await freshService.extractTextFromResumeDependingOnExtension(
+          file,
+          'docx',
+        );
+
+      expect(result).to.equal('docx text');
+      expect(docxStub.calledOnceWith(file.buffer, file.originalname)).to.equal(
+        true,
+      );
+    });
+
+    it('should throw BadRequestException for unsupported extension', async () => {
+      const freshService = new SaplingService();
+      const file = {
+        buffer: Buffer.from('fake'),
+        originalname: 'resume.txt',
+      } as Express.Multer.File;
+
+      try {
+        await freshService.extractTextFromResumeDependingOnExtension(
+          file,
+          'txt',
+        );
+        expect.fail('Expected BadRequestException for unsupported extension');
+      } catch (error) {
+        if (error.message?.includes('Expected BadRequest')) throw error;
+        expect(error).to.be.instanceOf(BadRequestException);
+        expect(error.message).to.equal(
+          'Unsupported file type. Only PDF and DOCX are allowed.',
+        );
+      }
     });
   });
 });
