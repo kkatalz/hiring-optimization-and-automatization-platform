@@ -34,7 +34,7 @@ export class VacancySubmissionController {
     private readonly candidateProfileService: CandidateProfileService,
   ) {}
 
-  @Roles(UserRole.admin, UserRole.recruiter)
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Post('approve/:submissionId')
   async approveVacancySubmission(
     @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
@@ -49,7 +49,7 @@ export class VacancySubmissionController {
     return await this.vacancySubmissionService.approve(submissionId);
   }
 
-  @Roles(UserRole.admin, UserRole.recruiter)
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Post('reject/:submissionId')
   async rejectVacancySubmission(
     @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
@@ -79,6 +79,8 @@ export class VacancySubmissionController {
     @Query('order') order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
     const resolvedTenantId = extractUserTenantId(viewer, tenantId);
+
+    validateTenantAccess(viewer, resolvedTenantId);
 
     return await this.vacancySubmissionService.findAllSubmissionsWithinTenantWithFilters(
       resolvedTenantId,
@@ -116,7 +118,7 @@ export class VacancySubmissionController {
     );
   }
 
-  @Roles(UserRole.superAdmin, UserRole.recruiter)
+  @Roles(UserRole.recruiter)
   @Post('add-recruiter-rating/:submissionId')
   async addRecruiterRatingToSubmission(
     @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
@@ -136,7 +138,7 @@ export class VacancySubmissionController {
       submissionRatingDto.rating,
     );
   }
-  @Roles(UserRole.superAdmin, UserRole.recruiter)
+  @Roles(UserRole.recruiter)
   @Patch('update-recruiter-rating/:submissionId')
   async updateRecruiterRatingToSubmission(
     @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
@@ -157,7 +159,7 @@ export class VacancySubmissionController {
     );
   }
 
-  @Roles(UserRole.superAdmin, UserRole.recruiter)
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Delete('remove-recruiter-rating/:submissionId')
   async removeRecruiterRatingToSubmission(
     @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
@@ -199,17 +201,9 @@ export class VacancySubmissionController {
       throw new BadRequestException('File is required.');
     }
 
-    const extension = file.originalname.split('.').pop()?.toLowerCase();
-    if (extension !== 'pdf' && extension !== 'docx') {
-      throw new BadRequestException(
-        'Unsupported file type. Only PDF and DOCX are allowed.',
-      );
-    }
-
     return await this.vacancySubmissionService.parseResumeFile(
       submissionId,
       file,
-      extension,
     );
   }
 

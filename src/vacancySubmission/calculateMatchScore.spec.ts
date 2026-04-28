@@ -213,7 +213,7 @@ describe('calculateMatchScore (unit)', () => {
       expect(score).to.equal(102);
     });
 
-    it('should give extra language bonus (max +3)', () => {
+    it('should give +1 per extra language (uncapped)', () => {
       const options: MatchScoreOptions = {
         vacancyLanguageRequirements: [{ code: 'en', level: LanguageLevel.B2 }],
         candidateLanguages: [
@@ -227,8 +227,8 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore([], [], options);
 
-      // base = 100, extra langs = 4 but capped at +3
-      expect(score).to.equal(103);
+      // base = 100, extra langs = 4 → +4 bonus (no cap)
+      expect(score).to.equal(104);
     });
 
     it('should return proportional score when some required languages not met', () => {
@@ -268,6 +268,53 @@ describe('calculateMatchScore (unit)', () => {
 
       // ratio = 0/1 → 0
       expect(score).to.equal(0);
+    });
+
+    it('should keep highest level when candidate has duplicate code entries', () => {
+      const options: MatchScoreOptions = {
+        vacancyLanguageRequirements: [{ code: 'en', level: LanguageLevel.C1 }],
+        candidateLanguages: [
+          { code: 'en', level: LanguageLevel.A1 },
+          { code: 'en', level: LanguageLevel.C2 },
+        ],
+      };
+
+      const score = service.calculateMatchScore([], [], options);
+
+      // base = 100 (1/1 met via C2), levelBonus = +1 (C2 is 1 level above C1)
+      expect(score).to.equal(101);
+    });
+
+    it('should not add extra-language bonus when codes are duplicateds', () => {
+      // fr appears twice; after dedup it counts as a single extra language (+1, not +2).
+      const options: MatchScoreOptions = {
+        vacancyLanguageRequirements: [{ code: 'en', level: LanguageLevel.B2 }],
+        candidateLanguages: [
+          { code: 'en', level: LanguageLevel.B2 },
+          { code: 'fr', level: LanguageLevel.A1 },
+          { code: 'fr', level: LanguageLevel.B2 },
+        ],
+      };
+
+      const score = service.calculateMatchScore([], [], options);
+
+      // base = 100, extraLangs = +1 (fr counted once), no level bonus
+      expect(score).to.equal(101);
+    });
+
+    it('should compute level bonus from the highest duplicate, not the first one', () => {
+      const options: MatchScoreOptions = {
+        vacancyLanguageRequirements: [{ code: 'en', level: LanguageLevel.B2 }],
+        candidateLanguages: [
+          { code: 'en', level: LanguageLevel.A1 },
+          { code: 'en', level: LanguageLevel.NATIVE },
+        ],
+      };
+
+      const score = service.calculateMatchScore([], [], options);
+
+      // base = 100, NATIVE is 3 levels above B2 → levelBonus = +3
+      expect(score).to.equal(103);
     });
 
     it('should keep highest level when candidate has duplicate code entries', () => {
@@ -650,7 +697,7 @@ describe('calculateMatchScore (unit)', () => {
       expect(score).to.equal(105);
     });
 
-    it('should cap extra language bonus at +3', () => {
+    it('should not cap extra language bonus (each extra language counts +1)', () => {
       const options: MatchScoreOptions = {
         vacancyLanguageRequirements: [{ code: 'en', level: LanguageLevel.A1 }],
         candidateLanguages: [
@@ -665,8 +712,8 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore([], [], options);
 
-      // base = 100, 5 extra langs but capped at +3
-      expect(score).to.equal(103);
+      // base = 100, 5 extra langs → +5 bonus (uncapped)
+      expect(score).to.equal(105);
     });
 
     it('should cap salary bonus at +3', () => {
