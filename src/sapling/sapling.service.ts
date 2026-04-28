@@ -34,9 +34,11 @@ export class SaplingService {
     }
 
     if (!this.apiKey) {
-      this.logger.warn('SAPLING_API_KEY is not set, skipping AI detection');
+      this.logger.warn(
+        'SAPLING_API_KEY is not set, AI detection unavailable. Skipping AI detection.',
+      );
       throw new ServiceUnavailableException(
-        'Text extraction service is unavailable. Sapling api key is missing.',
+        'AI detection service is unavailable. Sapling api key is missing.',
       );
     }
 
@@ -56,7 +58,9 @@ export class SaplingService {
         });
 
         if (!response.ok) {
-          this.logger.warn(`Sapling API returned status ${response.status}`);
+          this.logger.warn(
+            `Sapling API returned status ${response.status} with message: ${await response.text()}`,
+          );
           return null;
         }
 
@@ -139,7 +143,9 @@ export class SaplingService {
     endpoint: 'pdf_to_text' | 'docx_to_text',
   ): Promise<string | null> {
     if (!this.apiKey) {
-      this.logger.warn('SAPLING_API_KEY is not set, skipping text extraction');
+      this.logger.warn(
+        'SAPLING_API_KEY is not set, text extraction unavailable. Skipping text extraction.',
+      );
       throw new ServiceUnavailableException(
         'Text extraction service is unavailable. Sapling api key is missing.',
       );

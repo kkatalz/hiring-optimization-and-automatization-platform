@@ -40,7 +40,7 @@ describe('SaplingService', () => {
         if (error.message?.includes('Expected detectAiContent')) throw error;
         expect(error).to.be.instanceOf(ServiceUnavailableException);
         expect(error.message).to.equal(
-          'Text extraction service is unavailable. Sapling api key is missing.',
+          'SAPLING_API_KEY is not set, AI detection unavailable. Skipping AI detection.',
         );
       } finally {
         process.env.SAPLING_API_KEY = original;
@@ -282,7 +282,7 @@ describe('SaplingService', () => {
         if (error.message?.includes('Expected extractTextFromPdf')) throw error;
         expect(error).to.be.instanceOf(ServiceUnavailableException);
         expect(error.message).to.equal(
-          'Text extraction service is unavailable. Sapling api key is missing.',
+          'AI detection service is unavailable. Sapling api key is missing.',
         );
       } finally {
         process.env.SAPLING_API_KEY = original;
@@ -352,7 +352,7 @@ describe('SaplingService', () => {
           throw error;
         expect(error).to.be.instanceOf(ServiceUnavailableException);
         expect(error.message).to.equal(
-          'Text extraction service is unavailable. Sapling api key is missing.',
+          'Text extraction service is unavailable. Sapling api key is missing.AI detection service is unavailable. Sapling api key is missing.',
         );
       } finally {
         process.env.SAPLING_API_KEY = original;
