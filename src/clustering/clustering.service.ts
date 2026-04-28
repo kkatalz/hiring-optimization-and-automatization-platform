@@ -18,6 +18,8 @@ import {
   LanguageLevelRank,
 } from '../entities/hiring.enum';
 
+const MIN_CLUSTERS = 2;
+
 @Injectable()
 export class ClusteringService {
   private readonly logger = new Logger(ClusteringService.name);
@@ -37,9 +39,25 @@ export class ClusteringService {
 
   /** Builds a feature vector for a given vacancy submission based on order:
    * [question_features..., salary, tag_features..., experience, language_features...]
-   * Example: A vacancy with 1 boolean question (priority 2), salary, 2 tags, 3 years required experience,
-   and 1 language requirement might produce:
-   * [0.5,  0.75,  1 - tag1, 0 - tag2,  0.66,  1]
+   *
+   * Example — a vacancy with:
+   *   - 1 boolean question (priority 2, so weight = 1/2 = 0.5)
+   *   - 1 dropdown question with options ['Bachelor', 'Master'] (priority 1, weight = 1)
+   *   - tags ['React', 'Node']
+   *   - requiredYearsOfExperience = 4
+   *   - language requirement [{ code: 'en', level: 'B2' }]
+   *   - salaryRange { min: 40000, max: 80000 }
+   *
+   * and a submission with:
+   *   - boolean answer = 'true'
+   *   - dropdown answer = ['Master']
+   *   - expectedSalary = 60000
+   *   - tags = ['React']
+   *   - candidateProfile: { yearsOfExperience: 2, languages: [{ en, C1 }] }
+   *
+   * produces:
+   *   [0.5,  0, 1,  0.5,  1, 0,  0.5,  1]
+   *    bool  Bch Mst sal  R  N  exp   en
    */
   buildFeatureVector(
     submission: VacancySubmission,
@@ -59,6 +77,8 @@ export class ClusteringService {
     for (const vq of vacancyQuestions) {
       if (vq.type === QuestionType.text) continue;
 
+      // Safety check - this should not happen due to validation (weights are 1 by default),
+      // but we want to avoid breaking the entire score if it does
       const weight = vq.priority > 0 ? 1 / vq.priority : 1;
       const answer = answerMap.get(vq.questionId);
 
@@ -185,9 +205,8 @@ export class ClusteringService {
 
     const numberOfSubmissions = submissions.length;
 
-    // Ensures that we have at least 2 clusters
     const numberOfClusters = Math.max(
-      2,
+      MIN_CLUSTERS,
       Math.ceil(Math.sqrt(numberOfSubmissions / 2)),
     );
 

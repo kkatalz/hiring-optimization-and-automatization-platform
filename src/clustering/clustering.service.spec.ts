@@ -7,6 +7,7 @@ import {
   testDatabaseConfig,
 } from '../../test/database-setup';
 import { expect } from 'chai';
+import * as sinon from 'sinon';
 import { Repository } from 'typeorm';
 
 import { ClusteringService } from './clustering.service';
@@ -30,6 +31,7 @@ import { SaplingService } from '../sapling/sapling.service';
 import { QuestionType } from '../entities/question.enum';
 import { VacancySubmissionStatus } from '../entities/statuses.enum';
 import { VacancyQuestionDetailedDto } from '../vacancy/dto/vacancyQuestionDetailed.dto';
+import { VacancyDto } from '../vacancy/dto/vacancy.dto';
 
 import { testTenants } from '../../test/fixtures/testTenants';
 import { testUsers } from '../../test/fixtures/testUsers';
@@ -169,6 +171,7 @@ const clusteringAnswers: SubmissionAnswer[] = [
 describe('ClusteringService', () => {
   let service: ClusteringService;
   let submissionRepository: Repository<VacancySubmission>;
+  let vacancyRepository: Repository<Vacancy>;
   let vacancyService: VacancyService;
   let vacancySubmissionService: VacancySubmissionService;
 
@@ -209,6 +212,9 @@ describe('ClusteringService', () => {
     submissionRepository = module.get<Repository<VacancySubmission>>(
       getRepositoryToken(VacancySubmission),
     );
+    vacancyRepository = module.get<Repository<Vacancy>>(
+      getRepositoryToken(Vacancy),
+    );
 
     await loadDatabase({
       Tenant: testTenants,
@@ -222,7 +228,10 @@ describe('ClusteringService', () => {
     });
   });
 
-  afterEach(async () => await cleanDatabase());
+  afterEach(async () => {
+    sinon.restore();
+    await cleanDatabase();
+  });
 
   it('should be defined', () => {
     expect(!!service).to.equal(true);
@@ -704,6 +713,111 @@ describe('ClusteringService', () => {
       } catch (e: any) {
         expect(e.status).to.equal(400);
       }
+    });
+  });
+
+  describe('clusterSubmissions early returns', () => {
+    it('should clear needsReclustering when fewer than 2 submissions exist', async () => {
+      await submissionRepository.delete(clusteringSubmissions[1].id);
+      await submissionRepository.delete(clusteringSubmissions[2].id);
+      await vacancyRepository.update(
+        { id: CLUSTERING_VACANCY_ID },
+        { needsReclustering: true },
+      );
+
+      const vacancy = await vacancyService.findVacancyById(
+        CLUSTERING_VACANCY_ID,
+      );
+      await service.clusterSubmissions(vacancy);
+
+      const updated = await vacancyRepository.findOne({
+        where: { id: CLUSTERING_VACANCY_ID },
+      });
+      expect(updated!.needsReclustering).to.equal(false);
+    });
+
+    it('should clear needsReclustering when feature vectors are empty', async () => {
+      // buildFeatureVector currently always pushes the salary feature, so empty
+      // vectors only occur if the function itself returns []. Stub it to
+      // exercise the defensive guard.
+      sinon.stub(service, 'buildFeatureVector').returns([]);
+      await vacancyRepository.update(
+        { id: CLUSTERING_VACANCY_ID },
+        { needsReclustering: true },
+      );
+
+      const vacancy = await vacancyService.findVacancyById(
+        CLUSTERING_VACANCY_ID,
+      );
+      await service.clusterSubmissions(vacancy);
+
+      const updated = await vacancyRepository.findOne({
+        where: { id: CLUSTERING_VACANCY_ID },
+      });
+      expect(updated!.needsReclustering).to.equal(false);
+    });
+  });
+
+  describe('handleClusteringCron', () => {
+    it('should do nothing when no vacancy is flagged for reclustering', async () => {
+      // Default fixture has needsReclustering: false
+      const clusterSpy = sinon.spy(service, 'clusterSubmissions');
+      await service.handleClusteringCron();
+      expect(clusterSpy.called).to.equal(false);
+    });
+
+    it('should cluster all flagged vacancies and clear the flag', async () => {
+      await vacancyRepository.update(
+        { id: CLUSTERING_VACANCY_ID },
+        { needsReclustering: true },
+      );
+
+      await service.handleClusteringCron();
+
+      const updated = await vacancyRepository.findOne({
+        where: { id: CLUSTERING_VACANCY_ID },
+      });
+      expect(updated!.needsReclustering).to.equal(false);
+
+      const submissions = await submissionRepository.find({
+        where: { vacancyId: CLUSTERING_VACANCY_ID },
+      });
+      for (const sub of submissions) {
+        expect(sub.clusterId).to.not.be.null;
+      }
+    });
+
+    it('should continue processing other vacancies when one throws', async () => {
+      const SECOND_VACANCY_ID = 'cc000000-cccc-cccc-cccc-000000000002';
+      const second = vacancyRepository.create({
+        ...clusteringVacancy,
+        id: SECOND_VACANCY_ID,
+        name: 'Second clustering vacancy',
+        needsReclustering: true,
+      });
+      await vacancyRepository.save(second);
+      await vacancyRepository.update(
+        { id: CLUSTERING_VACANCY_ID },
+        { needsReclustering: true },
+      );
+
+      const clusterStub = sinon
+        .stub(service, 'clusterSubmissions')
+        .callsFake(async (vacancy: VacancyDto) => {
+          if (vacancy.id === CLUSTERING_VACANCY_ID) {
+            throw new Error('forced error');
+          }
+        });
+
+      // Cron should swallow the error and still process the second vacancy
+      await service.handleClusteringCron();
+
+      expect(clusterStub.callCount).to.equal(2);
+      const calledIds = clusterStub
+        .getCalls()
+        .map((c) => (c.args[0] as VacancyDto).id);
+      expect(calledIds).to.include(CLUSTERING_VACANCY_ID);
+      expect(calledIds).to.include(SECOND_VACANCY_ID);
     });
   });
 });

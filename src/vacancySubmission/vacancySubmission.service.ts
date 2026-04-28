@@ -752,6 +752,8 @@ export class VacancySubmissionService {
     const questionDetails: string[] = [];
 
     for (const vq of scorable) {
+      // Safety check - this should not happen due to validation (weights are 1 by default),
+      // but we want to avoid breaking the entire score if it does
       const priorityWeight = vq.priority > 0 ? 1 / vq.priority : 1;
       const candidateAnswer = answerMap.get(vq.questionId);
 
