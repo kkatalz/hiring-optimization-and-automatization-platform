@@ -1,4 +1,5 @@
 import {
+  ArrayUnique,
   IsArray,
   IsEmail,
   IsInt,
@@ -9,8 +10,8 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import { LanguageProficiency } from '../../entities/hiring.enum';
 import { Type } from 'class-transformer';
+import { CandidateLanguageProficiency } from './candidateLanguageProficiency.dto';
 
 export class CreateCandidateProfileDto {
   @IsNotEmpty()
@@ -48,9 +49,15 @@ export class CreateCandidateProfileDto {
 
   @IsNotEmpty()
   @IsArray()
+  @ArrayUnique(
+    (lang: CandidateLanguageProficiency) => lang.code.toLowerCase(),
+    {
+      message: 'languages must not contain duplicate language codes',
+    },
+  )
   @ValidateNested({ each: true })
-  @Type(() => LanguageProficiency)
-  languages: LanguageProficiency[];
+  @Type(() => CandidateLanguageProficiency)
+  languages: CandidateLanguageProficiency[];
 
   @IsOptional()
   @IsString()

@@ -328,9 +328,11 @@ export class VacancySubmissionService {
   async approve(submissionId: string): Promise<VacancySubmissionDto> {
     const submission = await this.findOneById(submissionId);
 
-    if (submission.status !== VacancySubmissionStatus.approved)
-      submission.status = VacancySubmissionStatus.approved;
+    if (submission.status === VacancySubmissionStatus.approved) {
+      return vacancySubmToVacancySubmDto(submission);
+    }
 
+    submission.status = VacancySubmissionStatus.approved;
     const savedSubmission =
       await this.vacancySubmissionRepository.save(submission);
 
@@ -340,9 +342,11 @@ export class VacancySubmissionService {
   async reject(submissionId: string): Promise<VacancySubmissionDto> {
     const submission = await this.findOneById(submissionId);
 
-    if (submission.status !== VacancySubmissionStatus.rejected)
-      submission.status = VacancySubmissionStatus.rejected;
+    if (submission.status === VacancySubmissionStatus.rejected) {
+      return vacancySubmToVacancySubmDto(submission);
+    }
 
+    submission.status = VacancySubmissionStatus.rejected;
     const savedSubmission =
       await this.vacancySubmissionRepository.save(submission);
 
@@ -479,10 +483,7 @@ export class VacancySubmissionService {
     const answers = createVacancySubmissionDto.answers || [];
 
     // Exit if no questions exist and no answers provided
-    if (answers.length === 0 && allVacancyQuestions.length === 0) {
-      createVacancySubmissionDto.answers = [];
-      return;
-    }
+    if (answers.length === 0 && allVacancyQuestions.length === 0) return;
 
     //  Validate that provided answers belong to this vacancy and have valid values
     this.validateProvidedAnswers(answers, allVacancyQuestions);
@@ -648,7 +649,7 @@ export class VacancySubmissionService {
    * Bonuses (added on top, push above 100):
    *   - Dropdown: +1 per extra selected option beyond expected
    *   - Tags: +1 per extra custom tag beyond vacancy's list
-   *   - Languages: +1 per level above required, +1 per extra language (max +3)
+   *   - Languages: +1 per level above required, +1 per extra language (uncapped)
    *   - Experience: +1 per extra year (max +5)
    *   - Salary: up to +3 for being below budget max
    */
@@ -751,7 +752,7 @@ export class VacancySubmissionService {
     const questionDetails: string[] = [];
 
     for (const vq of scorable) {
-      const weight = vq.priority > 0 ? 1 / vq.priority : 1;
+      const priorityWeight = vq.priority > 0 ? 1 / vq.priority : 1;
       const candidateAnswer = answerMap.get(vq.questionId);
 
       let isMatch: number;
@@ -816,8 +817,8 @@ export class VacancySubmissionService {
         `"${vq.label}": expected=[${expected}] answered=[${answered}] match=${isMatch}`,
       );
 
-      weightedSum += weight * isMatch;
-      weightTotal += weight;
+      weightedSum += priorityWeight * isMatch;
+      weightTotal += priorityWeight;
     }
 
     const ratio = weightedSum / weightTotal;
@@ -856,7 +857,7 @@ export class VacancySubmissionService {
     };
   }
 
-  /** Languages component (weight: 8 if not set otherwise). +1 per level above required, +1 per extra language (max +3). */
+  /** Languages component (weight: 8 if not set otherwise). +1 per level above required, +1 per extra language (uncapped). */
   private scoreLanguages(
     requirements?: LanguageProficiency[],
     candidateLangs?: LanguageProficiency[],
@@ -864,11 +865,15 @@ export class VacancySubmissionService {
   ): ScoreResult | null {
     if (!requirements?.length) return null;
 
+    // Defense against duplicate rows; new profiles are blocked at the DTO level.
+    const uniqueCandidateLanguages =
+      this.keepHighestLevelPerCode(candidateLangs);
+
     let metCount = 0;
     let levelBonus = 0;
 
     for (const req of requirements) {
-      const match = candidateLangs?.find((cl) => {
+      const match = uniqueCandidateLanguages.find((cl) => {
         if (req.code && cl.code !== req.code) return false;
         if (req.level) {
           if (!cl.level) return false;
@@ -897,20 +902,48 @@ export class VacancySubmissionService {
     const requiredCodes = new Set(
       requirements.map((r) => r.code).filter(Boolean),
     );
-    const extraLangBonus = Math.min(
-      (candidateLangs || []).filter(
-        (cl) => cl.code && !requiredCodes.has(cl.code),
-      ).length,
-      3,
-    );
+    const extraLangBonus = uniqueCandidateLanguages.filter(
+      (cl) => cl.code && !requiredCodes.has(cl.code),
+    ).length;
 
     return {
       dimension: 'Languages',
       ratio,
       weight: weight ?? 8,
       bonus: levelBonus + extraLangBonus,
-      log: `Languages: ${metCount}/${requirements.length} required (levelBonus: +${levelBonus}, extraLangs: +${extraLangBonus}, weight: ${weight}) { required: [${requirements.map((r) => `${r.code}:${r.level}`).join(', ')}], candidate: [${(candidateLangs || []).map((l) => `${l.code}:${l.level}`).join(', ')}] }`,
+      log: `Languages: ${metCount}/${requirements.length} required (levelBonus: +${levelBonus}, extraLangs: +${extraLangBonus}, weight: ${weight}) { required: [${requirements.map((r) => `${r.code}:${r.level}`).join(', ')}], candidate: [${uniqueCandidateLanguages.map((l) => `${l.code}:${l.level}`).join(', ')}] }`,
     };
+  }
+
+  /** For each language code, keep only the highest-level entry. Entries without a code are passed through. */
+  private keepHighestLevelPerCode(
+    langs?: LanguageProficiency[],
+  ): LanguageProficiency[] {
+    if (!langs?.length) return [];
+
+    const byCode = new Map<string, LanguageProficiency>();
+    const noCode: LanguageProficiency[] = [];
+
+    for (const lang of langs) {
+      if (!lang.code) {
+        noCode.push(lang);
+        continue;
+      }
+      const existing = byCode.get(lang.code);
+      if (!existing) {
+        byCode.set(lang.code, lang);
+        continue;
+      }
+      const existingRank = existing.level
+        ? LanguageLevelRank.indexOf(existing.level)
+        : -1;
+      const candidateRank = lang.level
+        ? LanguageLevelRank.indexOf(lang.level)
+        : -1;
+      if (candidateRank > existingRank) byCode.set(lang.code, lang);
+    }
+
+    return [...byCode.values(), ...noCode];
   }
 
   /** Experience component (weight: 20 if not set otherwise). +1 per extra year above required (max +5). */
@@ -977,9 +1010,15 @@ export class VacancySubmissionService {
   async parseResumeFile(
     submissionId: string,
     file: Express.Multer.File,
-    extension: string,
   ): Promise<VacancySubmissionDto> {
     const submission = await this.findOneById(submissionId);
+
+    const extension = file.originalname.split('.').pop()?.toLowerCase();
+    if (extension !== 'pdf' && extension !== 'docx') {
+      throw new BadRequestException(
+        'Unsupported file type. Only PDF and DOCX are allowed.',
+      );
+    }
 
     const extractedText =
       await this.saplingService.extractTextFromResumeDependingOnExtension(
@@ -1016,17 +1055,11 @@ export class VacancySubmissionService {
   async recalculateMatchScore(
     submissionId: string,
   ): Promise<VacancySubmissionDto> {
-    const submission = await this.vacancySubmissionRepository.findOne({
-      where: { id: submissionId },
-      relations: ['answers', 'candidateProfile', 'candidateProfile.user'],
-    });
-
-    if (!submission) {
-      throw new HttpException(
-        'Vacancy Submission not found.',
-        HttpStatus.NOT_FOUND,
-      );
-    }
+    const submission = await this.findOneById(submissionId, [
+      'answers',
+      'candidateProfile',
+      'candidateProfile.user',
+    ]);
 
     const vacancy = await this.vacancyService.findVacancyById(
       submission.vacancyId,
@@ -1059,9 +1092,13 @@ export class VacancySubmissionService {
     return vacancySubmToVacancySubmDto(saved);
   }
 
-  async findOneById(id: string): Promise<VacancySubmission> {
+  async findOneById(
+    id: string,
+    relations: string[] = [],
+  ): Promise<VacancySubmission> {
     const submission = await this.vacancySubmissionRepository.findOne({
       where: { id },
+      relations,
     });
 
     if (!submission) {

@@ -73,7 +73,7 @@ export class VacancySubmission {
   @Column({
     name: 'match_score',
     type: 'decimal',
-    precision: 5,
+    precision: 7,
     scale: 2,
     default: 0,
     transformer: new ColumnNumericTransformer(),
