@@ -45,7 +45,6 @@ import {
   ScoreResult,
 } from './types/matchingScore.interface';
 import { SaplingService } from '../sapling/sapling.service';
-import { AiDetectionResult } from '../sapling/types/scores.interface';
 
 @Injectable()
 export class VacancySubmissionService {
@@ -143,23 +142,9 @@ export class VacancySubmissionService {
       },
     );
 
-    const commentAiPromise: Promise<AiDetectionResult | null> =
-      createVacancySubmissionDto.comment?.length &&
-      createVacancySubmissionDto.comment.length >= 50
-        ? this.saplingService.detectAiContent(
-            createVacancySubmissionDto.comment,
-          )
-        : Promise.resolve(null);
-
-    const resumeAiPromise: Promise<AiDetectionResult | null> =
-      createVacancySubmissionDto.resume?.length &&
-      createVacancySubmissionDto.resume.length >= 50
-        ? this.saplingService.detectAiContent(createVacancySubmissionDto.resume)
-        : Promise.resolve(null);
-
     const [commentAiResult, resumeAiResult] = await Promise.all([
-      commentAiPromise,
-      resumeAiPromise,
+      this.saplingService.detectAiContent(createVacancySubmissionDto.comment),
+      this.saplingService.detectAiContent(createVacancySubmissionDto.resume),
     ]);
 
     return await this.dataSource.transaction(

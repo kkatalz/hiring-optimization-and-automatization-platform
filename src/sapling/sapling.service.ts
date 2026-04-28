@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { AiDetectionResult, SentenceScore } from './types/scores.interface';
 
 @Injectable()
@@ -12,24 +17,18 @@ export class SaplingService {
   async detectAiContent(
     text: string | undefined,
   ): Promise<AiDetectionResult | null> {
-    if (!text) {
-      this.logger.warn('No text provided for AI detection');
-      throw new BadRequestException('No text provided for AI detection');
+    // Skip silently when there's nothing useful to analyze.
+    if (!text || text.length < 50) {
+      this.logger.warn(
+        `Skipping AI detection: text missing or too short (length: ${text?.length ?? 0})`,
+      );
+      return null;
     }
 
     if (!this.apiKey) {
       this.logger.warn('SAPLING_API_KEY is not set, skipping AI detection');
-      throw new BadRequestException(
+      throw new ServiceUnavailableException(
         'Text extraction service is unavailable. Sapling api key is missing.',
-      );
-    }
-
-    if (text.length < 50) {
-      this.logger.warn(
-        `Text is too short for AI detection (length: ${text?.length ?? 0})`,
-      );
-      throw new BadRequestException(
-        'Text is too short for AI detection. Minimum length is 50 characters.',
       );
     }
 
@@ -47,7 +46,7 @@ export class SaplingService {
 
         if (!response.ok) {
           this.logger.warn(`Sapling API returned status ${response.status}`);
-          throw new Error(`Sapling API error: ${response.status}`);
+          return null;
         }
 
         const data = await response.json();
@@ -125,7 +124,7 @@ export class SaplingService {
   ): Promise<string | null> {
     if (!this.apiKey) {
       this.logger.warn('SAPLING_API_KEY is not set, skipping text extraction');
-      throw new BadRequestException(
+      throw new ServiceUnavailableException(
         'Text extraction service is unavailable. Sapling api key is missing.',
       );
     }
