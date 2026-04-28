@@ -1,5 +1,18 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { AiDetectionResult, SentenceScore } from './types/scores.interface';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
+import {
+  AiDetectionResult,
+  SaplingDetectResponse,
+  SaplingExtractResponse,
+  SentenceScore,
+} from './types/scores.interface';
+
+const AI_DETECT_TIMEOUT_MS = 5000;
+const EXTRACT_TIMEOUT_MS = 15000;
 
 @Injectable()
 export class SaplingService {
@@ -12,30 +25,29 @@ export class SaplingService {
   async detectAiContent(
     text: string | undefined,
   ): Promise<AiDetectionResult | null> {
-    if (!text) {
-      this.logger.warn('No text provided for AI detection');
-      throw new BadRequestException('No text provided for AI detection');
+    // Skip silently when there's nothing useful to analyze.
+    if (!text || text.length < 50) {
+      this.logger.warn(
+        `Skipping AI detection: text missing or too short (length: ${text?.length ?? 0})`,
+      );
+      return null;
     }
 
     if (!this.apiKey) {
-      this.logger.warn('SAPLING_API_KEY is not set, skipping AI detection');
-      throw new BadRequestException(
-        'Text extraction service is unavailable. Sapling api key is missing.',
-      );
-    }
-
-    if (text.length < 50) {
       this.logger.warn(
-        `Text is too short for AI detection (length: ${text?.length ?? 0})`,
+        'SAPLING_API_KEY is not set, AI detection unavailable. Skipping AI detection.',
       );
-      throw new BadRequestException(
-        'Text is too short for AI detection. Minimum length is 50 characters.',
+      throw new ServiceUnavailableException(
+        'AI detection service is unavailable. Sapling api key is missing.',
       );
     }
 
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5000);
+      const timeout = setTimeout(
+        () => controller.abort(),
+        AI_DETECT_TIMEOUT_MS,
+      );
 
       try {
         const response = await fetch('https://api.sapling.ai/api/v1/aidetect', {
@@ -46,25 +58,27 @@ export class SaplingService {
         });
 
         if (!response.ok) {
-          this.logger.warn(`Sapling API returned status ${response.status}`);
-          throw new Error(`Sapling API error: ${response.status}`);
+          this.logger.warn(
+            `Sapling API returned status ${response.status} with message: ${await response.text()}`,
+          );
+          return null;
         }
 
-        const data = await response.json();
-        const rawScore = data?.score;
+        const data = (await response.json()) as SaplingDetectResponse;
+        const rawScore = data.score;
 
         if (rawScore == null) {
           this.logger.warn('Sapling response missing score');
           return null;
         }
 
-        const score = Math.round(rawScore * 100 * 100) / 100;
+        const score = this.roundPercent(rawScore);
 
         const sentenceScores: SentenceScore[] = (
           data.sentence_scores ?? []
-        ).map((entry: { sentence: string; score: number }) => ({
+        ).map((entry) => ({
           sentence: entry.sentence,
-          score: Math.round(entry.score * 100 * 100) / 100,
+          score: this.roundPercent(entry.score),
         }));
 
         return { score, sentenceScores };
@@ -77,6 +91,11 @@ export class SaplingService {
       );
       return null;
     }
+  }
+
+  /** Convert a 0–1 probability into a 0–100 percentage rounded to 2 decimals. */
+  private roundPercent(value: number): number {
+    return Math.round(value * 10000) / 100;
   }
 
   async extractTextFromResumeDependingOnExtension(
@@ -124,8 +143,10 @@ export class SaplingService {
     endpoint: 'pdf_to_text' | 'docx_to_text',
   ): Promise<string | null> {
     if (!this.apiKey) {
-      this.logger.warn('SAPLING_API_KEY is not set, skipping text extraction');
-      throw new BadRequestException(
+      this.logger.warn(
+        'SAPLING_API_KEY is not set, text extraction unavailable. Skipping text extraction.',
+      );
+      throw new ServiceUnavailableException(
         'Text extraction service is unavailable. Sapling api key is missing.',
       );
     }
@@ -145,7 +166,7 @@ export class SaplingService {
       );
 
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
+      const timeout = setTimeout(() => controller.abort(), EXTRACT_TIMEOUT_MS);
 
       try {
         const response = await fetch(
@@ -165,8 +186,8 @@ export class SaplingService {
           return null;
         }
 
-        const data = await response.json();
-        return data?.text ?? null;
+        const data = (await response.json()) as SaplingExtractResponse;
+        return data.text ?? null;
       } finally {
         clearTimeout(timeout);
       }
