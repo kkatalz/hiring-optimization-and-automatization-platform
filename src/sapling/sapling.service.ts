@@ -4,7 +4,12 @@ import {
   Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { AiDetectionResult, SentenceScore } from './types/scores.interface';
+import {
+  AiDetectionResult,
+  SaplingDetectResponse,
+  SaplingExtractResponse,
+  SentenceScore,
+} from './types/scores.interface';
 
 const AI_DETECT_TIMEOUT_MS = 5000;
 const EXTRACT_TIMEOUT_MS = 15000;
@@ -55,8 +60,8 @@ export class SaplingService {
           return null;
         }
 
-        const data = await response.json();
-        const rawScore = data?.score;
+        const data = (await response.json()) as SaplingDetectResponse;
+        const rawScore = data.score;
 
         if (rawScore == null) {
           this.logger.warn('Sapling response missing score');
@@ -175,8 +180,8 @@ export class SaplingService {
           return null;
         }
 
-        const data = await response.json();
-        return data?.text ?? null;
+        const data = (await response.json()) as SaplingExtractResponse;
+        return data.text ?? null;
       } finally {
         clearTimeout(timeout);
       }
