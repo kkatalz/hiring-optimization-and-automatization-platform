@@ -1,10 +1,11 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { VacancySubmission } from '../entities/vacancySubmission';
 import { Vacancy } from '../entities/vacancy';
 import { QuestionType } from '../entities/question.enum';
+import { VacancyDto } from '../vacancy/dto/vacancy.dto';
 import { VacancyQuestionDetailedDto } from '../vacancy/dto/vacancyQuestionDetailed.dto';
 import { VacancySubmissionDto } from '../vacancySubmission/dto/vacancySubmission.dto';
 import { vacancySubmToVacancySubmDto } from '../vacancySubmission/map/vacancySubmission.map';
@@ -30,6 +31,8 @@ export class ClusteringService {
 
     private readonly vacancyService: VacancyService,
     private readonly vacancySubmissionService: VacancySubmissionService,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   /** Builds a feature vector for a given vacancy submission based on order:
@@ -194,11 +197,14 @@ export class ClusteringService {
       submissions[i].clusterId = result.clusters[i];
     }
 
-    await this.submissionRepository.save(submissions);
-    await this.vacancyRepository.update(
-      { id: vacancyId },
-      { needsReclustering: false },
-    );
+    await this.dataSource.transaction(async (manager) => {
+      await manager.save(VacancySubmission, submissions);
+      await manager.update(
+        Vacancy,
+        { id: vacancy.id },
+        { needsReclustering: false },
+      );
+    });
   }
 
   async findSimilar(
