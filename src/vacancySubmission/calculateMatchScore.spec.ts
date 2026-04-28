@@ -269,6 +269,53 @@ describe('calculateMatchScore (unit)', () => {
       // ratio = 0/1 → 0
       expect(score).to.equal(0);
     });
+
+    it('should keep highest level when candidate has duplicate code entries', () => {
+      const options: MatchScoreOptions = {
+        vacancyLanguageRequirements: [{ code: 'en', level: LanguageLevel.C1 }],
+        candidateLanguages: [
+          { code: 'en', level: LanguageLevel.A1 },
+          { code: 'en', level: LanguageLevel.C2 },
+        ],
+      };
+
+      const score = service.calculateMatchScore([], [], options);
+
+      // base = 100 (1/1 met via C2), levelBonus = +1 (C2 is 1 level above C1)
+      expect(score).to.equal(101);
+    });
+
+    it('should not add extra-language bonus when codes are duplicated', () => {
+      // fr appears twice; after dedup it counts as a single extra language (+1, not +2).
+      const options: MatchScoreOptions = {
+        vacancyLanguageRequirements: [{ code: 'en', level: LanguageLevel.B2 }],
+        candidateLanguages: [
+          { code: 'en', level: LanguageLevel.B2 },
+          { code: 'fr', level: LanguageLevel.A1 },
+          { code: 'fr', level: LanguageLevel.B2 },
+        ],
+      };
+
+      const score = service.calculateMatchScore([], [], options);
+
+      // base = 100, extraLangs = +1 (fr counted once), no level bonus
+      expect(score).to.equal(101);
+    });
+
+    it('should compute level bonus from the highest duplicate, not the first one', () => {
+      const options: MatchScoreOptions = {
+        vacancyLanguageRequirements: [{ code: 'en', level: LanguageLevel.B2 }],
+        candidateLanguages: [
+          { code: 'en', level: LanguageLevel.A1 },
+          { code: 'en', level: LanguageLevel.NATIVE },
+        ],
+      };
+
+      const score = service.calculateMatchScore([], [], options);
+
+      // base = 100, NATIVE is 3 levels above B2 → levelBonus = +3
+      expect(score).to.equal(103);
+    });
   });
 
   // --- Experience scoring ---
