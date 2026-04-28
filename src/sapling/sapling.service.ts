@@ -6,6 +6,9 @@ import {
 } from '@nestjs/common';
 import { AiDetectionResult, SentenceScore } from './types/scores.interface';
 
+const AI_DETECT_TIMEOUT_MS = 5000;
+const EXTRACT_TIMEOUT_MS = 15000;
+
 @Injectable()
 export class SaplingService {
   private readonly logger = new Logger(SaplingService.name);
@@ -34,7 +37,10 @@ export class SaplingService {
 
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5000);
+      const timeout = setTimeout(
+        () => controller.abort(),
+        AI_DETECT_TIMEOUT_MS,
+      );
 
       try {
         const response = await fetch('https://api.sapling.ai/api/v1/aidetect', {
@@ -57,13 +63,13 @@ export class SaplingService {
           return null;
         }
 
-        const score = Math.round(rawScore * 100 * 100) / 100;
+        const score = this.roundPercent(rawScore);
 
         const sentenceScores: SentenceScore[] = (
           data.sentence_scores ?? []
-        ).map((entry: { sentence: string; score: number }) => ({
+        ).map((entry) => ({
           sentence: entry.sentence,
-          score: Math.round(entry.score * 100 * 100) / 100,
+          score: this.roundPercent(entry.score),
         }));
 
         return { score, sentenceScores };
@@ -76,6 +82,11 @@ export class SaplingService {
       );
       return null;
     }
+  }
+
+  /** Convert a 0–1 probability into a 0–100 percentage rounded to 2 decimals. */
+  private roundPercent(value: number): number {
+    return Math.round(value * 10000) / 100;
   }
 
   async extractTextFromResumeDependingOnExtension(
@@ -144,7 +155,7 @@ export class SaplingService {
       );
 
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
+      const timeout = setTimeout(() => controller.abort(), EXTRACT_TIMEOUT_MS);
 
       try {
         const response = await fetch(
