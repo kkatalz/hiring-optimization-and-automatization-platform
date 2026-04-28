@@ -1,10 +1,11 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { VacancySubmission } from '../entities/vacancySubmission';
 import { Vacancy } from '../entities/vacancy';
 import { QuestionType } from '../entities/question.enum';
+import { VacancyDto } from '../vacancy/dto/vacancy.dto';
 import { VacancyQuestionDetailedDto } from '../vacancy/dto/vacancyQuestionDetailed.dto';
 import { VacancySubmissionDto } from '../vacancySubmission/dto/vacancySubmission.dto';
 import { vacancySubmToVacancySubmDto } from '../vacancySubmission/map/vacancySubmission.map';
@@ -16,6 +17,8 @@ import {
   LanguageProficiency,
   LanguageLevelRank,
 } from '../entities/hiring.enum';
+
+const MIN_CLUSTERS = 2;
 
 @Injectable()
 export class ClusteringService {
@@ -30,13 +33,31 @@ export class ClusteringService {
 
     private readonly vacancyService: VacancyService,
     private readonly vacancySubmissionService: VacancySubmissionService,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   /** Builds a feature vector for a given vacancy submission based on order:
    * [question_features..., salary, tag_features..., experience, language_features...]
-   * Example: A vacancy with 1 boolean question (priority 2), salary, 2 tags, 3 years required experience,
-   and 1 language requirement might produce:
-   * [0.5,  0.75,  1 - tag1, 0 - tag2,  0.66,  1]
+   *
+   * Example — a vacancy with:
+   *   - 1 boolean question (priority 2, so weight = 1/2 = 0.5)
+   *   - 1 dropdown question with options ['Bachelor', 'Master'] (priority 1, weight = 1)
+   *   - tags ['React', 'Node']
+   *   - requiredYearsOfExperience = 4
+   *   - language requirement [{ code: 'en', level: 'B2' }]
+   *   - salaryRange { min: 40000, max: 80000 }
+   *
+   * and a submission with:
+   *   - boolean answer = 'true'
+   *   - dropdown answer = ['Master']
+   *   - expectedSalary = 60000
+   *   - tags = ['React']
+   *   - candidateProfile: { yearsOfExperience: 2, languages: [{ en, C1 }] }
+   *
+   * produces:
+   *   [0.5,  0, 1,  0.5,  1, 0,  0.5,  1]
+   *    bool  Bch Mst sal  R  N  exp   en
    */
   buildFeatureVector(
     submission: VacancySubmission,
@@ -56,6 +77,8 @@ export class ClusteringService {
     for (const vq of vacancyQuestions) {
       if (vq.type === QuestionType.text) continue;
 
+      // Safety check - this should not happen due to validation (priority defaults to 1
+      // and should be >= 1), but we want to avoid breaking the entire score if it does
       const weight = vq.priority > 0 ? 1 / vq.priority : 1;
       const answer = answerMap.get(vq.questionId);
 
@@ -136,23 +159,25 @@ export class ClusteringService {
     return vector;
   }
 
-  async clusterSubmissions(vacancyId: string): Promise<void> {
-    const vacancy = await this.vacancyService.findVacancyById(vacancyId);
-
+  async clusterSubmissions(vacancy: VacancyDto): Promise<void> {
     const submissions =
       await this.vacancySubmissionService.findSubmissionsWithAnswersByVacancyId(
-        vacancyId,
+        vacancy.id,
       );
 
     if (submissions.length < 2) {
       this.logger.warn(
-        `Not enough submissions to cluster for vacancy ${vacancyId}. At least 2 are required.`,
+        `Not enough submissions to cluster for vacancy ${vacancy.id}. At least 2 are required.`,
+      );
+      await this.vacancyRepository.update(
+        { id: vacancy.id },
+        { needsReclustering: false },
       );
       return;
     }
 
     const vacancyQuestions =
-      await this.vacancyService.findAllQuestionsByVacancyId(vacancyId);
+      await this.vacancyService.findAllQuestionsByVacancyId(vacancy.id);
 
     const allVacancyTags = vacancy.tags || [];
 
@@ -170,13 +195,18 @@ export class ClusteringService {
     );
 
     // If vectors are empty (no features), skip clustering
-    if (vectors[0].length === 0) return;
+    if (vectors[0].length === 0) {
+      await this.vacancyRepository.update(
+        { id: vacancy.id },
+        { needsReclustering: false },
+      );
+      return;
+    }
 
     const numberOfSubmissions = submissions.length;
 
-    // Ensures that we have at least 2 clusters
     const numberOfClusters = Math.max(
-      2,
+      MIN_CLUSTERS,
       Math.ceil(Math.sqrt(numberOfSubmissions / 2)),
     );
 
@@ -186,17 +216,19 @@ export class ClusteringService {
       submissions[i].clusterId = result.clusters[i];
     }
 
-    await this.submissionRepository.save(submissions);
-    await this.vacancyRepository.update(
-      { id: vacancyId },
-      { needsReclustering: false },
-    );
+    await this.dataSource.transaction(async (manager) => {
+      await manager.save(VacancySubmission, submissions);
+      await manager.update(
+        Vacancy,
+        { id: vacancy.id },
+        { needsReclustering: false },
+      );
+    });
   }
 
-  async findSimilar(submissionId: string): Promise<VacancySubmissionDto[]> {
-    const submission =
-      await this.vacancySubmissionService.findOneById(submissionId);
-
+  async findSimilar(
+    submission: VacancySubmission,
+  ): Promise<VacancySubmissionDto[]> {
     if (submission.clusterId == null) {
       throw new HttpException(
         'Submission has not been clustered yet. Run clustering first.',
@@ -210,7 +242,7 @@ export class ClusteringService {
     );
 
     return similar
-      .filter((s) => s.id !== submissionId)
+      .filter((s) => s.id !== submission.id)
       .map(vacancySubmToVacancySubmDto);
   }
 
@@ -218,21 +250,23 @@ export class ClusteringService {
   async handleClusteringCron(): Promise<void> {
     this.logger.log('Running scheduled clustering for stale vacancies...');
 
-    const vacancies = await this.vacancyRepository.find({
+    const vacancyIds = await this.vacancyRepository.find({
       where: { needsReclustering: true },
+      select: ['id'],
     });
 
-    if (vacancies.length === 0) {
+    if (vacancyIds.length === 0) {
       this.logger.log('No vacancies need reclustering. Skipping.');
       return;
     }
 
-    for (const vacancy of vacancies) {
+    for (const { id } of vacancyIds) {
       try {
-        await this.clusterSubmissions(vacancy.id);
+        const vacancy = await this.vacancyService.findVacancyById(id);
+        await this.clusterSubmissions(vacancy);
       } catch (error) {
         this.logger.error(
-          `Failed to cluster vacancy ${vacancy.id}: ${error instanceof Error ? error.message : error}`,
+          `Failed to cluster vacancy ${id}: ${error instanceof Error ? error.message : error}`,
         );
       }
     }
