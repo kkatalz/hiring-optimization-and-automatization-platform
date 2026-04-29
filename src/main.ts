@@ -11,7 +11,11 @@ dotenv.config();
 const requiredEnvVars = [
   'JWT_ACCESS_SECRET',
   'JWT_REFRESH_SECRET',
+  'JWT_RESET_PASSWORD_SECRET',
   'CORS_ORIGIN',
+  'SENDGRID_API_KEY',
+  'SENDGRID_FROM_EMAIL',
+  'FRONTEND_URL',
 ] as const;
 
 for (const envVar of requiredEnvVars) {

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LoginUserDto } from '../auth/dto/login-user.dto';
 import { User } from '../entities/user';
@@ -6,9 +6,13 @@ import { Repository } from 'typeorm';
 import { compare } from 'bcrypt';
 import { sign, verify } from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
+import sgMail from '@sendgrid/mail';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+  private sendGridInitialized = false;
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -75,5 +79,113 @@ export class AuthService {
   async hash(password: string): Promise<string> {
     const salt = await bcrypt.genSalt(12);
     return bcrypt.hash(password, salt);
+  }
+
+  async forgotPassword(email: string): Promise<void> {
+    const user = await this.userRepository.findOne({
+      where: { email, deleted: false },
+    });
+
+    if (!user) return;
+    console.log('User found for password reset:', user.email);
+
+    const token = this.generateResetPasswordToken(user);
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+
+    await this.sendResetPasswordEmail(user, resetUrl, token);
+  }
+
+  generateResetPasswordToken(user: User): string {
+    return sign(
+      {
+        id: user.id,
+        tokenType: 'reset',
+      },
+      process.env.JWT_RESET_PASSWORD_SECRET!,
+      { expiresIn: '30m' },
+    );
+  }
+
+  private async sendResetPasswordEmail(
+    user: User,
+    resetUrl: string,
+    token: string,
+  ): Promise<void> {
+    if (!this.sendGridInitialized) {
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+      console.log('SendGrid API key set:', process.env.SENDGRID_API_KEY);
+      this.sendGridInitialized = true;
+    }
+
+    const subject = 'Reset your password';
+    const text = `Hi ${user.firstName},
+
+You requested a password reset. Open this link to set a new password (expires in 30 minutes):
+${resetUrl}
+
+For Postman testing, the raw token is:
+${token}
+
+If you did not request this, you can ignore this email.`;
+    const html = `<p>Hi ${user.firstName},</p>
+<p>You requested a password reset. Click <a href="${resetUrl}">here</a> to set a new password (expires in 30 minutes).</p>
+<p>For Postman testing, the raw token is:<br><code>${token}</code></p>
+<p>If you did not request this, you can ignore this email.</p>`;
+
+    try {
+      await sgMail.send({
+        to: user.email,
+        from: process.env.SENDGRID_FROM_EMAIL!,
+        subject,
+        text,
+        html,
+      });
+      console.log(
+        'Sending from email:',
+        process.env.SENDGRID_FROM_EMAIL,
+        'to email:',
+        user.email,
+      );
+    } catch (error) {
+      this.logger.error('Failed to send reset password email', error);
+    }
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    let payload: { id: string };
+    try {
+      payload = this.verifyResetPasswordToken(token);
+    } catch {
+      throw new HttpException(
+        'Invalid or expired token.',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const user = await this.findUserById(payload.id);
+    if (!user) {
+      throw new HttpException(
+        'Invalid or expired token.',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    user.password = await this.hash(newPassword);
+    await this.userRepository.save(user);
+  }
+
+  verifyResetPasswordToken(token: string): { id: string } {
+    const decoded = verify(token, process.env.JWT_RESET_PASSWORD_SECRET!, {
+      algorithms: ['HS256'],
+    }) as {
+      id: string;
+      tokenType: string;
+    };
+
+    if (decoded.tokenType !== 'reset') {
+      throw new HttpException('Invalid token type.', HttpStatus.UNAUTHORIZED);
+    }
+
+    return { id: decoded.id };
   }
 }

@@ -2,14 +2,18 @@ import {
   Body,
   Controller,
   ForbiddenException,
+  HttpCode,
   HttpException,
   HttpStatus,
   Post,
   Req,
   Res,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from '../auth/auth.service';
 import { LoginUserDto } from '../auth/dto/login-user.dto';
+import { ForgotPasswordDto } from '../auth/dto/forgotPassword.dto';
+import { ResetPasswordDto } from '../auth/dto/resetPassword.dto';
 import { UserDto } from '../user/dto/user.dto';
 import { Request, Response } from 'express';
 import { userToUserDto } from '../user/map/user.map';
@@ -77,6 +81,31 @@ export class AuthController {
   logout(@Res({ passthrough: true }) res: Response): { message: string } {
     this.clearRefreshTokenCookie(res);
     return { message: 'Logged out successfully.' };
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 3600000 } })
+  async forgotPassword(
+    @Body() forgotPasswordDto: ForgotPasswordDto,
+  ): Promise<{ message: string }> {
+    await this.authService.forgotPassword(forgotPasswordDto.email);
+    return {
+      message:
+        'If an account with that email exists, a reset link has been sent.',
+    };
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
+    await this.authService.resetPassword(
+      resetPasswordDto.token,
+      resetPasswordDto.newPassword,
+    );
+    return { message: 'Password has been reset successfully.' };
   }
 
   private setRefreshTokenCookie(res: Response, token: string): void {
