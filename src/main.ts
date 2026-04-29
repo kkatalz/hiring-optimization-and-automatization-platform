@@ -57,6 +57,11 @@ async function bootstrap() {
       )
       .build();
 
+    app.use('/api/docs', (req, res, next) => {
+      res.removeHeader('Content-Security-Policy');
+      next();
+    });
+
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup('api/docs', app, document, {
       swaggerOptions: { persistAuthorization: true },
