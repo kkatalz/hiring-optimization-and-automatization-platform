@@ -87,12 +87,12 @@ export class AuthService {
     });
 
     if (!user) return;
-    console.log('User found for password reset:', user.email);
 
     const token = this.generateResetPasswordToken(user);
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    const encodedToken = encodeURIComponent(token);
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${encodedToken}`;
 
-    await this.sendResetPasswordEmail(user, resetUrl, token);
+    await this.sendResetPasswordEmail(user, resetUrl);
   }
 
   generateResetPasswordToken(user: User): string {
@@ -109,11 +109,9 @@ export class AuthService {
   private async sendResetPasswordEmail(
     user: User,
     resetUrl: string,
-    token: string,
   ): Promise<void> {
     if (!this.sendGridInitialized) {
       sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
-      console.log('SendGrid API key set:', process.env.SENDGRID_API_KEY);
       this.sendGridInitialized = true;
     }
 
@@ -123,13 +121,10 @@ export class AuthService {
 You requested a password reset. Open this link to set a new password (expires in 30 minutes):
 ${resetUrl}
 
-For Postman testing, the raw token is:
-${token}
-
 If you did not request this, you can ignore this email.`;
+
     const html = `<p>Hi ${user.firstName},</p>
 <p>You requested a password reset. Click <a href="${resetUrl}">here</a> to set a new password (expires in 30 minutes).</p>
-<p>For Postman testing, the raw token is:<br><code>${token}</code></p>
 <p>If you did not request this, you can ignore this email.</p>`;
 
     try {
@@ -140,14 +135,11 @@ If you did not request this, you can ignore this email.`;
         text,
         html,
       });
-      console.log(
-        'Sending from email:',
-        process.env.SENDGRID_FROM_EMAIL,
-        'to email:',
-        user.email,
-      );
     } catch (error) {
-      this.logger.error('Failed to send reset password email', error);
+      this.logger.error(
+        'Failed to send reset password email',
+        error instanceof Error ? (error.stack ?? error.message) : String(error),
+      );
     }
   }
 
