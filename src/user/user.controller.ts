@@ -22,8 +22,6 @@ import { ChangeRoleDto } from './dto/changeRole.dto';
 import { UserDto } from './dto/user.dto';
 import { UserService } from './user.service';
 import { validateTenantAccess } from '../utils/validate';
-import { ChangeEmailDto } from './dto/changeEmail.dto';
-import { ChangePasswordDto } from './dto/changePassword.dto';
 
 @Controller('users')
 export class UserController {
@@ -159,73 +157,6 @@ export class UserController {
     return this.userService.changeRole(userId, changeRoleDto.role);
   }
 
-  /**
-   * SuperAdmin can change email and password for all users without tenant restriction.
-   * Admin can change email and password only for users within their tenant, but not other tenants.
-   * Recruiter can change email and password only for themselves.
-   * Candidate can change email and password only for themselves.
-   */
-  @Roles(
-    UserRole.candidate,
-    UserRole.recruiter,
-    UserRole.superAdmin,
-    UserRole.admin,
-  )
-  @Patch('credentials/email/:userId')
-  async changeEmail(
-    @AuthUser() requester: UserDto,
-    @Param('userId', new ParseUUIDPipe()) userId: string,
-    @Body() changeEmailDto: ChangeEmailDto,
-  ): Promise<UserDto> {
-    const user = await this.userService.findById(userId);
-
-    if (user.tenantId)
-      this.validateAdminRecruiterForCredentialsAccess(
-        requester,
-        user.tenantId,
-        user.id,
-      );
-    else this.validateCandidateSuperAdminForCredentialsAccess(requester, user);
-
-    return await this.userService.changeEmail(userId, changeEmailDto);
-  }
-
-  /**
-   * SuperAdmin can change email and password for all users without tenant restriction.
-   * Admin can change email and password only for users within their tenant, but not other tenants.
-   * Recruiter can change email and password only for themselves.
-   * Candidate can change email and password only for themselves.
-   */
-  @Roles(
-    UserRole.candidate,
-    UserRole.recruiter,
-    UserRole.superAdmin,
-    UserRole.admin,
-  )
-  @Patch('credentials/password/:userId')
-  async changePassword(
-    @AuthUser() requester: UserDto,
-    @Param('userId', new ParseUUIDPipe()) userId: string,
-    @Body() changePasswordDto: ChangePasswordDto,
-  ): Promise<UserDto> {
-    const user = await this.userService.findById(userId);
-
-    if (user.tenantId)
-      this.validateAdminRecruiterForCredentialsAccess(
-        requester,
-        user.tenantId,
-        user.id,
-      );
-    else this.validateCandidateSuperAdminForCredentialsAccess(requester, user);
-
-    const isSelfChange = requester.id === userId;
-    return await this.userService.changePassword(
-      userId,
-      changePasswordDto,
-      isSelfChange,
-    );
-  }
-
   @Roles(UserRole.superAdmin, UserRole.admin)
   @Delete(':userId/tenant/:tenantId')
   async remove(
@@ -279,19 +210,6 @@ export class UserController {
     } else if (requester.role === UserRole.recruiter && requester.id !== userId)
       throw new HttpException(
         'Recruiter can change only their own fields.',
-        HttpStatus.FORBIDDEN,
-      );
-  }
-
-  private validateCandidateSuperAdminForCredentialsAccess(
-    requester: UserDto,
-    user: UserDto,
-  ): void {
-    if (requester.role === UserRole.superAdmin) return;
-
-    if (requester.id !== user.id)
-      throw new HttpException(
-        'You can change only your own credentials.',
         HttpStatus.FORBIDDEN,
       );
   }

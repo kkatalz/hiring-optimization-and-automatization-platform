@@ -1,7 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
-import { compare } from 'bcrypt';
+import { Repository } from 'typeorm';
 import { User } from '../entities/user';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UserDto } from './dto/user.dto';
@@ -10,8 +9,6 @@ import { userToUserDto } from './map/user.map';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { AuthService } from '../auth/auth.service';
 import { UserRole } from '../entities/role.enum';
-import { ChangeEmailDto } from './dto/changeEmail.dto';
-import { ChangePasswordDto } from './dto/changePassword.dto';
 
 @Injectable()
 export class UserService {
@@ -146,69 +143,6 @@ export class UserService {
     user.deleted = true;
 
     await this.userRepository.save(user);
-  }
-
-  async changeEmail(
-    userId: string,
-    changeEmailDto: ChangeEmailDto,
-  ): Promise<UserDto> {
-    const user = await this.findById(userId);
-    const email = changeEmailDto.email;
-
-    const userWithGivenEmail = await this.userRepository.findOne({
-      where: {
-        email,
-        id: Not(userId),
-      },
-    });
-
-    if (userWithGivenEmail) {
-      throw new HttpException(
-        'User with given email already exists. Choose a different email.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    user.email = email;
-
-    const updatedUser = await this.userRepository.save(user);
-
-    return userToUserDto({ user: updatedUser });
-  }
-
-  async changePassword(
-    userId: string,
-    changePasswordDto: ChangePasswordDto,
-    isSelfChange: boolean,
-  ): Promise<UserDto> {
-    const user = await this.findById(userId);
-
-    if (isSelfChange) {
-      if (!changePasswordDto.oldPassword) {
-        throw new HttpException(
-          'Old password is required when changing your own password.',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      const oldPasswordMatches = await compare(
-        changePasswordDto.oldPassword,
-        user.password,
-      );
-
-      if (!oldPasswordMatches) {
-        throw new HttpException(
-          'Old password is incorrect.',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    }
-
-    user.password = await this.authService.hash(changePasswordDto.password);
-
-    const updatedUser = await this.userRepository.save(user);
-
-    return userToUserDto({ user: updatedUser });
   }
 
   async changeRole(userId: string, newRole: UserRole): Promise<UserDto> {
