@@ -7,19 +7,19 @@ import { AppDataSource } from './ormconfig';
  * Run: npm run db:seed
  */
 
-// ── UUIDs (all valid v4 format) ─────────────────────────────────
+//  UUIDs (all valid v4 format)
 // Tenants
 const T1 = '3a1b2c3d-e5f6-4a1b-8c2d-1a0000000001';
 const T2 = '3a1b2c3d-e5f6-4a1b-8c2d-1a0000000002';
 
-// Users — staff
+// Users - staff
 const U_ADMIN_ACME = '4b2c3d4e-f6a7-4b2c-9d3e-2b0000000001';
 const U_REC1_ACME = '4b2c3d4e-f6a7-4b2c-9d3e-2b0000000002';
 const U_REC2_ACME = '4b2c3d4e-f6a7-4b2c-9d3e-2b0000000003';
 const U_ADMIN_BRIGHT = '4b2c3d4e-f6a7-4b2c-9d3e-2b0000000004';
 const U_SUPER = '4b2c3d4e-f6a7-4b2c-9d3e-2b0000000005';
 
-// Users — candidates
+// Users - candidates
 const U_ALICE = '5c3d4e5f-a7b8-4c3d-ae4f-3c0000000001';
 const U_BOB = '5c3d4e5f-a7b8-4c3d-ae4f-3c0000000002';
 const U_CAROL = '5c3d4e5f-a7b8-4c3d-ae4f-3c0000000003';
@@ -65,14 +65,14 @@ async function seed() {
   try {
     await qr.startTransaction();
 
-    // ── 1. Tenants ──────────────────────────────────────────────
+    // Tenants
     await qr.query(`
       INSERT INTO tenants (id, email, slug, deleted) VALUES
         ('${T1}', 'acme-hiring@example.com', 'acme-hiring', false),
         ('${T2}', 'bright-hr@example.com',   'bright-hr',   false)
     `);
 
-    // ── 2. Users ────────────────────────────────────────────────
+    // Users
     await qr.query(`
       INSERT INTO users (id, email, password, first_name, last_name, deleted, role, tenant_id) VALUES
         ('${U_ADMIN_ACME}',  'admin@acme.com',      '${pw}', 'Olivia',   'Chen',      false, 'admin',     '${T1}'),
@@ -87,7 +87,7 @@ async function seed() {
         ('${U_EMMA}',        'emma@gmail.com',      '${pw}', 'Emma',     'Davis',     false, 'candidate', NULL)
     `);
 
-    // ── 3. Candidate profiles ───────────────────────────────────
+    // Candidate profiles
     await qr.query(`
       INSERT INTO candidate_profiles (id, years_of_experience, country, city, languages, user_id) VALUES
         ('${CP_ALICE}', 3, 'USA',     'New York', '[{"code":"en","level":"NATIVE"},{"code":"es","level":"B2"}]',                           '${U_ALICE}'),
@@ -97,7 +97,7 @@ async function seed() {
         ('${CP_EMMA}',  2, 'Canada',  'Toronto',  '[{"code":"en","level":"NATIVE"},{"code":"fr","level":"B1"}]',                           '${U_EMMA}')
     `);
 
-    // ── 4. Vacancies ────────────────────────────────────────────
+    //  Vacancies
     await qr.query(`
       INSERT INTO vacancies (id, name, description, min_salary, max_salary, tenant_id, created_by_id, time_commitment, language_requirements, required_years_of_experience, tags, needs_reclustering) VALUES
         ('${V_FRONTEND}', 'Senior Frontend Developer',
@@ -116,7 +116,7 @@ async function seed() {
          '[{"code":"en","level":"B2"},{"code":"de","level":"A2"}]', 2, '["UX","Figma","Design"]', false)
     `);
 
-    // ── 5. Questions ────────────────────────────────────────────
+    // Questions
     await qr.query(`
       INSERT INTO questions (id, tenant_id, label, type, "answerOptions") VALUES
         ('${Q_REACT_EXP}', '${T1}', 'Do you have commercial experience with React?', 'boolean',  NULL),
@@ -127,7 +127,7 @@ async function seed() {
         ('${Q_POSTGRES}',  '${T1}', 'Do you have experience with PostgreSQL?',        'boolean',  NULL)
     `);
 
-    // ── 6. Vacancy–Question links (expectedValue as JSON strings) ──
+    // Vacancy–Question links (expectedValue as JSON strings)
     await qr.query(`
       INSERT INTO vacancy_questions (vacancy_id, question_id, is_required, priority, expected_value) VALUES
         -- Senior Frontend Developer
@@ -146,7 +146,7 @@ async function seed() {
         ('${V_UX}', '${Q_PROJECT}',   false, 3, NULL)
     `);
 
-    // ── 7. Vacancy submissions ──────────────────────────────────
+    // Vacancy submissions
     await qr.query(`
       INSERT INTO vacancy_submissions (id, comment, vacancy_id, tenant_id, candidate_id, status, tags, match_score, expected_salary) VALUES
         -- Senior Frontend (3 submissions)
@@ -168,7 +168,7 @@ async function seed() {
          '${V_UX}', '${T1}', '${CP_BOB}', 'pending', '["UX","Design"]', 0, 2800)
     `);
 
-    // ── 8. Submission answers ───────────────────────────────────
+    // Submission answers
     // Using uuid_generate_v4() for answer IDs (no need to reference them)
     await qr.query(`
       INSERT INTO submission_answers (id, submission_id, question_id, value) VALUES
