@@ -1,12 +1,4 @@
 import { AppDataSource } from './ormconfig';
-
-/**
- * Seeds the database with realistic mock data for development/demo.
- * Excludes interviews (as requested).
- *
- * Run: npm run db:seed
- */
-
 //  UUIDs (all valid v4 format)
 // Tenants
 const T1 = '3a1b2c3d-e5f6-4a1b-8c2d-1a0000000001';
