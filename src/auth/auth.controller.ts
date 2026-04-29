@@ -5,6 +5,9 @@ import {
   HttpCode,
   HttpException,
   HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
   Post,
   Req,
   Res,
@@ -14,6 +17,11 @@ import { AuthService } from '../auth/auth.service';
 import { LoginUserDto } from '../auth/dto/login-user.dto';
 import { ForgotPasswordDto } from '../auth/dto/forgotPassword.dto';
 import { ResetPasswordDto } from '../auth/dto/resetPassword.dto';
+import { ChangeEmailDto } from '../auth/dto/changeEmail.dto';
+import { ChangePasswordDto } from '../auth/dto/changePassword.dto';
+import { AuthUser } from '../decorators/authUser.dto';
+import { Roles } from '../decorators/roles.decorator';
+import { UserRole } from '../entities/role.enum';
 import { UserDto } from '../user/dto/user.dto';
 import { Request, Response } from 'express';
 import { userToUserDto } from '../user/map/user.map';
@@ -106,6 +114,120 @@ export class AuthController {
       resetPasswordDto.newPassword,
     );
     return { message: 'Password has been reset successfully.' };
+  }
+
+  /**
+   * SuperAdmin can change email for all users without tenant restriction.
+   * Admin can change email only for users within their tenant, but not other tenants.
+   * Recruiter can change email only for themselves.
+   * Candidate can change email only for themselves.
+   */
+  @Roles(
+    UserRole.candidate,
+    UserRole.recruiter,
+    UserRole.superAdmin,
+    UserRole.admin,
+  )
+  @Patch('credentials/email/:userId')
+  async changeEmail(
+    @AuthUser() requester: UserDto,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+    @Body() changeEmailDto: ChangeEmailDto,
+  ): Promise<UserDto> {
+    const user = await this.authService.findUserById(userId);
+    if (!user) {
+      throw new HttpException(
+        'User with given id not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (user.tenantId)
+      this.validateAdminRecruiterForCredentialsAccess(
+        requester,
+        user.tenantId,
+        user.id,
+      );
+    else this.validateCandidateSuperAdminForCredentialsAccess(requester, user);
+
+    return await this.authService.changeEmail(userId, changeEmailDto);
+  }
+
+  /**
+   * SuperAdmin can change password for all users without tenant restriction.
+   * Admin can change password only for users within their tenant, but not other tenants.
+   * Recruiter can change password only for themselves.
+   * Candidate can change password only for themselves.
+   */
+  @Roles(
+    UserRole.candidate,
+    UserRole.recruiter,
+    UserRole.superAdmin,
+    UserRole.admin,
+  )
+  @Patch('credentials/password/:userId')
+  async changePassword(
+    @AuthUser() requester: UserDto,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ): Promise<UserDto> {
+    const user = await this.authService.findUserById(userId);
+    if (!user) {
+      throw new HttpException(
+        'User with given id not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (user.tenantId)
+      this.validateAdminRecruiterForCredentialsAccess(
+        requester,
+        user.tenantId,
+        user.id,
+      );
+    else this.validateCandidateSuperAdminForCredentialsAccess(requester, user);
+
+    const isSelfChange = requester.id === userId;
+    return await this.authService.changePassword(
+      userId,
+      changePasswordDto,
+      isSelfChange,
+    );
+  }
+
+  private validateAdminRecruiterForCredentialsAccess(
+    requester: UserDto,
+    tenantId: string,
+    userId: string,
+  ): void {
+    if (requester.role === UserRole.superAdmin) return;
+
+    if (requester.role === UserRole.candidate) {
+      throw new ForbiddenException('You can change only your own credentials.');
+    }
+
+    if (requester.role === UserRole.admin && requester.tenantId !== tenantId) {
+      throw new ForbiddenException(
+        `You can access users only within your own tenant: ${requester.tenantId}, but not requested: ${tenantId}.`,
+      );
+    } else if (requester.role === UserRole.recruiter && requester.id !== userId)
+      throw new HttpException(
+        'Recruiter can change only their own fields.',
+        HttpStatus.FORBIDDEN,
+      );
+  }
+
+  private validateCandidateSuperAdminForCredentialsAccess(
+    requester: UserDto,
+    user: { id: string },
+  ): void {
+    if (requester.role === UserRole.superAdmin) return;
+
+    if (requester.id !== user.id)
+      throw new HttpException(
+        'You can change only your own credentials.',
+        HttpStatus.FORBIDDEN,
+      );
   }
 
   private setRefreshTokenCookie(res: Response, token: string): void {

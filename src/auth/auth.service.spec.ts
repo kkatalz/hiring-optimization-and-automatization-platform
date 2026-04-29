@@ -1,13 +1,26 @@
+import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
+import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../entities/user';
+import { Tenant } from '../entities/tenant';
 import * as bcrypt from 'bcrypt';
 import { sign } from 'jsonwebtoken';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import sgMail from '@sendgrid/mail';
 import { HttpException } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import {
+  cleanDatabase,
+  loadDatabase,
+  testDatabaseConfig,
+} from '../../test/database-setup';
+import { testTenants } from '../../test/fixtures/testTenants';
+import { testUsers } from '../../test/fixtures/testUsers';
+import { nonExistentUUIDId } from '../../test/utils';
+import { ChangeEmailDto } from './dto/changeEmail.dto';
+import { ChangePasswordDto } from './dto/changePassword.dto';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -190,6 +203,192 @@ describe('AuthService', () => {
         expect(e).to.be.instanceOf(HttpException);
       }
       expect(threw).to.equal(true);
+    });
+  });
+});
+
+describe('AuthService - credentials (DB)', () => {
+  let service: AuthService;
+  let userRepository: Repository<User>;
+
+  beforeEach(async () => {
+    const module = await Test.createTestingModule({
+      imports: [
+        ConfigModule.forRoot(),
+        TypeOrmModule.forRoot(testDatabaseConfig),
+        TypeOrmModule.forFeature([User, Tenant]),
+      ],
+      providers: [AuthService],
+    }).compile();
+
+    service = module.get<AuthService>(AuthService);
+    userRepository = module.get<Repository<User>>(getRepositoryToken(User));
+
+    await loadDatabase({
+      Tenant: testTenants,
+      User: testUsers,
+    });
+  });
+
+  afterEach(async () => {
+    sinon.restore();
+    await cleanDatabase();
+  });
+
+  describe('changeEmail', () => {
+    it('should change email', async () => {
+      const changeEmailDto: ChangeEmailDto = {
+        email: 'changed@dot.com',
+      };
+
+      const changeEmailResult = await service.changeEmail(
+        testUsers[0].id,
+        changeEmailDto,
+      );
+
+      expect(changeEmailResult.email).to.deep.equal('changed@dot.com');
+
+      expect(changeEmailResult).to.not.have.property('password');
+    });
+
+    it('should allow change email if the email from changeEmailDto is the same as current user already has', async () => {
+      const changeEmailDto: ChangeEmailDto = {
+        email: testUsers[0].email,
+      };
+
+      const changeEmailResult = await service.changeEmail(
+        testUsers[0].id,
+        changeEmailDto,
+      );
+
+      expect(changeEmailResult.email).to.equal(testUsers[0].email);
+    });
+
+    it('should throw error if user with given id not found', async () => {
+      const changeEmailDto: ChangeEmailDto = {
+        email: testUsers[0].email,
+      };
+
+      try {
+        await service.changeEmail(nonExistentUUIDId, changeEmailDto);
+
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal('User with given id not found.');
+      }
+    });
+
+    it('should throw if user with provided email already exists', async () => {
+      const changeEmailDto: ChangeEmailDto = {
+        email: testUsers[0].email,
+      };
+
+      try {
+        await service.changeEmail(testUsers[1].id, changeEmailDto);
+
+        expect.fail('Should have thrown a BAD_REQUEST error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal(
+          'User with given email already exists. Choose a different email.',
+        );
+      }
+    });
+  });
+
+  describe('changePassword', () => {
+    it('should change password when admin changes another user (no old password needed)', async () => {
+      const plainPassword = 'my-plain-password';
+      const hashedResult = 'mocked-hash-result';
+
+      const changePasswordDto: ChangePasswordDto = {
+        password: plainPassword,
+      };
+
+      const hashStub = sinon.stub(service, 'hash').resolves(hashedResult);
+
+      await service.changePassword(testUsers[0].id, changePasswordDto, false);
+
+      expect(hashStub.calledOnceWith(plainPassword)).to.be.true;
+
+      const userInDb = await userRepository.findOneBy({ id: testUsers[0].id });
+      expect(userInDb?.password).to.equal(hashedResult);
+    });
+
+    it('should change password when user provides correct old password (self-change)', async () => {
+      const knownOldPassword = 'known-old-password';
+      const hashedOldPassword = await service.hash(knownOldPassword);
+
+      await userRepository.update(testUsers[0].id, {
+        password: hashedOldPassword,
+      });
+
+      const newPassword = 'new-password';
+      const hashedResult = 'mocked-hash-result';
+
+      const changePasswordDto: ChangePasswordDto = {
+        oldPassword: knownOldPassword,
+        password: newPassword,
+      };
+
+      const hashStub = sinon.stub(service, 'hash').resolves(hashedResult);
+
+      await service.changePassword(testUsers[0].id, changePasswordDto, true);
+
+      expect(hashStub.calledOnceWith(newPassword)).to.be.true;
+
+      const userInDb = await userRepository.findOneBy({ id: testUsers[0].id });
+      expect(userInDb?.password).to.equal(hashedResult);
+    });
+
+    it('should throw if old password is missing on self-change', async () => {
+      const changePasswordDto: ChangePasswordDto = {
+        password: 'new-password',
+      };
+
+      try {
+        await service.changePassword(testUsers[0].id, changePasswordDto, true);
+
+        expect.fail('Should have thrown a BAD_REQUEST error but did not');
+      } catch (e: any) {
+        expect(e).to.have.property('status', 400);
+        expect(e.response).to.equal(
+          'Old password is required when changing your own password.',
+        );
+      }
+    });
+
+    it('should throw if old password is incorrect on self-change', async () => {
+      const changePasswordDto: ChangePasswordDto = {
+        oldPassword: 'wrong-password',
+        password: 'new-password',
+      };
+
+      try {
+        await service.changePassword(testUsers[0].id, changePasswordDto, true);
+
+        expect.fail('Should have thrown a BAD_REQUEST error but did not');
+      } catch (e: any) {
+        expect(e).to.have.property('status', 400);
+        expect(e.response).to.equal('Old password is incorrect.');
+      }
+    });
+
+    it('should throw error if user with given id not found', async () => {
+      const changePasswordDto: ChangePasswordDto = {
+        password: 'changePassword',
+      };
+
+      try {
+        await service.changePassword(
+          nonExistentUUIDId,
+          changePasswordDto,
+          false,
+        );
+
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e) {
+        expect(e.response).to.deep.equal('User with given id not found.');
+      }
     });
   });
 });

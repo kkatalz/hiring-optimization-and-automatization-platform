@@ -1,12 +1,16 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LoginUserDto } from '../auth/dto/login-user.dto';
+import { ChangeEmailDto } from '../auth/dto/changeEmail.dto';
+import { ChangePasswordDto } from '../auth/dto/changePassword.dto';
 import { User } from '../entities/user';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { compare } from 'bcrypt';
 import { sign, verify } from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
 import sgMail from '@sendgrid/mail';
+import { UserDto } from '../user/dto/user.dto';
+import { userToUserDto } from '../user/map/user.map';
 
 @Injectable()
 export class AuthService {
@@ -179,5 +183,85 @@ If you did not request this, you can ignore this email.`;
     }
 
     return { id: decoded.id };
+  }
+
+  async changeEmail(
+    userId: string,
+    changeEmailDto: ChangeEmailDto,
+  ): Promise<UserDto> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId, deleted: false },
+    });
+    if (!user) {
+      throw new HttpException(
+        'User with given id not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const email = changeEmailDto.email;
+
+    const userWithGivenEmail = await this.userRepository.findOne({
+      where: {
+        email,
+        id: Not(userId),
+      },
+    });
+
+    if (userWithGivenEmail) {
+      throw new HttpException(
+        'User with given email already exists. Choose a different email.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    user.email = email;
+
+    const updatedUser = await this.userRepository.save(user);
+
+    return userToUserDto({ user: updatedUser });
+  }
+
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+    isSelfChange: boolean,
+  ): Promise<UserDto> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId, deleted: false },
+    });
+    if (!user) {
+      throw new HttpException(
+        'User with given id not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (isSelfChange) {
+      if (!changePasswordDto.oldPassword) {
+        throw new HttpException(
+          'Old password is required when changing your own password.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const oldPasswordMatches = await compare(
+        changePasswordDto.oldPassword,
+        user.password,
+      );
+
+      if (!oldPasswordMatches) {
+        throw new HttpException(
+          'Old password is incorrect.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
+    user.password = await this.hash(changePasswordDto.password);
+
+    const updatedUser = await this.userRepository.save(user);
+
+    return userToUserDto({ user: updatedUser });
   }
 }
