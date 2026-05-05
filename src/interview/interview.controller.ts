@@ -29,6 +29,17 @@ export class InterviewController {
     return await this.interviewService.getAllInterviews(viewer.tenantId);
   }
 
+  @Roles(
+    UserRole.admin,
+    UserRole.recruiter,
+    UserRole.candidate,
+    UserRole.superAdmin,
+  )
+  @Get('me')
+  async getMyInterviews(@AuthUser() viewer: UserDto): Promise<Interview[]> {
+    return this.interviewService.getMyInterviews(viewer);
+  }
+
   @Roles(UserRole.admin, UserRole.recruiter)
   @Patch(':id/interview-status')
   async updateInterviewStatus(

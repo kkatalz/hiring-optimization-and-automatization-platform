@@ -17,6 +17,17 @@ export class InterviewService {
     });
   }
 
+  async getMyInterviews(viewer: UserDto): Promise<Interview[]> {
+    return this.interviewRepository
+      .createQueryBuilder('interview')
+      .where('interview.candidateEmail = :email', { email: viewer.email })
+      .orWhere('interview.interviewersEmails @> :emailJson', {
+        emailJson: JSON.stringify([viewer.email]),
+      })
+      .orderBy('interview.scheduledDate', 'ASC')
+      .getMany();
+  }
+
   async updateInterviewStatus(
     interviewId: string,
     status: InterviewStatus,
