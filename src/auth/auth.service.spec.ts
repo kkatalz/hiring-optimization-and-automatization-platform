@@ -8,7 +8,6 @@ import * as bcrypt from 'bcrypt';
 import { sign } from 'jsonwebtoken';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import sgMail from '@sendgrid/mail';
 import { HttpException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import {
@@ -21,6 +20,7 @@ import { testUsers } from '../../test/fixtures/testUsers';
 import { nonExistentUUIDId } from '../../test/utils';
 import { ChangeEmailDto } from './dto/changeEmail.dto';
 import { ChangePasswordDto } from './dto/changePassword.dto';
+import { MailService } from '../mail/mail.service';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -28,7 +28,7 @@ describe('AuthService', () => {
     findOne: sinon.SinonStub;
     save: sinon.SinonStub;
   };
-  let sgSendStub: sinon.SinonStub;
+  let mailSendStub: sinon.SinonStub;
 
   beforeEach(async () => {
     process.env.JWT_RESET_PASSWORD_SECRET = 'test-reset-secret';
@@ -42,19 +42,17 @@ describe('AuthService', () => {
       save: sinon.stub(),
     };
 
+    mailSendStub = sinon.stub().resolves();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
         { provide: getRepositoryToken(User), useValue: userRepository },
+        { provide: MailService, useValue: { send: mailSendStub } },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-
-    sgSendStub = sinon.stub(sgMail, 'send').resolves([
-      { statusCode: 202, body: '', headers: {} } as never,
-      {},
-    ]);
   });
 
   afterEach(() => {
@@ -135,7 +133,7 @@ describe('AuthService', () => {
 
       await service.forgotPassword('unknown@test.com');
 
-      expect(sgSendStub.called).to.equal(false);
+      expect(mailSendStub.called).to.equal(false);
     });
 
     it('should send an email when user exists', async () => {
@@ -147,12 +145,14 @@ describe('AuthService', () => {
 
       await service.forgotPassword('a@b.com');
 
-      expect(sgSendStub.calledOnce).to.equal(true);
-      const msg = sgSendStub.firstCall.args[0];
+      expect(mailSendStub.calledOnce).to.equal(true);
+      const msg = mailSendStub.firstCall.args[0];
       expect(msg.to).to.equal('a@b.com');
       expect(msg.subject).to.equal('Reset your password');
       expect(msg.html).to.contain('Ada');
-      expect(msg.html).to.contain('http://localhost:3000/reset-password?token=');
+      expect(msg.html).to.contain(
+        'http://localhost:3000/reset-password?token=',
+      );
       expect(msg.text).to.contain('Ada');
     });
   });
@@ -218,7 +218,10 @@ describe('AuthService - credentials (DB)', () => {
         TypeOrmModule.forRoot(testDatabaseConfig),
         TypeOrmModule.forFeature([User, Tenant]),
       ],
-      providers: [AuthService],
+      providers: [
+        AuthService,
+        { provide: MailService, useValue: { send: sinon.stub().resolves() } },
+      ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);

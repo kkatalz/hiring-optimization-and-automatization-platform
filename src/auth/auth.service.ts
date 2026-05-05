@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LoginUserDto } from '../auth/dto/login-user.dto';
 import { ChangeEmailDto } from '../auth/dto/changeEmail.dto';
@@ -8,18 +8,16 @@ import { Not, Repository } from 'typeorm';
 import { compare } from 'bcrypt';
 import { sign, verify } from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
-import sgMail from '@sendgrid/mail';
 import { UserDto } from '../user/dto/user.dto';
 import { userToUserDto } from '../user/map/user.map';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
-  private sendGridInitialized = false;
-
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly mailService: MailService,
   ) {}
 
   async validateUser(loginUserDto: LoginUserDto): Promise<User> {
@@ -114,12 +112,6 @@ export class AuthService {
     user: User,
     resetUrl: string,
   ): Promise<void> {
-    if (!this.sendGridInitialized) {
-      sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
-      this.sendGridInitialized = true;
-    }
-
-    const subject = 'Reset your password';
     const text = `Hi ${user.firstName},
 
 You requested a password reset. Open this link to set a new password (expires in 30 minutes):
@@ -131,20 +123,12 @@ If you did not request this, you can ignore this email.`;
 <p>You requested a password reset. Click <a href="${resetUrl}">here</a> to set a new password (expires in 30 minutes).</p>
 <p>If you did not request this, you can ignore this email.</p>`;
 
-    try {
-      await sgMail.send({
-        to: user.email,
-        from: process.env.SENDGRID_FROM_EMAIL!,
-        subject,
-        text,
-        html,
-      });
-    } catch (error) {
-      this.logger.error(
-        'Failed to send reset password email',
-        error instanceof Error ? (error.stack ?? error.message) : String(error),
-      );
-    }
+    await this.mailService.send({
+      to: user.email,
+      subject: 'Reset your password',
+      text,
+      html,
+    });
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
