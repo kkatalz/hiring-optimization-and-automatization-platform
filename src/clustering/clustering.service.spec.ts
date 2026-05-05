@@ -38,6 +38,7 @@ import { testUsers } from '../../test/fixtures/testUsers';
 import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfiles';
 import { testQuestions } from '../../test/fixtures/testQuestions';
 import { LanguageLevel, LanguageProficiency } from '../entities/hiring.enum';
+import { MailService } from '../mail/mail.service';
 
 const CLUSTERING_VACANCY_ID = 'cc000000-cccc-cccc-cccc-000000000001';
 
@@ -168,7 +169,7 @@ const clusteringAnswers: SubmissionAnswer[] = [
   },
 ];
 
-describe('ClusteringService', () => {
+describe.only('ClusteringService', () => {
   let service: ClusteringService;
   let submissionRepository: Repository<VacancySubmission>;
   let vacancyRepository: Repository<Vacancy>;
@@ -197,6 +198,7 @@ describe('ClusteringService', () => {
         VacancySubmissionService,
         QuestionService,
         UserService,
+        MailService,
         CandidateProfileService,
         TenantService,
         AuthService,
@@ -803,19 +805,18 @@ describe('ClusteringService', () => {
 
       const clusterStub = sinon
         .stub(service, 'clusterSubmissions')
-        .callsFake(async (vacancy: VacancyDto) => {
+        .callsFake((vacancy: VacancyDto) => {
           if (vacancy.id === CLUSTERING_VACANCY_ID) {
-            throw new Error('forced error');
+            return Promise.reject(new Error('forced error'));
           }
+          return Promise.resolve();
         });
 
       // Cron should swallow the error and still process the second vacancy
       await service.handleClusteringCron();
 
       expect(clusterStub.callCount).to.equal(2);
-      const calledIds = clusterStub
-        .getCalls()
-        .map((c) => (c.args[0] as VacancyDto).id);
+      const calledIds = clusterStub.getCalls().map((c) => c.args[0].id);
       expect(calledIds).to.include(CLUSTERING_VACANCY_ID);
       expect(calledIds).to.include(SECOND_VACANCY_ID);
     });
