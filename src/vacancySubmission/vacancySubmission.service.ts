@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   forwardRef,
   HttpException,
   HttpStatus,
@@ -12,6 +13,7 @@ import { VacancySubmission } from '../entities/vacancySubmission';
 import { VacancyService } from '../vacancy/vacancy.service';
 import { CreateVacancySubmissionDto } from './dto/createVacancySubmission.dto';
 import { VacancySubmissionDto } from './dto/vacancySubmission.dto';
+import { MatchScoreExplanationDto } from './dto/matchScoreExplanation.dto';
 import { vacancySubmToVacancySubmDto } from './map/vacancySubmission.map';
 import { DataSource, Repository, SelectQueryBuilder } from 'typeorm';
 import { Vacancy } from '../entities/vacancy';
@@ -596,7 +598,7 @@ export class VacancySubmissionService {
   }
 
   /**
-   * Validates that at least one submission tag matches a vacancy tag.
+   * Validates that at least one submission tag matches a vacancy tag (if the vacancy has required tags).
    * Candidates can add their own custom tags beyond the vacancy's list.
    */
   private validateSubmissionTags(
@@ -606,10 +608,10 @@ export class VacancySubmissionService {
     const submissionTags = createVacancySubmissionDto.tags;
     const vacancyTags = vacancy.tags;
 
-    if (!submissionTags?.length || !vacancyTags?.length) return;
+    if (!vacancyTags?.length) return;
 
     const vacancyTagSet = new Set(vacancyTags);
-    const hasAtLeastOneMatch = submissionTags.some((tag) =>
+    const hasAtLeastOneMatch = submissionTags?.some((tag) =>
       vacancyTagSet.has(tag),
     );
 
@@ -629,7 +631,7 @@ export class VacancySubmissionService {
    * By default, they are set to: Questions: 50, Tags: 12, Languages: 8, Experience: 20, Salary: 10
    *
    * Base score = sum(ratio * weight) / sum(applicableWeights) * 100
-   *   → all requirements met = exactly 100
+   *   -> all requirements met = exactly 100
    *
    * Bonuses (added on top, push above 100):
    *   - Dropdown: +1 per extra selected option beyond expected
@@ -643,6 +645,26 @@ export class VacancySubmissionService {
     vacancyQuestions: VacancyQuestionDetailedDto[],
     options?: MatchScoreOptions,
   ): number {
+    const { score, explanation } = this.buildMatchScoreReport(
+      answers,
+      vacancyQuestions,
+      options,
+    );
+    this.logger.log(explanation);
+    return score;
+  }
+
+  /**
+   * Computes the match score AND a human-readable breakdown describing how
+   * the score was derived. Both are returned so callers can either log the
+   * explanation server-side or surface it to the user (e.g., for candidates
+   * who want to understand their own score).
+   */
+  private buildMatchScoreReport(
+    answers: QuestionAnswerAllRequiredDto[],
+    vacancyQuestions: VacancyQuestionDetailedDto[],
+    options?: MatchScoreOptions,
+  ): { score: number; explanation: string } {
     const w: Required<CustomWeights> = {
       questions: options?.customWeights?.questions ?? 50,
       tags: options?.customWeights?.tags ?? 12,
@@ -687,8 +709,10 @@ export class VacancySubmissionService {
     const totalWeight = results.reduce((sum, r) => sum + r.weight, 0);
 
     if (totalWeight === 0) {
-      this.logger.log('MatchScore: 0 (no applicable scoring dimensions)');
-      return 0;
+      return {
+        score: 0,
+        explanation: 'MatchScore: 0 (no applicable scoring dimensions)',
+      };
     }
 
     // baseScore is the weighted average of how well the candidate meets the requirements, normalized to 100
@@ -702,18 +726,40 @@ export class VacancySubmissionService {
 
     const totalScore = baseScore + bonusPoints;
 
+    const activeNames = new Set(results.map((r) => r.dimension));
+    const allConfigured: { name: string; weight: number }[] = [
+      { name: 'Questions', weight: w.questions },
+      { name: 'Tags', weight: w.tags },
+      { name: 'Languages', weight: w.languages },
+      { name: 'Experience', weight: w.experience },
+      { name: 'Salary', weight: w.salary },
+    ];
+    const skipped = allConfigured
+      .filter((d) => d.weight > 0 && !activeNames.has(d.name))
+      .map((d) => `${d.name}(weight=${d.weight}, not applicable)`);
+
     const weightDistribution = results
       .map(
         (r) =>
-          `${r.dimension}: ${((r.weight / totalWeight) * 100).toFixed(1)}%`,
+          `${r.dimension} weight=${r.weight} -> (${r.weight}/${totalWeight} =) ${((r.weight / totalWeight) * 100).toFixed(1)}%`,
       )
       .join(', ');
-    const logLines = results.map((r) => `  - ${r.log}`).join('\n');
-    this.logger.log(
-      `MatchScore: base=${baseScore.toFixed(2)}/100 + bonuses=${bonusPoints.toFixed(2)} = ${totalScore.toFixed(2)}\n  Weight distribution: [${weightDistribution}]\n${logLines}`,
-    );
 
-    return Math.round(totalScore * 100) / 100;
+    const baseBreakdown = results
+      .map(
+        (r) =>
+          `${r.dimension}(${r.ratio.toFixed(2)}×${r.weight}=${(r.ratio * r.weight).toFixed(2)})`,
+      )
+      .join(' + ');
+
+    const logLines = results.map((r) => `  - ${r.log}`).join('\n');
+
+    const explanation = `MatchScore: ${totalScore.toFixed(2)} = base ${baseScore.toFixed(2)} + bonuses ${bonusPoints.toFixed(2)}
+  Active dimensions (totalWeight=${totalWeight}): ${weightDistribution}${skipped.length ? `; Skipped: ${skipped.join(', ')}` : ''}
+  Base = (${baseBreakdown}) / ${totalWeight} × 100 = ${baseScore.toFixed(2)}
+${logLines}`;
+
+    return { score: Math.round(totalScore * 100) / 100, explanation };
   }
 
   /** Questions component (weight: 50 if not set otherwise). Scores boolean and dropdown questions with expectedValue. */
@@ -814,7 +860,7 @@ export class VacancySubmissionService {
       ratio,
       weight,
       bonus,
-      log: `Questions: ${(ratio * 100).toFixed(1)}% match (bonus: +${bonus} with provided weight - ${weight}) { ${questionDetails.join('; ')} }`,
+      log: `Questions: (${weightedSum.toFixed(2)}/${weightTotal.toFixed(2)} =) ${(ratio * 100).toFixed(1)}% match (bonus: +${bonus} with provided weight - ${weight}) { ${questionDetails.join('; ')} }`,
     };
   }
 
@@ -1060,23 +1106,76 @@ export class VacancySubmissionService {
     submission.matchScore = this.calculateMatchScore(
       submission.answers || [],
       vacancyQuestions,
-      {
-        candidateLanguages: submission.candidateProfile?.languages,
-        candidateYearsOfExperience:
-          submission.candidateProfile?.yearsOfExperience,
-        vacancyLanguageRequirements: vacancy.languageRequirements,
-        vacancyRequiredYearsOfExperience: vacancy.requiredYearsOfExperience,
-        vacancyTags: vacancy.tags,
-        vacancyMinSalary: vacancy.minSalary,
-        vacancyMaxSalary: vacancy.maxSalary,
-        submissionTags: submission.tags,
-        expectedSalary: submission.expectedSalary,
-        customWeights: vacancy.customWeights,
-      },
+      this.buildMatchScoreOptions(submission, vacancy),
     );
 
     const saved = await this.vacancySubmissionRepository.save(submission);
     return vacancySubmToVacancySubmDto(saved);
+  }
+
+  /**
+   * Returns the candidate-facing match score breakdown for a submission.
+   * Only the candidate who owns the submission may call this.
+   */
+  async getMatchScoreExplanation(
+    submissionId: string,
+    requesterUserId: string,
+  ): Promise<MatchScoreExplanationDto> {
+    const submission = await this.findOneById(submissionId, [
+      'answers',
+      'candidateProfile',
+      'candidateProfile.user',
+    ]);
+
+    if (submission.candidateProfile?.user?.id !== requesterUserId) {
+      throw new ForbiddenException(
+        'Candidates can view the match score only for their own submissions.',
+      );
+    }
+
+    const vacancy = await this.vacancyService.findVacancyById(
+      submission.vacancyId,
+    );
+
+    const vacancyQuestions =
+      await this.vacancyService.findAllQuestionsByVacancyId(
+        submission.vacancyId,
+      );
+
+    const { score, explanation } = this.buildMatchScoreReport(
+      submission.answers || [],
+      vacancyQuestions,
+      this.buildMatchScoreOptions(submission, vacancy),
+    );
+
+    // update score if the new recompute (score) disagrees with
+    // the stored value, write the fresh score to db, so recruiter dashboards
+    // and candidate views stay consistent.
+    if (submission.matchScore !== score) {
+      submission.matchScore = score;
+      await this.vacancySubmissionRepository.save(submission);
+    }
+
+    return { matchScore: score, explanation };
+  }
+
+  private buildMatchScoreOptions(
+    submission: VacancySubmission,
+    vacancy: VacancyDto,
+  ): MatchScoreOptions {
+    return {
+      candidateLanguages: submission.candidateProfile?.languages,
+      candidateYearsOfExperience:
+        submission.candidateProfile?.yearsOfExperience,
+      vacancyLanguageRequirements: vacancy.languageRequirements,
+      vacancyRequiredYearsOfExperience: vacancy.requiredYearsOfExperience,
+      vacancyTags: vacancy.tags,
+      vacancyMinSalary: vacancy.minSalary,
+      vacancyMaxSalary: vacancy.maxSalary,
+      submissionTags: submission.tags,
+      expectedSalary: submission.expectedSalary,
+      customWeights: vacancy.customWeights,
+    };
   }
 
   async findOneById(
@@ -1095,5 +1194,13 @@ export class VacancySubmissionService {
       );
     }
     return submission;
+  }
+
+  async setStatus(
+    submission: VacancySubmission,
+    status: VacancySubmissionStatus,
+  ): Promise<VacancySubmission> {
+    submission.status = status;
+    return this.vacancySubmissionRepository.save(submission);
   }
 }

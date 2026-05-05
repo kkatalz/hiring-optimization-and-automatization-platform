@@ -357,7 +357,7 @@ describe('CandidateProfileService', () => {
     it('should require ALL languages to match (AND logic), not just one', async () => {
       // testCandidatesProfiles[0] has: en/NATIVE
       // testCandidatesProfiles[1] has: ukr/NATIVE, en/C1, de/B1
-      // Filter: fr AND en → candidateProfiles[0] has en but not fr, candidateProfiles[1] has en but not fr
+      // Filter: fr AND en -> candidateProfiles[0] has en but not fr, candidateProfiles[1] has en but not fr
       const result = await candidateProfileService.findAllCandidatesWithFilters(
         {
           languages: [{ code: 'fr' }, { code: 'en' }],
@@ -369,7 +369,7 @@ describe('CandidateProfileService', () => {
 
     it('should return candidates who meet all language requirements', async () => {
       // testCandidatesProfiles[1] has: ukr/NATIVE, en/C1, de/B1
-      // Filter: en AND de → candidateProfiles[1] has both
+      // Filter: en AND de -> candidateProfiles[1] has both
       const result = await candidateProfileService.findAllCandidatesWithFilters(
         {
           languages: [

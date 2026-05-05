@@ -164,36 +164,36 @@ async function seed() {
     // Using uuid_generate_v4() for answer IDs (no need to reference them)
     await qr.query(`
       INSERT INTO submission_answers (id, submission_id, question_id, value) VALUES
-        -- Alice → Senior Frontend
+        -- Alice -> Senior Frontend
         (uuid_generate_v4(), '${S_ALICE_FE}', '${Q_REACT_EXP}', '"true"'),
         (uuid_generate_v4(), '${S_ALICE_FE}', '${Q_EDUCATION}', '["Bachelor"]'),
         (uuid_generate_v4(), '${S_ALICE_FE}', '${Q_PROJECT}',   '"Built a real-time dashboard for IoT monitoring with React and WebSockets."'),
         (uuid_generate_v4(), '${S_ALICE_FE}', '${Q_TECH}',      '["React","Node.js"]'),
-        -- Bob → Senior Frontend
+        -- Bob -> Senior Frontend
         (uuid_generate_v4(), '${S_BOB_FE}', '${Q_REACT_EXP}', '"true"'),
         (uuid_generate_v4(), '${S_BOB_FE}', '${Q_EDUCATION}', '["Master"]'),
         (uuid_generate_v4(), '${S_BOB_FE}', '${Q_PROJECT}',   '"Migrated a legacy jQuery app to React with zero downtime."'),
         (uuid_generate_v4(), '${S_BOB_FE}', '${Q_TECH}',      '["React","Angular","Vue"]'),
-        -- Dan → Senior Frontend
+        -- Dan -> Senior Frontend
         (uuid_generate_v4(), '${S_DAN_FE}', '${Q_REACT_EXP}', '"true"'),
         (uuid_generate_v4(), '${S_DAN_FE}', '${Q_EDUCATION}', '["PhD"]'),
         (uuid_generate_v4(), '${S_DAN_FE}', '${Q_PROJECT}',   '"Led a team of 5 building a design system used across 12 products."'),
         (uuid_generate_v4(), '${S_DAN_FE}', '${Q_TECH}',      '["React","Angular","Python","Java"]'),
-        -- Carol → Junior Backend
+        -- Carol -> Junior Backend
         (uuid_generate_v4(), '${S_CAROL_BE}', '${Q_POSTGRES}',  '"true"'),
         (uuid_generate_v4(), '${S_CAROL_BE}', '${Q_EDUCATION}', '["Bachelor"]'),
         (uuid_generate_v4(), '${S_CAROL_BE}', '${Q_PROJECT}',   '"Created a REST API for a university project with Express and PostgreSQL."'),
         (uuid_generate_v4(), '${S_CAROL_BE}', '${Q_RELOCATE}',  '"true"'),
-        -- Emma → Junior Backend
+        -- Emma -> Junior Backend
         (uuid_generate_v4(), '${S_EMMA_BE}', '${Q_POSTGRES}',  '"false"'),
         (uuid_generate_v4(), '${S_EMMA_BE}', '${Q_EDUCATION}', '["High School"]'),
         (uuid_generate_v4(), '${S_EMMA_BE}', '${Q_PROJECT}',   '"Built a personal budget tracker API with Node.js and MongoDB."'),
         (uuid_generate_v4(), '${S_EMMA_BE}', '${Q_RELOCATE}',  '"false"'),
-        -- Alice → UX Designer
+        -- Alice -> UX Designer
         (uuid_generate_v4(), '${S_ALICE_UX}', '${Q_RELOCATE}',  '"true"'),
         (uuid_generate_v4(), '${S_ALICE_UX}', '${Q_EDUCATION}', '["Bachelor"]'),
         (uuid_generate_v4(), '${S_ALICE_UX}', '${Q_PROJECT}',   '"Redesigned the onboarding flow for a fintech app, increasing completion by 40%."'),
-        -- Bob → UX Designer
+        -- Bob -> UX Designer
         (uuid_generate_v4(), '${S_BOB_UX}', '${Q_RELOCATE}',  '"true"'),
         (uuid_generate_v4(), '${S_BOB_UX}', '${Q_EDUCATION}', '["Master"]'),
         (uuid_generate_v4(), '${S_BOB_UX}', '${Q_PROJECT}',   '"Conducted user research and A/B testing for an e-commerce platform."')

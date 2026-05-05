@@ -151,7 +151,7 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore([], [], options);
 
-      // ratio = 2/4 = 0.5 → 50
+      // ratio = 2/4 = 0.5 -> 50
       expect(score).to.equal(50);
     });
 
@@ -227,7 +227,7 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore([], [], options);
 
-      // base = 100, extra langs = 4 → +4 bonus (no cap)
+      // base = 100, extra langs = 4 -> +4 bonus (no cap)
       expect(score).to.equal(104);
     });
 
@@ -242,7 +242,7 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore([], [], options);
 
-      // ratio = 1/2 = 0.5 → base 50, levelBonus = +1 (C1 is 1 above B2)
+      // ratio = 1/2 = 0.5 -> base 50, levelBonus = +1 (C1 is 1 above B2)
       expect(score).to.equal(51);
     });
 
@@ -254,7 +254,7 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore([], [], options);
 
-      // ratio = 0/1 → base 0, extraLangs = +1 (de not in requirements)
+      // ratio = 0/1 -> base 0, extraLangs = +1 (de not in requirements)
       expect(score).to.equal(1);
     });
 
@@ -266,7 +266,7 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore([], [], options);
 
-      // ratio = 0/1 → 0
+      // ratio = 0/1 -> 0
       expect(score).to.equal(0);
     });
 
@@ -313,7 +313,7 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore([], [], options);
 
-      // base = 100, NATIVE is 3 levels above B2 → levelBonus = +3
+      // base = 100, NATIVE is 3 levels above B2 -> levelBonus = +3
       expect(score).to.equal(103);
     });
 
@@ -360,7 +360,7 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore([], [], options);
 
-      // base = 100, NATIVE is 3 levels above B2 → levelBonus = +3
+      // base = 100, NATIVE is 3 levels above B2 -> levelBonus = +3
       expect(score).to.equal(103);
     });
   });
@@ -399,7 +399,7 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore([], [], options);
 
-      // ratio = 5/10 = 0.5 → 50
+      // ratio = 5/10 = 0.5 -> 50
       expect(score).to.equal(50);
     });
 
@@ -479,7 +479,7 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore([], [], options);
 
-      // min=max=2000, expectedSalary <= 2000 → ratio=1, bonus=2 (single-value bonus)
+      // min=max=2000, expectedSalary <= 2000 -> ratio=1, bonus=2 (single-value bonus)
       expect(score).to.equal(102);
     });
 
@@ -492,7 +492,7 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore([], [], options);
 
-      // salary range not available → salary component skipped
+      // salary range not available -> salary component skipped
       expect(score).to.equal(0);
     });
   });
@@ -712,7 +712,7 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore([], [], options);
 
-      // base = 100, 5 extra langs → +5 bonus (uncapped)
+      // base = 100, 5 extra langs -> +5 bonus (uncapped)
       expect(score).to.equal(105);
     });
 
@@ -733,7 +733,7 @@ describe('calculateMatchScore (unit)', () => {
       const options: MatchScoreOptions = {
         vacancyLanguageRequirements: [{ code: 'en', level: LanguageLevel.B2 }],
         candidateLanguages: [
-          { code: 'en', level: LanguageLevel.NATIVE }, // B2→C1→C2→NATIVE = 3 levels above
+          { code: 'en', level: LanguageLevel.NATIVE }, // B2->C1->C2->NATIVE = 3 levels above
         ],
       };
 
@@ -759,8 +759,8 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore(answers, questions, options);
 
-      // questions: ratio=1, weight=3 → 1*3 = 3
-      // experience: ratio=0.5, weight=2 → 0.5*2 = 1
+      // questions: ratio=1, weight=3 -> 1*3 = 3
+      // experience: ratio=0.5, weight=2 -> 0.5*2 = 1
       // totalWeight = 5, base = (3 + 1) / 5 * 100 = 80
       expect(score).to.equal(80);
     });
@@ -772,13 +772,13 @@ describe('calculateMatchScore (unit)', () => {
       const options: MatchScoreOptions = {
         vacancyTags: ['React', 'Node'],
         submissionTags: ['React', 'Node'],
-        customWeights: { questions: 30 }, // tags not specified → default 12
+        customWeights: { questions: 30 }, // tags not specified -> default 12
       };
 
       const score = service.calculateMatchScore(answers, questions, options);
 
-      // questions: ratio=1, weight=30 → 30
-      // tags: ratio=1, weight=12 → 12
+      // questions: ratio=1, weight=30 -> 30
+      // tags: ratio=1, weight=12 -> 12
       // totalWeight = 42, base = 42/42*100 = 100
       expect(score).to.equal(100);
     });
@@ -795,8 +795,8 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore(answers, questions, options);
 
-      // experience weight=0 → dimension skipped entirely (no ratio, no bonus)
-      // questions: ratio=1, weight=60 → base = 60/60*100 = 100, no bonuses
+      // experience weight=0 -> dimension skipped entirely (no ratio, no bonus)
+      // questions: ratio=1, weight=60 -> base = 60/60*100 = 100, no bonuses
       expect(score).to.equal(100);
     });
 
@@ -814,8 +814,8 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore(answers, questions, options);
 
-      // languages weight=0 → skipped, no bonus leak
-      // questions: ratio=1, weight=50 → base = 100
+      // languages weight=0 -> skipped, no bonus leak
+      // questions: ratio=1, weight=50 -> base = 100
       expect(score).to.equal(100);
     });
 
@@ -830,7 +830,7 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore(answers, questions, options);
 
-      // tags weight=0 → skipped, no bonus leak
+      // tags weight=0 -> skipped, no bonus leak
       expect(score).to.equal(100);
     });
 
@@ -846,7 +846,7 @@ describe('calculateMatchScore (unit)', () => {
 
       const score = service.calculateMatchScore(answers, questions, options);
 
-      // salary weight=0 → skipped, no bonus leak
+      // salary weight=0 -> skipped, no bonus leak
       expect(score).to.equal(100);
     });
 
