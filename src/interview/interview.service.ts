@@ -14,6 +14,8 @@ import { VacancySubmission } from '../entities/vacancySubmission';
 import { VacancySubmissionService } from '../vacancySubmission/vacancySubmission.service';
 import { MailService } from '../mail/mail.service';
 import { CreateInterviewDto } from './dto/createInterview.dto';
+import { InterviewViewDto } from './dto/interviewView.dto';
+import { toInterviewViewDto } from './map/interview.map';
 import { UserDto } from '../user/dto/user.dto';
 import { validateTenantAccess } from '../utils/validate';
 
@@ -32,8 +34,8 @@ export class InterviewService {
     });
   }
 
-  async getMyInterviews(viewer: UserDto): Promise<Interview[]> {
-    return this.interviewRepository
+  async getMyInterviews(viewer: UserDto): Promise<InterviewViewDto[]> {
+    const interviews = await this.interviewRepository
       .createQueryBuilder('interview')
       .where('interview.candidateEmail = :email', { email: viewer.email })
       .orWhere(
@@ -45,6 +47,10 @@ export class InterviewService {
       )
       .orderBy('interview.scheduledDate', 'ASC')
       .getMany();
+
+    return interviews.map((interview) =>
+      toInterviewViewDto(interview, viewer.role),
+    );
   }
 
   async scheduleInterview(

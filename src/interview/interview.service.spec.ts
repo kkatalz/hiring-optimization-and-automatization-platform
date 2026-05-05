@@ -283,7 +283,7 @@ describe('InterviewService', () => {
   });
 
   describe('getMyInterviews', () => {
-    it('should return interviews where viewer is the candidate', async () => {
+    it('should return interviews where viewer is the candidate (notes hidden)', async () => {
       const candidate: UserDto = {
         id: 'x',
         email: testInterviews[0].candidateEmail,
@@ -296,9 +296,10 @@ describe('InterviewService', () => {
 
       expect(result).to.have.length(1);
       expect(result[0].id).to.equal(testInterviews[0].id);
+      expect(result[0].notes).to.equal(undefined);
     });
 
-    it('should return interviews where viewer is an interviewer in the same tenant', async () => {
+    it('should return interviews where viewer is an interviewer in the same tenant (notes visible)', async () => {
       const interviewer: UserDto = {
         id: 'x',
         email: testInterviews[0].interviewersEmails[0],
@@ -312,6 +313,7 @@ describe('InterviewService', () => {
 
       expect(result).to.have.length(1);
       expect(result[0].id).to.equal(testInterviews[0].id);
+      expect(result[0].notes).to.equal(testInterviews[0].notes);
     });
 
     it('should NOT leak interviews to an interviewer-email user from a different tenant', async () => {

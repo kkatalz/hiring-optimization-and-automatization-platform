@@ -12,6 +12,7 @@ import { Roles } from '../decorators/roles.decorator';
 import { Interview } from '../entities/interview';
 import { UserRole } from '../entities/role.enum';
 import { CreateInterviewDto } from '../interview/dto/createInterview.dto';
+import { InterviewViewDto } from '../interview/dto/interviewView.dto';
 import { UpdateInterviewDto } from '../interview/dto/updateInterview.dto';
 import { InterviewService } from '../interview/interview.service';
 import { UserDto } from '../user/dto/user.dto';
@@ -38,7 +39,9 @@ export class InterviewController {
     UserRole.superAdmin,
   )
   @Get('me')
-  async getMyInterviews(@AuthUser() viewer: UserDto): Promise<Interview[]> {
+  async getMyInterviews(
+    @AuthUser() viewer: UserDto,
+  ): Promise<InterviewViewDto[]> {
     return this.interviewService.getMyInterviews(viewer);
   }
 
