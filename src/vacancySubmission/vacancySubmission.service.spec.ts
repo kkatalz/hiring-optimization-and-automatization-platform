@@ -42,6 +42,7 @@ import { LanguageLevel } from '../entities/hiring.enum';
 import { VacancySubmissionFilterDto } from './dto/vacancySubmissionFilter.dto';
 import { testSubmissionAnswers } from '../../test/fixtures/testSubmissionAnswers';
 import { SaplingService } from '../sapling/sapling.service';
+import { MailService } from '../mail/mail.service';
 
 describe('VacancySubmissionService', () => {
   let service: VacancySubmissionService;
@@ -70,6 +71,7 @@ describe('VacancySubmissionService', () => {
         VacancyService,
         QuestionService,
         UserService,
+        MailService,
         CandidateProfileService,
         TenantService,
         AuthService,
