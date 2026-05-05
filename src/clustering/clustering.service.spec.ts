@@ -169,7 +169,7 @@ const clusteringAnswers: SubmissionAnswer[] = [
   },
 ];
 
-describe.only('ClusteringService', () => {
+describe('ClusteringService', () => {
   let service: ClusteringService;
   let submissionRepository: Repository<VacancySubmission>;
   let vacancyRepository: Repository<Vacancy>;

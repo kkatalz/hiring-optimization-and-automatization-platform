@@ -362,7 +362,7 @@ describe('VacancySubmissionService', () => {
     // experience and salary to calculateMatchScore.
     // vacancy[0] has questions: q0 (bool, priority 1, expected 'true'),
     //   q2 (dropdown, priority 2, expected ['Bachelor']), salary '1000-1100 USD'
-    // user[5] → candidateProfile[0]: yearsOfExperience: 2, languages: [en/NATIVE]
+    // user[5] -> candidateProfile[0]: yearsOfExperience: 2, languages: [en/NATIVE]
 
     it('should include language scoring in matchScore when vacancy has languageRequirements', async () => {
       const vacancyId = testVacancies[0].id;
@@ -421,7 +421,7 @@ describe('VacancySubmissionService', () => {
       const vacancyId = testVacancies[0].id;
       const userId = testUsers[5].id;
 
-      // vacancy[0] salary = '1000-1100 USD', expectedSalary = 1050 → within budget
+      // vacancy[0] salary = '1000-1100 USD', expectedSalary = 1050 -> within budget
       // Questions: ratio=1, weight=50 | Salary: ratio=1, weight=10, bonus=(1100−1050)/(1100−1000)*3=1.5
       // base = (50+10)/60*100 = 100, bonus = 1.5, total = 101.5
       const result = await service.create(
@@ -1275,7 +1275,7 @@ describe('VacancySubmissionService', () => {
           filter,
         );
 
-        // testUsers[5] → candidateProfile[0] has yearsOfExperience=2, so no match
+        // testUsers[5] -> candidateProfile[0] has yearsOfExperience=2, so no match
         // The fixture submission candidate has yearsOfExperience=5 but matchScore=0
         expect(result).to.deep.equal([]);
       });
@@ -1451,7 +1451,7 @@ describe('VacancySubmissionService', () => {
     describe('language AND filter logic', () => {
       it('should require ALL languages to match (AND logic), not just one', async () => {
         // testCandidatesProfiles[1] has: ukr/NATIVE, en/C1, de/B1
-        // Filter requires both fr AND en → should fail because candidate doesn't know French
+        // Filter requires both fr AND en -> should fail because candidate doesn't know French
         const filter: VacancySubmissionFilterDto = {
           languages: [{ code: 'fr' }, { code: 'en' }],
         };
@@ -1466,7 +1466,7 @@ describe('VacancySubmissionService', () => {
 
       it('should return submissions when candidate meets all language requirements', async () => {
         // testCandidatesProfiles[1] has: ukr/NATIVE, en/C1, de/B1
-        // Filter requires both en and de → candidate has both
+        // Filter requires both en and de -> candidate has both
         const filter: VacancySubmissionFilterDto = {
           languages: [
             { code: 'en', level: LanguageLevel.B2 },

@@ -1457,7 +1457,7 @@ describe('VacancyService', () => {
       // Zoo keeper helper 1: minSalary 500
       // Zoo keeper: minSalary 1000
       // Frontend Developer: minSalary 3000
-      // Backend Engineer: minSalary null → last
+      // Backend Engineer: minSalary null -> last
       expect(result.data.length).to.equal(EXPECTED__VACANCIES_NUM);
 
       const names = result.data.map((v) => v.name);

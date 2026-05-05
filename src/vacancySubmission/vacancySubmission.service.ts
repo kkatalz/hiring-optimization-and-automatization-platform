@@ -629,7 +629,7 @@ export class VacancySubmissionService {
    * By default, they are set to: Questions: 50, Tags: 12, Languages: 8, Experience: 20, Salary: 10
    *
    * Base score = sum(ratio * weight) / sum(applicableWeights) * 100
-   *   → all requirements met = exactly 100
+   *   -> all requirements met = exactly 100
    *
    * Bonuses (added on top, push above 100):
    *   - Dropdown: +1 per extra selected option beyond expected
