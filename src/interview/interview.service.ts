@@ -152,10 +152,14 @@ export class InterviewService {
       : 'Candidate';
     const vacancyName = submission.vacancy?.name ?? 'the position';
 
-    const recipients = [
-      interview.candidateEmail,
-      ...(interview.interviewersEmails ?? []),
-    ].filter((email) => !!email);
+    const recipients = Array.from(
+      new Set(
+        [
+          interview.candidateEmail,
+          ...(interview.interviewersEmails ?? []),
+        ].filter((email) => !!email),
+      ),
+    );
 
     if (recipients.length === 0) return;
 
