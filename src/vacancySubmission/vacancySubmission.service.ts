@@ -1096,4 +1096,12 @@ export class VacancySubmissionService {
     }
     return submission;
   }
+
+  async setStatus(
+    submission: VacancySubmission,
+    status: VacancySubmissionStatus,
+  ): Promise<VacancySubmission> {
+    submission.status = status;
+    return this.vacancySubmissionRepository.save(submission);
+  }
 }

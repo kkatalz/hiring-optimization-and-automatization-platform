@@ -5,11 +5,13 @@ import {
   Param,
   ParseUUIDPipe,
   Patch,
+  Post,
 } from '@nestjs/common';
 import { AuthUser } from '../decorators/authUser.dto';
 import { Roles } from '../decorators/roles.decorator';
 import { Interview } from '../entities/interview';
 import { UserRole } from '../entities/role.enum';
+import { CreateInterviewDto } from '../interview/dto/createInterview.dto';
 import { UpdateInterviewDto } from '../interview/dto/updateInterview.dto';
 import { InterviewService } from '../interview/interview.service';
 import { UserDto } from '../user/dto/user.dto';
@@ -38,6 +40,18 @@ export class InterviewController {
   @Get('me')
   async getMyInterviews(@AuthUser() viewer: UserDto): Promise<Interview[]> {
     return this.interviewService.getMyInterviews(viewer);
+  }
+
+  @Roles(UserRole.admin, UserRole.recruiter)
+  @Post()
+  async scheduleInterview(
+    @AuthUser() recruiter: UserDto,
+    @Body() createInterviewDto: CreateInterviewDto,
+  ): Promise<Interview> {
+    return this.interviewService.scheduleInterview(
+      createInterviewDto,
+      recruiter,
+    );
   }
 
   @Roles(UserRole.admin, UserRole.recruiter)

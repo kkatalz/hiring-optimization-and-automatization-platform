@@ -5,12 +5,20 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  IsUUID,
+  IsUrl,
   MaxLength,
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateInterviewDto {
+  @IsUUID()
+  submissionId: string;
+
+  @IsUrl({ require_protocol: true })
+  meetLink: string;
+
   @Type(() => Date)
   @IsDate()
   scheduledDate: Date;
@@ -23,7 +31,7 @@ export class CreateInterviewDto {
   @IsOptional()
   @IsArray()
   @IsEmail({}, { each: true })
-  interviewers?: string[];
+  interviewersEmails?: string[];
 
   @IsOptional()
   @IsString()
