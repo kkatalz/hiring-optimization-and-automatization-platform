@@ -298,7 +298,7 @@ describe('InterviewService', () => {
       expect(result[0].id).to.equal(testInterviews[0].id);
     });
 
-    it('should return interviews where viewer is an interviewer', async () => {
+    it('should return interviews where viewer is an interviewer in the same tenant', async () => {
       const interviewer: UserDto = {
         id: 'x',
         email: testInterviews[0].interviewersEmails[0],
@@ -312,6 +312,21 @@ describe('InterviewService', () => {
 
       expect(result).to.have.length(1);
       expect(result[0].id).to.equal(testInterviews[0].id);
+    });
+
+    it('should NOT leak interviews to an interviewer-email user from a different tenant', async () => {
+      const crossTenantInterviewer: UserDto = {
+        id: 'x',
+        email: testInterviews[0].interviewersEmails[0],
+        firstName: 'I',
+        lastName: 'I',
+        role: UserRole.recruiter,
+        tenantId: '00000000-0000-0000-0000-000000000999',
+      };
+
+      const result = await service.getMyInterviews(crossTenantInterviewer);
+
+      expect(result).to.have.length(0);
     });
 
     it('should return empty when viewer is neither candidate nor interviewer', async () => {

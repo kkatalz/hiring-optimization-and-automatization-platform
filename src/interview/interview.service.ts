@@ -36,9 +36,13 @@ export class InterviewService {
     return this.interviewRepository
       .createQueryBuilder('interview')
       .where('interview.candidateEmail = :email', { email: viewer.email })
-      .orWhere('interview.interviewersEmails @> :emailJson', {
-        emailJson: JSON.stringify([viewer.email]),
-      })
+      .orWhere(
+        'interview.interviewersEmails @> :emailJson AND interview.tenantId = :tenantId',
+        {
+          emailJson: JSON.stringify([viewer.email]),
+          tenantId: viewer.tenantId ?? null,
+        },
+      )
       .orderBy('interview.scheduledDate', 'ASC')
       .getMany();
   }
