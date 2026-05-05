@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   ForbiddenException,
+  Get,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -16,6 +17,7 @@ import { Roles } from '../decorators/roles.decorator';
 import { UserRole } from '../entities/role.enum';
 import { UserDto } from '../user/dto/user.dto';
 import { CreateVacancySubmissionDto } from './dto/createVacancySubmission.dto';
+import { MatchScoreExplanationDto } from './dto/matchScoreExplanation.dto';
 import { VacancySubmissionDto } from '../vacancySubmission/dto/vacancySubmission.dto';
 import { VacancySubmissionService } from './vacancySubmission.service';
 import { validateTenantAccess } from '../utils/validate';
@@ -222,6 +224,18 @@ export class VacancySubmissionController {
 
     return await this.vacancySubmissionService.recalculateMatchScore(
       submissionId,
+    );
+  }
+
+  @Roles(UserRole.candidate)
+  @Get(':submissionId/match-score')
+  async showMatchScoreBySubmissionId(
+    @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
+    @AuthUser() candidate: UserDto,
+  ): Promise<MatchScoreExplanationDto> {
+    return this.vacancySubmissionService.getMatchScoreExplanation(
+      submissionId,
+      candidate.id,
     );
   }
 

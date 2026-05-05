@@ -629,6 +629,33 @@ describe('VacancySubmissionService', () => {
     }
   });
 
+  it('should throw BadRequestException if vacancy has tags but submission omits them', async () => {
+    const vacancyTags = ['zoo', 'animals'];
+    await vacancyRepository.update(testVacancies[1].id, { tags: vacancyTags });
+
+    const vacancy = await vacancyRepository.findOneOrFail({
+      where: { id: testVacancies[1].id },
+    });
+
+    const CreateVacancySubmissionDto: CreateVacancySubmissionDto = {
+      comment: 'Looking forward to this opportunity!',
+      answers: [{ questionId: testQuestions[0].id, value: 'true' }],
+    };
+
+    const userId = testUsers[5].id;
+
+    try {
+      await service.create(CreateVacancySubmissionDto, vacancy.id, userId);
+      expect.fail('Should have thrown a BadRequestException but did not');
+    } catch (e) {
+      expect(e.response).to.deep.equal({
+        statusCode: 400,
+        message: `At least one of your tags must match the vacancy's required tags: ${vacancyTags.join(', ')}.`,
+        error: 'Bad Request',
+      });
+    }
+  });
+
   it('should throw NOT_FOUND error if vacancy does not exist', async () => {
     const CreateVacancySubmissionDto: CreateVacancySubmissionDto = {
       comment: 'Looking forward to this opportunity!',
