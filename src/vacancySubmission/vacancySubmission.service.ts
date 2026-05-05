@@ -1148,6 +1148,14 @@ ${logLines}`;
       this.buildMatchScoreOptions(submission, vacancy),
     );
 
+    // update score if the new recompute (score) disagrees with
+    // the stored value, write the fresh score to db, so recruiter dashboards
+    // and candidate views stay consistent.
+    if (submission.matchScore !== score) {
+      submission.matchScore = score;
+      await this.vacancySubmissionRepository.save(submission);
+    }
+
     return { matchScore: score, explanation };
   }
 
