@@ -100,18 +100,31 @@ export class InterviewService {
   ): Promise<Interview> {
     const interview = await this.interviewRepository.findOne({
       where: { id: interviewId },
+      relations: [
+        'submission',
+        'submission.candidateProfile',
+        'submission.candidateProfile.user',
+        'submission.vacancy',
+      ],
     });
 
     if (!interview) {
       throw new NotFoundException('Interview not found');
     }
 
+    const wasCanceled = interview.status === InterviewStatus.canceled;
     interview.status = status;
     if (notes) {
       interview.notes = notes;
     }
 
-    return this.interviewRepository.save(interview);
+    const saved = await this.interviewRepository.save(interview);
+
+    if (status === InterviewStatus.canceled && !wasCanceled) {
+      await this.notifyAttendees(saved, saved.submission, 'cancellation');
+    }
+
+    return saved;
   }
 
   async getTenantIdByInterviewId(interviewId: string): Promise<string> {
