@@ -11,6 +11,10 @@ import { LanguageProficiency } from '../../entities/hiring.enum';
 import { Type } from 'class-transformer';
 
 export class CandidateProfileFilterDto {
+  /**
+   * It can be first name, last name, or email.
+   * @example "Alice|Baker|alice@gmail.com"
+   */
   @IsOptional()
   @IsString()
   search?: string;
