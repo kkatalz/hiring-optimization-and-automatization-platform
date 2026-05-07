@@ -27,6 +27,10 @@ import { extractUserTenantId } from '../utils/extractUserTenantId';
 import { SubmissionRatingDto } from './dto/submissionRating.dto';
 import { CandidateProfileService } from '../candidateProfile/candidateProfile.service';
 import { UploadResume } from '../utils/upload-resume.decorator';
+import {
+  SubmissionSortQueryDto,
+  SubmissionTenantSortQueryDto,
+} from './dto/submissionSortQuery.dto';
 
 @Controller('vacanciesSubmissions')
 export class VacancySubmissionController {
@@ -75,20 +79,18 @@ export class VacancySubmissionController {
   @Post('get/filter/within/tenant')
   async findAllSubmissionsWithinTenant(
     @AuthUser() viewer: UserDto,
+    @Query() sortQuery: SubmissionTenantSortQueryDto,
     @Body() filterSubmissionsDto?: VacancySubmissionFilterDto,
-    @Query('tenantId') tenantId?: string,
-    @Query('sortBy') sortBy?: string,
-    @Query('order') order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
-    const resolvedTenantId = extractUserTenantId(viewer, tenantId);
+    const resolvedTenantId = extractUserTenantId(viewer, sortQuery.tenantId);
 
     validateTenantAccess(viewer, resolvedTenantId);
 
     return await this.vacancySubmissionService.findAllSubmissionsWithinTenantWithFilters(
       resolvedTenantId,
       filterSubmissionsDto,
-      sortBy,
-      order,
+      sortQuery.sortBy,
+      sortQuery.order,
     );
   }
 
@@ -103,9 +105,8 @@ export class VacancySubmissionController {
   async findAllSubmissionsWithinVacancy(
     @AuthUser() viewer: UserDto,
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
+    @Query() sortQuery: SubmissionSortQueryDto,
     @Body() filterSubmissionsDto?: VacancySubmissionFilterDto,
-    @Query('sortBy') sortBy?: string,
-    @Query('order') order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
     const vacancyTenantId =
       await this.vacancyService.getTenantIdByVacancyId(vacancyId);
@@ -115,8 +116,8 @@ export class VacancySubmissionController {
     return await this.vacancySubmissionService.findAllSubmissionsWithinVacancyWithFilters(
       vacancyId,
       filterSubmissionsDto,
-      sortBy,
-      order,
+      sortQuery.sortBy,
+      sortQuery.order,
     );
   }
 
