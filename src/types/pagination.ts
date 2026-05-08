@@ -5,12 +5,18 @@ export const DEFAULT_PAGE = 1;
 export const DEFAULT_LIMIT = 20;
 
 export class PaginationQueryDto {
+  /**
+   * @example 1
+   */
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   page?: number;
 
+  /**
+   * @example 20
+   */
   @IsOptional()
   @Type(() => Number)
   @IsInt()

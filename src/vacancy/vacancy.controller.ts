@@ -62,6 +62,10 @@ export class VacancyController {
     );
   }
 
+  /**
+   * Returns GeneralVacancyDto (no tenantId, submissions, or customWeights),
+   * not tenant-scoped — every requester, including candidates, sees all vacancies.
+   */
   @Roles(
     UserRole.superAdmin,
     UserRole.admin,
@@ -79,8 +83,8 @@ export class VacancyController {
   }
 
   /**
-   * Returns filtered vacancies scoped to the requester's tenant.
-   * SuperAdmins see all vacancies across tenants.
+   * Search for superAdmin, admin, recruiter. Returns full VacancyDto (includes tenantId, submissions, customWeights).
+   * Tenant-scoped; superAdmins see all tenants.
    */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Post('search')
@@ -101,6 +105,9 @@ export class VacancyController {
     );
   }
 
+  /**
+   * Same shape and access as GET /vacancies/browse, with filters applied.
+   */
   @Roles(
     UserRole.superAdmin,
     UserRole.admin,

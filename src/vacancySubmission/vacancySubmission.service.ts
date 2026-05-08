@@ -47,6 +47,10 @@ import {
   ScoreResult,
 } from './types/matchingScore.interface';
 import { SaplingService } from '../sapling/sapling.service';
+import {
+  SubmissionSortField,
+  SUBMISSION_SORT_FIELDS,
+} from './dto/submissionSortQuery.dto';
 
 @Injectable()
 export class VacancySubmissionService {
@@ -259,7 +263,7 @@ export class VacancySubmissionService {
   async findAllSubmissionsWithinVacancyWithFilters(
     vacancyId: string,
     filterSubmissionsDto?: VacancySubmissionFilterDto,
-    sortBy?: string,
+    sortBy?: SubmissionSortField,
     order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
     const query = this.createBaseSubmissionQuery().where(
@@ -289,7 +293,7 @@ export class VacancySubmissionService {
   async findAllSubmissionsWithinTenantWithFilters(
     tenantId: string,
     filterSubmissionsDto?: VacancySubmissionFilterDto,
-    sortBy?: string,
+    sortBy?: SubmissionSortField,
     order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
     const query = this.createBaseSubmissionQuery().where(
@@ -348,19 +352,10 @@ export class VacancySubmissionService {
       .leftJoinAndSelect('submission.answers', 'answers');
   }
 
-  private static readonly ALLOWED_SORT_FIELDS = [
-    'matchScore',
-    'createdAt',
-    'expectedSalary',
-    'recruiterRating',
-    'commentAiScore',
-    'resumeAiScore',
-  ];
-
   private async executeFilteredSubmissions(
     query: SelectQueryBuilder<VacancySubmission>,
     filterDto?: VacancySubmissionFilterDto,
-    sortBy?: string,
+    sortBy?: SubmissionSortField,
     order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
     if (!filterDto) {
@@ -429,13 +424,10 @@ export class VacancySubmissionService {
 
   private applySorting(
     query: SelectQueryBuilder<VacancySubmission>,
-    sortBy?: string,
+    sortBy?: SubmissionSortField,
     order?: 'ASC' | 'DESC',
   ): void {
-    if (
-      sortBy &&
-      VacancySubmissionService.ALLOWED_SORT_FIELDS.includes(sortBy)
-    ) {
+    if (sortBy && SUBMISSION_SORT_FIELDS.includes(sortBy)) {
       const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
       query.orderBy(`submission.${sortBy}`, direction, 'NULLS LAST');
     }
@@ -650,7 +642,7 @@ export class VacancySubmissionService {
       vacancyQuestions,
       options,
     );
-    this.logger.log(explanation);
+    this.logger.log(explanation.join('\n'));
     return score;
   }
 
@@ -664,7 +656,7 @@ export class VacancySubmissionService {
     answers: QuestionAnswerAllRequiredDto[],
     vacancyQuestions: VacancyQuestionDetailedDto[],
     options?: MatchScoreOptions,
-  ): { score: number; explanation: string } {
+  ): { score: number; explanation: string[] } {
     const w: Required<CustomWeights> = {
       questions: options?.customWeights?.questions ?? 50,
       tags: options?.customWeights?.tags ?? 12,
@@ -711,7 +703,7 @@ export class VacancySubmissionService {
     if (totalWeight === 0) {
       return {
         score: 0,
-        explanation: 'MatchScore: 0 (no applicable scoring dimensions)',
+        explanation: ['MatchScore: 0 (no applicable scoring dimensions)'],
       };
     }
 
@@ -752,12 +744,13 @@ export class VacancySubmissionService {
       )
       .join(' + ');
 
-    const logLines = results.map((r) => `  - ${r.log}`).join('\n');
-
-    const explanation = `MatchScore: ${totalScore.toFixed(2)} = base ${baseScore.toFixed(2)} + bonuses ${bonusPoints.toFixed(2)}
-  Active dimensions (totalWeight=${totalWeight}): ${weightDistribution}${skipped.length ? `; Skipped: ${skipped.join(', ')}` : ''}
-  Base = (${baseBreakdown}) / ${totalWeight} × 100 = ${baseScore.toFixed(2)}
-${logLines}`;
+    const explanation: string[] = [
+      `MatchScore: ${totalScore.toFixed(2)} = base ${baseScore.toFixed(2)} + bonuses ${bonusPoints.toFixed(2)}`,
+      `Active dimensions (totalWeight=${totalWeight}): ${weightDistribution}`,
+      ...(skipped.length ? [`Skipped: ${skipped.join(', ')}`] : []),
+      `Base = (${baseBreakdown}) / ${totalWeight} × 100 = ${baseScore.toFixed(2)}`,
+      ...results.map((r) => `  - ${r.log}`),
+    ];
 
     return { score: Math.round(totalScore * 100) / 100, explanation };
   }
