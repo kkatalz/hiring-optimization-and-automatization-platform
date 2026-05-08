@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger'; // Add this import
+import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsIn, IsOptional, IsUUID } from 'class-validator';
 
 export const SUBMISSION_SORT_FIELDS = [
