@@ -47,6 +47,10 @@ import {
   ScoreResult,
 } from './types/matchingScore.interface';
 import { SaplingService } from '../sapling/sapling.service';
+import {
+  SubmissionSortField,
+  SUBMISSION_SORT_FIELDS,
+} from './dto/submissionSortQuery.dto';
 
 @Injectable()
 export class VacancySubmissionService {
@@ -259,7 +263,7 @@ export class VacancySubmissionService {
   async findAllSubmissionsWithinVacancyWithFilters(
     vacancyId: string,
     filterSubmissionsDto?: VacancySubmissionFilterDto,
-    sortBy?: string,
+    sortBy?: SubmissionSortField,
     order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
     const query = this.createBaseSubmissionQuery().where(
@@ -289,7 +293,7 @@ export class VacancySubmissionService {
   async findAllSubmissionsWithinTenantWithFilters(
     tenantId: string,
     filterSubmissionsDto?: VacancySubmissionFilterDto,
-    sortBy?: string,
+    sortBy?: SubmissionSortField,
     order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
     const query = this.createBaseSubmissionQuery().where(
@@ -348,19 +352,10 @@ export class VacancySubmissionService {
       .leftJoinAndSelect('submission.answers', 'answers');
   }
 
-  private static readonly ALLOWED_SORT_FIELDS = [
-    'matchScore',
-    'createdAt',
-    'expectedSalary',
-    'recruiterRating',
-    'commentAiScore',
-    'resumeAiScore',
-  ];
-
   private async executeFilteredSubmissions(
     query: SelectQueryBuilder<VacancySubmission>,
     filterDto?: VacancySubmissionFilterDto,
-    sortBy?: string,
+    sortBy?: SubmissionSortField,
     order?: 'ASC' | 'DESC',
   ): Promise<VacancySubmissionDto[]> {
     if (!filterDto) {
@@ -429,13 +424,10 @@ export class VacancySubmissionService {
 
   private applySorting(
     query: SelectQueryBuilder<VacancySubmission>,
-    sortBy?: string,
+    sortBy?: SubmissionSortField,
     order?: 'ASC' | 'DESC',
   ): void {
-    if (
-      sortBy &&
-      VacancySubmissionService.ALLOWED_SORT_FIELDS.includes(sortBy)
-    ) {
+    if (sortBy && SUBMISSION_SORT_FIELDS.includes(sortBy)) {
       const direction = order === 'ASC' || order === 'DESC' ? order : 'DESC';
       query.orderBy(`submission.${sortBy}`, direction, 'NULLS LAST');
     }
