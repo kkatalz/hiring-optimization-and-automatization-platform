@@ -64,14 +64,8 @@ export class VacancyController {
 
   /**
    * Returns GeneralVacancyDto (no tenantId, submissions, or customWeights),
-   * not tenant-scoped — every requester, including candidates, sees all vacancies.
+   * not tenant-scoped — public endpoint, every requester (including anon) sees all vacancies.
    */
-  @Roles(
-    UserRole.superAdmin,
-    UserRole.admin,
-    UserRole.recruiter,
-    UserRole.candidate,
-  )
   @Get('browse')
   browseAllVacancies(
     @Query() pagination: PaginationQueryDto,
@@ -106,14 +100,8 @@ export class VacancyController {
   }
 
   /**
-   * Same shape and access as GET /vacancies/browse, with filters applied.
+   * Same shape and access as GET /vacancies/browse, with filters applied. Public endpoint.
    */
-  @Roles(
-    UserRole.superAdmin,
-    UserRole.admin,
-    UserRole.recruiter,
-    UserRole.candidate,
-  )
   @Post('browse/search')
   browseVacanciesWithFilters(
     @Body() filterDto: VacancyFilterDto,
@@ -211,12 +199,6 @@ export class VacancyController {
     return vacancy;
   }
 
-  @Roles(
-    UserRole.superAdmin,
-    UserRole.admin,
-    UserRole.recruiter,
-    UserRole.candidate,
-  )
   @Get('browse/:vacancyId')
   browseVacancyById(
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,

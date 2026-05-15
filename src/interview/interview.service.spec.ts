@@ -24,8 +24,11 @@ import { testCandidatesProfiles } from '../../test/fixtures/testCandidatesProfil
 import { VacancySubmissionService } from '../vacancySubmission/vacancySubmission.service';
 import { MailService } from '../mail/mail.service';
 import { CreateInterviewDto } from './dto/createInterview.dto';
+import { UpdateInterviewDto } from './dto/updateInterview.dto';
 import { UserDto } from '../user/dto/user.dto';
 import { UserRole } from '../entities/role.enum';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 
 describe('InterviewService', () => {
   let service: InterviewService;
@@ -279,6 +282,38 @@ describe('InterviewService', () => {
       } catch (error) {
         expect(error.name).to.equal('ForbiddenException');
       }
+    });
+  });
+
+  describe('UpdateInterviewDto validation', () => {
+    const validateUpdate = (payload: Record<string, unknown>) =>
+      validate(plainToInstance(UpdateInterviewDto, payload) as object, {
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        forbidUnknownValues: true,
+      });
+
+    it('accepts a valid status with notes', async () => {
+      const errors = await validateUpdate({
+        status: InterviewStatus.completed,
+        notes: 'All good',
+      });
+      expect(errors).to.have.length(0);
+    });
+
+    it('rejects an invalid status with the isEnum constraint', async () => {
+      const errors = await validateUpdate({ status: 'totally-bogus' });
+      const statusError = errors.find((e) => e.property === 'status');
+      expect(statusError?.constraints).to.have.property('isEnum');
+    });
+
+    it('rejects notes longer than 2000 chars with the maxLength constraint', async () => {
+      const errors = await validateUpdate({
+        status: InterviewStatus.completed,
+        notes: 'x'.repeat(2001),
+      });
+      const notesError = errors.find((e) => e.property === 'notes');
+      expect(notesError?.constraints).to.have.property('maxLength');
     });
   });
 
