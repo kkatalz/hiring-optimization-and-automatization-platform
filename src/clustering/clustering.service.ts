@@ -205,6 +205,7 @@ export class ClusteringService {
 
     const numberOfSubmissions = submissions.length;
 
+    // k-means with k >= n yields singleton clusters; callers tolerate empty findSimilar for very small pools.
     const numberOfClusters = Math.max(
       MIN_CLUSTERS,
       Math.ceil(Math.sqrt(numberOfSubmissions / 2)),

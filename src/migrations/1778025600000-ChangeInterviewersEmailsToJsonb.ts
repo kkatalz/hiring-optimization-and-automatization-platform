@@ -7,6 +7,9 @@ export class ChangeInterviewersEmailsToJsonb1778025600000
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
+      `ALTER TABLE "interviews" ALTER COLUMN "interviewersEmails" DROP DEFAULT`,
+    );
+    await queryRunner.query(
       `ALTER TABLE "interviews" ALTER COLUMN "interviewersEmails" TYPE jsonb USING "interviewersEmails"::jsonb`,
     );
     await queryRunner.query(
@@ -16,10 +19,13 @@ export class ChangeInterviewersEmailsToJsonb1778025600000
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "interviews" ALTER COLUMN "interviewersEmails" SET DEFAULT '[]'`,
+      `ALTER TABLE "interviews" ALTER COLUMN "interviewersEmails" DROP DEFAULT`,
     );
     await queryRunner.query(
       `ALTER TABLE "interviews" ALTER COLUMN "interviewersEmails" TYPE text USING "interviewersEmails"::text`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "interviews" ALTER COLUMN "interviewersEmails" SET DEFAULT '[]'`,
     );
   }
 }
