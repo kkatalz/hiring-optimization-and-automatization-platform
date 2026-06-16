@@ -1,5 +1,5 @@
-import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import api from '../../app/api';
 
 interface UserDto {
   id: string;
@@ -13,37 +13,53 @@ interface UserDto {
 
 interface AuthState {
   user: UserDto | null;
-  accessToken: string | null;
-  status: 'authenticated' | 'unauthenticated';
+  status: 'authenticated' | 'unauthenticated' | 'loading';
+  error: string | null;
 }
 
 const initialState: AuthState = {
   user: null,
-  accessToken: null,
   status: 'unauthenticated',
+  error: null,
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setCredentials: (
-      state,
-      action: PayloadAction<{ user: UserDto; accessToken: string }>,
-    ) => {
-      state.user = action.payload.user;
-      state.accessToken = action.payload.accessToken;
-      state.status = 'authenticated';
-    },
-
     logout: (state) => {
       state.user = null;
-      state.accessToken = null;
       state.status = 'unauthenticated';
+      state.error = null;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(login.pending, (state) => {
+      state.status = 'loading';
+      state.error = null;
+    });
+
+    builder.addCase(login.fulfilled, (state, action) => {
+      state.user = action.payload;
+      state.status = 'authenticated';
+    });
+
+    builder.addCase(login.rejected, (state, action) => {
+      state.user = null;
+      state.status = 'unauthenticated';
+      state.error = action.error.message ?? 'Login failed';
+    });
   },
 });
 
-export const { setCredentials, logout } = authSlice.actions;
+export const login = createAsyncThunk<
+  UserDto,
+  { email: string; password: string }
+>('auth/login', async (credentials) => {
+  const response = await api.post('/auth/login', credentials);
+  return response.data;
+});
+
+export const { logout } = authSlice.actions;
 
 export default authSlice.reducer;

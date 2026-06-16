@@ -1,5 +1,7 @@
+import { LoginForm } from './features/auth/LoginForm';
+
 function App() {
-  return <></>;
+  return <LoginForm />;
 }
 
 export default App;
