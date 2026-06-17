@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { login } from './authSlice';
+import { useNavigate } from 'react-router-dom';
 
 interface LoginFields {
   email: string;
@@ -8,6 +9,8 @@ interface LoginFields {
 }
 
 export const LoginForm = () => {
+  const navigate = useNavigate();
+
   const dispatch = useAppDispatch();
   const [loginFields, setLoginFields] = useState<LoginFields>({
     email: '',
@@ -19,9 +22,14 @@ export const LoginForm = () => {
     setLoginFields({ ...loginFields, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    dispatch(login(loginFields));
+    try {
+      await dispatch(login(loginFields)).unwrap();
+      navigate('/vacancies');
+    } catch (err) {
+      console.error('Login failed:', err);
+    }
   };
 
   return (
