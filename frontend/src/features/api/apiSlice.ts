@@ -72,7 +72,10 @@ export const apiSlice = createApi({
         url: `/vacancies/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: (result, error, id) => [{ type: 'Vacancy', id }],
+      invalidatesTags: (result, error, id) => [
+        { type: 'Vacancy', id },
+        { type: 'Vacancy', id: 'LIST' },
+      ],
     }),
   }),
 });
