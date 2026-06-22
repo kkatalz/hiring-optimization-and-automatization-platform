@@ -22,6 +22,7 @@ export const VacanciesList = () => {
           </li>
         ))}
       </ul>
+      <CreateVacancy />
     </div>
   );
 };
