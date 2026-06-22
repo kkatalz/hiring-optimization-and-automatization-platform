@@ -1,5 +1,8 @@
 import { getErrorMessage } from '../../utils/errorMessage';
 import { useGetVacanciesQuery } from '../api/apiSlice';
+import DeleteVacancyButton from './DeleteVacancyButton';
+import CreateVacancy from './CreateVacancy';
+import UpdateVacancyForm from './UpdateVacancy';
 
 export const VacanciesList = () => {
   const { data, isLoading, isError, error } = useGetVacanciesQuery({
@@ -18,7 +21,19 @@ export const VacanciesList = () => {
       <ul>
         {data?.data.map((vacancy) => (
           <li key={vacancy.id}>
-            {vacancy.id} - {vacancy.name} - {vacancy.description}
+            {vacancy.id} - {vacancy.name} - {vacancy.description}{' '}
+            <UpdateVacancyForm
+              vacancyId={vacancy.id}
+              initialData={{
+                name: vacancy.name,
+                description: vacancy.description,
+                minSalary: vacancy.minSalary,
+                maxSalary: vacancy.maxSalary,
+                requiredYearsOfExperience: vacancy.requiredYearsOfExperience,
+                tags: vacancy.tags,
+              }}
+            />
+            <DeleteVacancyButton vacancyId={vacancy.id} />
           </li>
         ))}
       </ul>

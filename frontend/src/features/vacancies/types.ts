@@ -2,8 +2,8 @@ export interface Vacancy {
   id: string;
   name: string;
   description: string;
-  minSalary?: number | null;
-  maxSalary?: number | null;
+  minSalary?: number;
+  maxSalary?: number;
   tenantId: string;
   createdById: string;
   requiredYearsOfExperience?: number;
