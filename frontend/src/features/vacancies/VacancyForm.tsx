@@ -21,7 +21,7 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
       />
 
       <input
-        value={value.minSalary}
+        value={value.minSalary ?? ''}
         onChange={(e) =>
           onChange({ ...value, minSalary: Number(e.target.value) })
         }
@@ -30,7 +30,7 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
       />
 
       <input
-        value={value.maxSalary}
+        value={value.maxSalary ?? ''}
         onChange={(e) =>
           onChange({ ...value, maxSalary: Number(e.target.value) })
         }
@@ -39,7 +39,7 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
       />
 
       <input
-        value={value.requiredYearsOfExperience}
+        value={value.requiredYearsOfExperience ?? ''}
         onChange={(e) =>
           onChange({
             ...value,
@@ -51,7 +51,7 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
       />
 
       <input
-        value={value.tags?.join(', ')}
+        value={value.tags?.join(', ') ?? ''}
         onChange={(e) =>
           onChange({
             ...value,
