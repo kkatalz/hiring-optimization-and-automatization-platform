@@ -30,16 +30,14 @@ const CreateVacancy = () => {
       );
     }
   };
-  
 
   return (
-    <>
-      <VacancyForm value={form} onChange={(next) => setForm(next)} />
-
-      <button type='submit' onClick={handleCreate} disabled={isCreating}>
-        {isCreating ? 'Creating...' : 'Create Vacancy'}
-      </button>
-    </>
+      <div>
+        <VacancyForm value={form} onChange={(next) => setForm(next)} />
+        <button type='submit' onClick={handleCreate} disabled={isCreating}>
+          {isCreating ? 'Creating...' : 'Create Vacancy'}
+        </button>
+      </div>
   );
 };
 export default CreateVacancy;

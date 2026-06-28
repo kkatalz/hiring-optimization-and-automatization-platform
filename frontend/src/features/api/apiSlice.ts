@@ -6,6 +6,7 @@ import type {
   PaginatedResponse,
 } from '../vacancies/types';
 import type { RootState } from '../../app/store';
+import type { VacanciesFilters } from '../filters/filterSlice';
 
 export const apiSlice = createApi({
   reducerPath: 'api',
@@ -26,12 +27,14 @@ export const apiSlice = createApi({
       providesTags: (result, error, id) => [{ type: 'Vacancy', id }],
     }),
 
+    searchVacancies: builder.query<
       PaginatedResponse<Vacancy>,
-      { page?: number; limit?: number }
+      { filters: VacanciesFilters }
     >({
-      query: ({ page = 1, limit = 20 } = {}) => ({
-        url: '/vacancies',
-        params: { page, limit },
+      query: ({ filters }) => ({
+        url: '/vacancies/search',
+        method: 'POST',
+        body: filters,
       }),
       providesTags: (result) =>
         result
@@ -81,6 +84,7 @@ export const apiSlice = createApi({
 
 export const {
   useGetVacancyByIdQuery,
+  useSearchVacanciesQuery,
   useCreateVacancyMutation,
   useUpdateVacancyMutation,
   useDeleteVacancyMutation,
