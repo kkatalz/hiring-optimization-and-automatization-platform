@@ -21,7 +21,11 @@ export const apiSlice = createApi({
   }),
   tagTypes: ['Vacancy'],
   endpoints: (builder) => ({
-    getVacancies: builder.query<
+    getVacancyById: builder.query<Vacancy, string>({
+      query: (id) => `/vacancies/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Vacancy', id }],
+    }),
+
       PaginatedResponse<Vacancy>,
       { page?: number; limit?: number }
     >({
@@ -39,11 +43,6 @@ export const apiSlice = createApi({
               { type: 'Vacancy', id: 'LIST' },
             ]
           : [{ type: 'Vacancy', id: 'LIST' }],
-    }),
-
-    getVacancyById: builder.query<Vacancy, string>({
-      query: (id) => `/vacancies/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Vacancy', id }],
     }),
 
     createVacancy: builder.mutation<Vacancy, CreateVacancyInput>({
@@ -81,7 +80,6 @@ export const apiSlice = createApi({
 });
 
 export const {
-  useGetVacanciesQuery,
   useGetVacancyByIdQuery,
   useCreateVacancyMutation,
   useUpdateVacancyMutation,
