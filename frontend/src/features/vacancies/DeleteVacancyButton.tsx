@@ -1,4 +1,4 @@
-import { useDeleteVacancyMutation } from '../api/apiSlice';
+import { useDeleteVacancyMutation } from '../api/api';
 import { getErrorMessage } from '../../utils/errorMessage';
 
 const DeleteVacancyButton = ({ vacancyId }: { vacancyId: string }) => {

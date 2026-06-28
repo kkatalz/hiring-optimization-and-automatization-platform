@@ -1,17 +1,17 @@
 import { configureStore } from '@reduxjs/toolkit';
 import type { Action, ThunkAction } from '@reduxjs/toolkit';
 import authReducer from '../features/auth/authSlice';
-import { apiSlice } from '../features/api/apiSlice';
+import { api } from '../features/api/api';
 import filtersReducer from '../features/filters/filterSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     filters: filtersReducer,
-    [apiSlice.reducerPath]: apiSlice.reducer,
+    [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(apiSlice.middleware),
+    getDefaultMiddleware().concat(api.middleware),
 });
 
 export type AppStore = typeof store;

@@ -8,7 +8,7 @@ import type {
 import type { RootState } from '../../app/store';
 import type { VacanciesFilters } from '../filters/filterSlice';
 
-export const apiSlice = createApi({
+export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
     baseUrl: 'http://localhost:3000',
@@ -88,4 +88,4 @@ export const {
   useCreateVacancyMutation,
   useUpdateVacancyMutation,
   useDeleteVacancyMutation,
-} = apiSlice;
+} = api;

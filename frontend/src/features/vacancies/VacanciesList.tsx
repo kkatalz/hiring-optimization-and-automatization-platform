@@ -1,5 +1,5 @@
 import { getErrorMessage } from '../../utils/errorMessage';
-import { useSearchVacanciesQuery } from '../api/apiSlice';
+import { useSearchVacanciesQuery } from '../api/api';
 import DeleteVacancyButton from './DeleteVacancyButton';
 import CreateVacancy from './CreateVacancy';
 import UpdateVacancyForm from './UpdateVacancy';

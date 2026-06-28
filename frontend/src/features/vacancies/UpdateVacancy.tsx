@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { CreateVacancyInput } from './types';
-import { useUpdateVacancyMutation } from '../api/apiSlice';
+import { useUpdateVacancyMutation } from '../api/api';
 import { getErrorMessage } from '../../utils/errorMessage';
 import styles from '../../utils/styles';
 import VacancyForm from './VacancyForm';

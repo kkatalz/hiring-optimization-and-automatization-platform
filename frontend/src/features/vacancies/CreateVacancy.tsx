@@ -1,4 +1,4 @@
-import { useCreateVacancyMutation } from '../api/apiSlice';
+import { useCreateVacancyMutation } from '../api/api';
 import { getErrorMessage } from '../../utils/errorMessage';
 import { type CreateVacancyInput } from './types';
 import { useState } from 'react';
@@ -32,12 +32,12 @@ const CreateVacancy = () => {
   };
 
   return (
-      <div>
-        <VacancyForm value={form} onChange={(next) => setForm(next)} />
-        <button type='submit' onClick={handleCreate} disabled={isCreating}>
-          {isCreating ? 'Creating...' : 'Create Vacancy'}
-        </button>
-      </div>
+    <div>
+      <VacancyForm value={form} onChange={(next) => setForm(next)} />
+      <button type='submit' onClick={handleCreate} disabled={isCreating}>
+        {isCreating ? 'Creating...' : 'Create Vacancy'}
+      </button>
+    </div>
   );
 };
 export default CreateVacancy;
