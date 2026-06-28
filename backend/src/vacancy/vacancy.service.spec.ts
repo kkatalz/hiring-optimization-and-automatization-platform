@@ -102,62 +102,6 @@ describe('VacancyService', () => {
     });
   });
 
-  describe('findAll', () => {
-    it('should find all vacancies when no tenantId is provided', async () => {
-      const allVacanciesResult: PaginatedResponse<VacancyDto> =
-        await service.findAll();
-
-      expect(allVacanciesResult.data.length).to.equal(EXPECTED__VACANCIES_NUM);
-      expect(allVacanciesResult.data[0]).to.not.have.property('createdBy');
-    });
-
-    it('should find only vacancies within the given tenant when tenantId is provided', async () => {
-      const tenantId = testTenants[0].id;
-      const result: PaginatedResponse<VacancyDto> =
-        await service.findAll(tenantId);
-
-      expect(result.data.length).to.be.greaterThan(0);
-      result.data.forEach((vacancy) => {
-        expect(vacancy.tenantId).to.equal(tenantId);
-      });
-    });
-
-    it('should return empty array when tenantId has no vacancies', async () => {
-      const result: PaginatedResponse<VacancyDto> = await service.findAll(
-        testTenants[1].id,
-      );
-
-      expect(result.data).to.deep.equal([]);
-    });
-
-    it('should load vacancyQuestions relation', async () => {
-      const allVacancies: PaginatedResponse<VacancyDto> =
-        await service.findAll();
-
-      const vacancyWithQuestions = allVacancies.data.find(
-        (v) => v.id === testVacancies[0].id,
-      );
-      expect(vacancyWithQuestions).to.not.be.undefined;
-      expect(vacancyWithQuestions!.vacancyQuestions).to.be.an('array');
-      expect(vacancyWithQuestions!.vacancyQuestions!.length).to.be.greaterThan(
-        0,
-      );
-    });
-
-    it('should respect pagination parameters', async () => {
-      const page1 = await service.findAll(undefined, 1, 2);
-      expect(page1.data.length).to.equal(2);
-      expect(page1.total).to.equal(EXPECTED__VACANCIES_NUM);
-      expect(page1.page).to.equal(1);
-      expect(page1.limit).to.equal(2);
-      expect(page1.totalPages).to.equal(Math.ceil(EXPECTED__VACANCIES_NUM / 2));
-
-      const page2 = await service.findAll(undefined, 2, 2);
-      expect(page2.data.length).to.equal(EXPECTED__VACANCIES_NUM - 2);
-      expect(page2.page).to.equal(2);
-    });
-  });
-
   describe('findVacanciesWithSubmissions', () => {
     it('should find all vacancies with submissions for SuperAdmin', async () => {
       const superAdmin = testUsers[4];
@@ -285,7 +229,7 @@ describe('VacancyService', () => {
       expect(createVacancyResult.tenantId).to.equal(admin.tenantId);
       expect(createVacancyResult.createdById).to.equal(admin.id);
 
-      const totalVacancies = await service.findAll();
+      const totalVacancies = await service.findAllWithFilters();
       expect(totalVacancies.data.length).to.equal(EXPECTED__VACANCIES_NUM + 1);
     });
 
@@ -856,7 +800,7 @@ describe('VacancyService', () => {
 
       await service.remove(removeVacancyId);
 
-      const totalVacancies = await service.findAll();
+      const totalVacancies = await service.findAllWithFilters();
       expect(totalVacancies.data.length).to.equal(EXPECTED__VACANCIES_NUM - 1);
 
       const vacancyIsNotFound = await vacancyRepository.findOne({
@@ -1498,53 +1442,15 @@ describe('VacancyService', () => {
     });
   });
 
-  describe('findAllForBrowse', () => {
-    it('should return all vacancies', async () => {
-      const result: PaginatedResponse<GeneralVacancyDto> =
-        await service.findAllForBrowse();
-
-      expect(result.data.length).to.equal(EXPECTED__VACANCIES_NUM);
-    });
-
-    it('should not expose sensitive fields', async () => {
-      const result = await service.findAllForBrowse();
-
-      result.data.forEach((vacancy) => {
-        expect(vacancy).to.not.have.property('createdById');
-        expect(vacancy).to.not.have.property('customWeights');
-        expect(vacancy).to.not.have.property('tenantId');
-        expect(vacancy).to.not.have.property('submissions');
-      });
-    });
-
-    it('should not expose expectedValue or priority in vacancyQuestions', async () => {
-      const result = await service.findAllForBrowse();
-
-      const withQuestions = result.data.find(
-        (v) =>
-          v.vacancyQuestions !== undefined && v.vacancyQuestions.length > 0,
-      );
-      expect(withQuestions).to.not.be.undefined;
-
-      withQuestions!.vacancyQuestions!.forEach((vq) => {
-        expect(vq).to.not.have.property('expectedValue');
-        expect(vq).to.not.have.property('priority');
-        expect(vq).to.have.property('vacancyId');
-        expect(vq).to.have.property('questionId');
-        expect(vq).to.have.property('isRequired');
-      });
-    });
-  });
-
-  describe('findAllWithFiltersForBrowse', () => {
+  describe('findAllWithFiltersPublic', () => {
     it('should return all vacancies when no filters provided', async () => {
-      const result = await service.findAllWithFiltersForBrowse();
+      const result = await service.findAllWithFiltersPublic();
 
       expect(result.data.length).to.equal(EXPECTED__VACANCIES_NUM);
     });
 
     it('should not expose sensitive fields', async () => {
-      const result = await service.findAllWithFiltersForBrowse();
+      const result = await service.findAllWithFiltersPublic();
 
       result.data.forEach((vacancy) => {
         expect(vacancy).to.not.have.property('createdById');
@@ -1555,7 +1461,7 @@ describe('VacancyService', () => {
     });
 
     it('should apply filters correctly', async () => {
-      const result = await service.findAllWithFiltersForBrowse({
+      const result = await service.findAllWithFiltersPublic({
         name: 'zoo',
       });
 
@@ -1566,11 +1472,10 @@ describe('VacancyService', () => {
     });
 
     it('should sort correctly', async () => {
-      const result = await service.findAllWithFiltersForBrowse(
-        {},
-        'createdAt',
-        'ASC',
-      );
+      const result = await service.findAllWithFiltersPublic({
+        sortBy: 'createdAt',
+        order: 'ASC',
+      });
 
       expect(result.data.length).to.equal(EXPECTED__VACANCIES_NUM);
       for (let i = 1; i < result.data.length; i++) {

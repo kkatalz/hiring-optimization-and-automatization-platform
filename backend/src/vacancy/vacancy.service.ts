@@ -55,49 +55,6 @@ export class VacancyService {
     private readonly vacancySubmissionService: VacancySubmissionService,
   ) {}
 
-  async findAll(
-    tenantId?: string,
-    page?: number,
-    limit?: number,
-  ): Promise<PaginatedResponse<VacancyDto>> {
-    const p = page ?? DEFAULT_PAGE;
-    const l = limit ?? DEFAULT_LIMIT;
-
-    const [vacancies, total] = await this.vacancyRepository.findAndCount({
-      where: tenantId ? { tenantId } : {},
-      relations: ['vacancyQuestions'],
-      order: { createdAt: 'DESC' },
-      skip: (p - 1) * l,
-      take: l,
-    });
-
-    return toPaginatedResponse(vacancies.map(vacancyToVacancyDto), total, p, l);
-  }
-
-  async findAllForBrowse(
-    page?: number,
-    limit?: number,
-  ): Promise<PaginatedResponse<GeneralVacancyDto>> {
-    const p = page ?? DEFAULT_PAGE;
-    const l = limit ?? DEFAULT_LIMIT;
-
-    const [vacancies, total] = await this.vacancyRepository
-      .createQueryBuilder('vacancy')
-      .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq')
-      .loadRelationCountAndMap('vacancy.submissionCount', 'vacancy.submissions')
-      .orderBy('vacancy.createdAt', 'DESC')
-      .skip((p - 1) * l)
-      .take(l)
-      .getManyAndCount();
-
-    return toPaginatedResponse(
-      vacancies.map(vacancyToGeneralVacancyDto),
-      total,
-      p,
-      l,
-    );
-  }
-
   async findAllWithFilters(
     filterDto?: VacancyFilterDto,
     sortBy?: string,
@@ -116,7 +73,7 @@ export class VacancyService {
     return paginateArray(vacancies.map(vacancyToVacancyDto), page, limit);
   }
 
-  async findAllWithFiltersForBrowse(
+  async findAllWithFiltersPublic(
     filterDto?: VacancyFilterDto,
     sortBy?: string,
     order?: 'ASC' | 'DESC',

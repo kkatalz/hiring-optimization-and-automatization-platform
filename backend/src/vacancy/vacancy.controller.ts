@@ -44,45 +44,12 @@ export class VacancyController {
   }
 
   /**
-   * Returns vacancies scoped to the requester's tenant.
-   * SuperAdmins see all vacancies across tenants.
-   */
-  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
-  @Get()
-  findAllVacancies(
-    @AuthUser() requester: UserDto,
-    @Query() pagination: PaginationQueryDto,
-  ): Promise<PaginatedResponse<VacancyDto>> {
-    const tenantId =
-      requester.role === UserRole.superAdmin ? undefined : requester.tenantId;
-    return this.vacancyService.findAll(
-      tenantId,
-      pagination.page,
-      pagination.limit,
-    );
-  }
-
-  /**
-   * Returns GeneralVacancyDto (no tenantId, submissions, or customWeights),
-   * not tenant-scoped — public endpoint, every requester (including anon) sees all vacancies.
-   */
-  @Get('browse')
-  browseAllVacancies(
-    @Query() pagination: PaginationQueryDto,
-  ): Promise<PaginatedResponse<GeneralVacancyDto>> {
-    return this.vacancyService.findAllForBrowse(
-      pagination.page,
-      pagination.limit,
-    );
-  }
-
-  /**
    * Search for superAdmin, admin, recruiter. Returns full VacancyDto (includes tenantId, submissions, customWeights).
    * Tenant-scoped; superAdmins see all tenants.
    */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Post('search')
-  searchVacancies(
+  searchVacanciesProtected(
     @Body() filterDto: VacancyFilterDto,
     @AuthUser() requester: UserDto,
     @Query() query: VacancySortPaginationQueryDto,
@@ -102,8 +69,8 @@ export class VacancyController {
   /**
    * Same shape and access as GET /vacancies/browse, with filters applied. Public endpoint.
    */
-  @Post('browse/search')
-  browseVacanciesWithFilters(
+  @Post('public/search')
+  browseVacanciesWithFiltersPublic(
     @Body() filterDto: VacancyFilterDto,
     @Query() query: VacancySortPaginationQueryDto,
   ): Promise<PaginatedResponse<GeneralVacancyDto>> {
