@@ -102,12 +102,16 @@ export const VacanciesList = () => {
         />
         <input
           value={filters.page}
-          onChange={(e) => dispatch(setPage(Number(e.target.value)))}
+          onChange={(e) =>
+            dispatch(setPage(e.target.value as unknown as number))
+          }
           placeholder='page'
         />
         <input
           value={filters.limit}
-          onChange={(e) => dispatch(setLimit(Number(e.target.value)))}
+          onChange={(e) =>
+            dispatch(setLimit(e.target.value as unknown as number))
+          }
           placeholder='limit'
         />
         <button type='button' onClick={() => dispatch(resetFilters())}>

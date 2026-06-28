@@ -5,7 +5,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  Max,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -78,7 +77,6 @@ export class VacancyFilterDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  @Min(1)
   page?: number;
 
   /**
@@ -87,7 +85,5 @@ export class VacancyFilterDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  @Min(1)
-  @Max(100)
   limit?: number;
 }
