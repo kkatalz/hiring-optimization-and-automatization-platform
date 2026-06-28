@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Max,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -54,4 +55,39 @@ export class VacancyFilterDto {
   @IsInt()
   @Min(0)
   maxRequiredExperience?: number;
+
+  /**
+   * One of createdAt, requiredYearsOfExperience, minSalary, maxSalary.
+   * @example "createdAt"
+   */
+  @IsOptional()
+  @IsString()
+  sortBy?: string;
+
+  /**
+   * One of ASC, DESC.
+   * @example "DESC"
+   */
+  @IsOptional()
+  @IsEnum(['ASC', 'DESC'])
+  order?: 'ASC' | 'DESC';
+
+  /**
+   * @example 1
+   */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  /**
+   * @example 20
+   */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number;
 }

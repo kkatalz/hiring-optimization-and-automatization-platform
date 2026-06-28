@@ -57,39 +57,28 @@ export class VacancyService {
 
   async findAllWithFilters(
     filterDto?: VacancyFilterDto,
-    sortBy?: string,
-    order?: 'ASC' | 'DESC',
     tenantId?: string,
-    page?: number,
-    limit?: number,
   ): Promise<PaginatedResponse<VacancyDto>> {
     const vacancies = await this.fetchVacanciesWithFilters(
       filterDto,
-      sortBy,
-      order,
       false,
       tenantId,
     );
-    return paginateArray(vacancies.map(vacancyToVacancyDto), page, limit);
+    return paginateArray(
+      vacancies.map(vacancyToVacancyDto),
+      filterDto?.page,
+      filterDto?.limit,
+    );
   }
 
   async findAllWithFiltersPublic(
     filterDto?: VacancyFilterDto,
-    sortBy?: string,
-    order?: 'ASC' | 'DESC',
-    page?: number,
-    limit?: number,
   ): Promise<PaginatedResponse<GeneralVacancyDto>> {
-    const vacancies = await this.fetchVacanciesWithFilters(
-      filterDto,
-      sortBy,
-      order,
-      true,
-    );
+    const vacancies = await this.fetchVacanciesWithFilters(filterDto, true);
     return paginateArray(
       vacancies.map(vacancyToGeneralVacancyDto),
-      page,
-      limit,
+      filterDto?.page,
+      filterDto?.limit,
     );
   }
 
@@ -112,8 +101,6 @@ export class VacancyService {
 
   private async fetchVacanciesWithFilters(
     filterDto?: VacancyFilterDto,
-    sortBy?: string,
-    order?: 'ASC' | 'DESC',
     loadSubmissionCount = false,
     tenantId?: string,
   ): Promise<Vacancy[]> {
@@ -172,7 +159,7 @@ export class VacancyService {
       );
     }
 
-    this.applyVacancySorting(query, sortBy, order);
+    this.applyVacancySorting(query, filterDto?.sortBy, filterDto?.order);
 
     let vacancies = await query.getMany();
 

@@ -1151,24 +1151,14 @@ describe('VacancyService', () => {
 
     it('should scope results to tenant when tenantId is provided', async () => {
       const tenantId = testTenants[0].id;
-      const result = await service.findAllWithFilters(
-        {},
-        undefined,
-        undefined,
-        tenantId,
-      );
+      const result = await service.findAllWithFilters({}, tenantId);
 
       expect(result.data.length).to.be.greaterThan(0);
       result.data.forEach((v) => expect(v.tenantId).to.equal(tenantId));
     });
 
     it('should return empty array when tenantId has no vacancies and filters provided', async () => {
-      const result = await service.findAllWithFilters(
-        {},
-        undefined,
-        undefined,
-        testTenants[1].id,
-      );
+      const result = await service.findAllWithFilters({}, testTenants[1].id);
 
       expect(result.data).to.deep.equal([]);
     });
@@ -1352,7 +1342,10 @@ describe('VacancyService', () => {
     });
 
     it('should sort by createdAt ASC', async () => {
-      const result = await service.findAllWithFilters({}, 'createdAt', 'ASC');
+      const result = await service.findAllWithFilters({
+        sortBy: 'createdAt',
+        order: 'ASC',
+      });
 
       expect(result.data.length).to.equal(EXPECTED__VACANCIES_NUM);
       for (let i = 1; i < result.data.length; i++) {
@@ -1365,7 +1358,10 @@ describe('VacancyService', () => {
     });
 
     it('should sort by createdAt DESC', async () => {
-      const result = await service.findAllWithFilters({}, 'createdAt', 'DESC');
+      const result = await service.findAllWithFilters({
+        sortBy: 'createdAt',
+        order: 'DESC',
+      });
 
       expect(result.data.length).to.equal(EXPECTED__VACANCIES_NUM);
       for (let i = 1; i < result.data.length; i++) {
@@ -1378,11 +1374,10 @@ describe('VacancyService', () => {
     });
 
     it('should sort by requiredYearsOfExperience DESC', async () => {
-      const result = await service.findAllWithFilters(
-        {},
-        'requiredYearsOfExperience',
-        'DESC',
-      );
+      const result = await service.findAllWithFilters({
+        sortBy: 'requiredYearsOfExperience',
+        order: 'DESC',
+      });
 
       // Non-null values should come first in DESC order, nulls last
       const withExp = result.data.filter(
@@ -1396,7 +1391,10 @@ describe('VacancyService', () => {
     });
 
     it('should sort by minSalary ASC (nulls last)', async () => {
-      const result = await service.findAllWithFilters({}, 'minSalary', 'ASC');
+      const result = await service.findAllWithFilters({
+        sortBy: 'minSalary',
+        order: 'ASC',
+      });
 
       // Zoo keeper helper 1: minSalary 500
       // Zoo keeper: minSalary 1000
@@ -1412,7 +1410,10 @@ describe('VacancyService', () => {
     });
 
     it('should sort by minSalary DESC (nulls last)', async () => {
-      const result = await service.findAllWithFilters({}, 'minSalary', 'DESC');
+      const result = await service.findAllWithFilters({
+        sortBy: 'minSalary',
+        order: 'DESC',
+      });
 
       const names = result.data.map((v) => v.name);
       expect(names[0]).to.equal('Frontend Developer');
@@ -1422,11 +1423,10 @@ describe('VacancyService', () => {
     });
 
     it('should ignore invalid sort field and return unsorted results', async () => {
-      const result = await service.findAllWithFilters(
-        {},
-        'invalidField',
-        'ASC',
-      );
+      const result = await service.findAllWithFilters({
+        sortBy: 'invalidField',
+        order: 'ASC',
+      });
 
       expect(result.data.length).to.equal(EXPECTED__VACANCIES_NUM);
     });

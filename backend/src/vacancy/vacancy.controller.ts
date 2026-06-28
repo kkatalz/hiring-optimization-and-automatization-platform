@@ -24,10 +24,7 @@ import { CreateVacancyQuestionDto } from './dto/createVacancyQuestion.dto';
 import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
 import { VacancyFilterDto } from './dto/vacancyFilter.dto';
 import { PaginatedResponse, PaginationQueryDto } from '../types/pagination';
-import {
-  VacancySortPaginationQueryDto,
-  VacancyWithQuestionsPaginationQueryDto,
-} from './dto/vacancyPaginationQuery.dto';
+import { VacancyWithQuestionsPaginationQueryDto } from './dto/vacancyPaginationQuery.dto';
 
 @Controller('vacancies')
 export class VacancyController {
@@ -52,18 +49,10 @@ export class VacancyController {
   searchVacanciesProtected(
     @Body() filterDto: VacancyFilterDto,
     @AuthUser() requester: UserDto,
-    @Query() query: VacancySortPaginationQueryDto,
   ): Promise<PaginatedResponse<VacancyDto>> {
     const tenantId =
       requester.role === UserRole.superAdmin ? undefined : requester.tenantId;
-    return this.vacancyService.findAllWithFilters(
-      filterDto,
-      query.sortBy,
-      query.order,
-      tenantId,
-      query.page,
-      query.limit,
-    );
+    return this.vacancyService.findAllWithFilters(filterDto, tenantId);
   }
 
   /**
@@ -72,15 +61,8 @@ export class VacancyController {
   @Post('public/search')
   browseVacanciesWithFiltersPublic(
     @Body() filterDto: VacancyFilterDto,
-    @Query() query: VacancySortPaginationQueryDto,
   ): Promise<PaginatedResponse<GeneralVacancyDto>> {
-    return this.vacancyService.findAllWithFiltersForBrowse(
-      filterDto,
-      query.sortBy,
-      query.order,
-      query.page,
-      query.limit,
-    );
+    return this.vacancyService.findAllWithFiltersPublic(filterDto);
   }
 
   /**
