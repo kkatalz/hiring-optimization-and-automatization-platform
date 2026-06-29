@@ -120,6 +120,40 @@ export const VacanciesList = () => {
         />
 
         {/* Apply & Reset */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '10px',
+            margin: '10px',
+            justifyContent: 'center',
+          }}
+        >
+          <button
+            type='submit'
+            style={{
+              fontWeight: 'bolder',
+              borderRadius: '5px',
+              backgroundColor: '#d7eec8e3',
+              border: '1px solid #d7eec856',
+              padding: '3px 7px',
+            }}
+          >
+            Apply Filters
+          </button>
+          <button
+            type='button'
+            onClick={handleResetFilters}
+            style={{
+              fontWeight: 'bolder',
+              borderRadius: '5px',
+              backgroundColor: '#d7eec8e3',
+              border: '1px solid #d7eec856',
+              padding: '3px 7px',
+            }}
+          >
+            Reset Filters
+          </button>
+        </div>
       </form>
 
       <h2>Vacancies List</h2>

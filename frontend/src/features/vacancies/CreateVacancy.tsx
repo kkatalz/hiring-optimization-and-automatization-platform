@@ -32,9 +32,27 @@ const CreateVacancy = () => {
   };
 
   return (
-    <div>
+    <div
+      style={{
+        margin: '30px',
+        padding: '20px',
+        backgroundColor: '#d7eec8e3',
+        borderRadius: '10px',
+      }}
+    >
       <VacancyForm value={form} onChange={(next) => setForm(next)} />
-      <button type='submit' onClick={handleCreate} disabled={isCreating}>
+      <button
+        type='submit'
+        onClick={handleCreate}
+        disabled={isCreating}
+        style={{
+          fontWeight: 'bolder',
+          borderRadius: '5px',
+          backgroundColor: '#abe783e3',
+          border: '1px solid #abe783e3',
+          padding: '3px 7px',
+        }}
+      >
         {isCreating ? 'Creating...' : 'Create Vacancy'}
       </button>
     </div>
