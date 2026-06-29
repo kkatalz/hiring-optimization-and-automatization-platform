@@ -9,6 +9,10 @@ import {
   applyFilters,
   initialState,
   setPage,
+  setSortBy,
+  type SortColumn,
+  setOrder,
+  type SortOrder,
 } from '../filters/filterSlice';
 import { useState } from 'react';
 
@@ -106,6 +110,7 @@ export const VacanciesList = () => {
           placeholder='maximum required experience'
         />
 
+        {/* Pagination */}
         <input
           value={draft.limit}
           onChange={(e) =>
@@ -113,13 +118,41 @@ export const VacanciesList = () => {
           }
           placeholder='limit'
         />
-        <button type='submit'>Apply Filters</button>
-        <button type='button' onClick={handleResetFilters}>
-          Reset Filters
-        </button>
+
+        {/* Apply & Reset */}
       </form>
 
       <h2>Vacancies List</h2>
+
+      {/* Sorting */}
+      <div>
+        <select
+          value={appliedFilters.sortBy ?? ''}
+          onChange={(e) => dispatch(setSortBy(e.target.value as SortColumn))}
+        >
+          <option value='' disabled>
+            Sort by
+          </option>
+          <option value='createdAt'>Created at</option>
+          <option value='requiredYearsOfExperience'>Required experience</option>
+          <option value='minSalary'>Minimum salary</option>
+          <option value='maxSalary'>Maximum salary</option>
+        </select>
+
+        {/* Order */}
+        <select
+          value={appliedFilters.order ?? ''}
+          disabled={!appliedFilters.sortBy}
+          onChange={(e) => dispatch(setOrder(e.target.value as SortOrder))}
+        >
+          <option value='' disabled>
+            Order in
+          </option>
+          <option value='ASC'>Ascending</option>
+          <option value='DESC'>Descending</option>
+        </select>
+      </div>
+
       <ul>
         {filteredData?.data.map((vacancy) => (
           <li key={vacancy.id}>

@@ -1,5 +1,13 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
+export type SortColumn =
+  | 'createdAt'
+  | 'requiredYearsOfExperience'
+  | 'minSalary'
+  | 'maxSalary';
+
+export type SortOrder = 'ASC' | 'DESC';
+
 export interface VacanciesFilters {
   name: string;
   minSalary?: number;
@@ -7,6 +15,8 @@ export interface VacanciesFilters {
   tags: string[];
   minRequiredExperience?: number;
   maxRequiredExperience?: number;
+  sortBy?: SortColumn;
+  order?: SortOrder;
   page: number;
   limit: number;
 }
@@ -22,6 +32,7 @@ export const filtersSlice = createSlice({
   name: 'filters',
   initialState,
   reducers: {
+    // Pagination, Limit and Filtering
     setPage: (state, action: PayloadAction<number>) => {
       state.page = action.payload;
     },
@@ -43,10 +54,29 @@ export const filtersSlice = createSlice({
       ...action.payload,
       page: 1,
     }),
+
+    // Sorting and Ordering
+    setSortBy: (state, action: PayloadAction<SortColumn | undefined>) => {
+      state.sortBy = action.payload;
+      if (!action.payload) state.order = undefined;
+      else if (!state.order) state.order = 'DESC';
+      state.page = 1;
+    },
+
+    setOrder: (state, action: PayloadAction<SortOrder | undefined>) => {
+      state.order = action.payload;
+      state.page = 1;
+    },
   },
 });
 
-export const { setPage, setLimit, resetFilters, applyFilters } =
-  filtersSlice.actions;
+export const {
+  setPage,
+  setLimit,
+  resetFilters,
+  applyFilters,
+  setSortBy,
+  setOrder,
+} = filtersSlice.actions;
 
 export default filtersSlice.reducer;
