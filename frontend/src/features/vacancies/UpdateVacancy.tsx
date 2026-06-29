@@ -4,6 +4,7 @@ import { useUpdateVacancyMutation } from '../api/api';
 import { getErrorMessage } from '../../utils/errorMessage';
 import styles from '../../utils/styles';
 import VacancyForm from './VacancyForm';
+import { CloseButton } from '../../utils/CloseButton';
 
 const UpdateVacancyForm = ({
   vacancyId,
@@ -32,11 +33,16 @@ const UpdateVacancyForm = ({
     }
   };
 
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) setIsOpen(false);
+  };
+
   return (
     <>
       {isOpen && (
-        <div style={{ ...styles.overlay }}>
+        <div style={{ ...styles.overlay }} onClick={handleOverlayClick}>
           <div style={styles.modalWindow}>
+            <CloseButton onClick={() => setIsOpen(false)} />
             <h2>Update Vacancy</h2>
             <VacancyForm value={form} onChange={(form) => setForm(form)} />
 
