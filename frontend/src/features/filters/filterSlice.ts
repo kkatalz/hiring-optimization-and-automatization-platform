@@ -11,7 +11,7 @@ export interface VacanciesFilters {
   limit: number;
 }
 
-const initialState: VacanciesFilters = {
+export const initialState: VacanciesFilters = {
   name: '',
   tags: [],
   page: 1,
@@ -22,36 +22,6 @@ export const filtersSlice = createSlice({
   name: 'filters',
   initialState,
   reducers: {
-    setName: (state, action: PayloadAction<string>) => {
-      state.name = action.payload;
-      state.page = 1;
-    },
-    setMinSalary: (state, action: PayloadAction<number | undefined>) => {
-      state.minSalary = action.payload;
-      state.page = 1;
-    },
-    setMaxSalary: (state, action: PayloadAction<number | undefined>) => {
-      state.maxSalary = action.payload;
-      state.page = 1;
-    },
-    setTags: (state, action: PayloadAction<string[]>) => {
-      state.tags = action.payload;
-      state.page = 1;
-    },
-    setMinRequiredExperience: (
-      state,
-      action: PayloadAction<number | undefined>,
-    ) => {
-      state.minRequiredExperience = action.payload;
-      state.page = 1;
-    },
-    setMaxRequiredExperience: (
-      state,
-      action: PayloadAction<number | undefined>,
-    ) => {
-      state.maxRequiredExperience = action.payload;
-      state.page = 1;
-    },
     setPage: (state, action: PayloadAction<number>) => {
       state.page = action.payload;
     },
@@ -69,19 +39,14 @@ export const filtersSlice = createSlice({
       state.page = 1;
       state.limit = 10;
     },
+    applyFilters: (state, action: PayloadAction<VacanciesFilters>) => ({
+      ...action.payload,
+      page: 1,
+    }),
   },
 });
 
-export const {
-  setName,
-  setMinSalary,
-  setMaxSalary,
-  setTags,
-  setMinRequiredExperience,
-  setMaxRequiredExperience,
-  setPage,
-  setLimit,
-  resetFilters,
-} = filtersSlice.actions;
+export const { setPage, setLimit, resetFilters, applyFilters } =
+  filtersSlice.actions;
 
 export default filtersSlice.reducer;

@@ -5,30 +5,25 @@ import CreateVacancy from './CreateVacancy';
 import UpdateVacancyForm from './UpdateVacancy';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import {
-  setMaxSalary,
-  setMinSalary,
-  setName,
-  setTags,
-  setMinRequiredExperience,
-  setMaxRequiredExperience,
-  setPage,
-  setLimit,
   resetFilters,
+  applyFilters,
+  initialState,
+  setPage,
 } from '../filters/filterSlice';
+import { useState } from 'react';
 
 export const VacanciesList = () => {
   const dispatch = useAppDispatch();
 
-  const filters = useAppSelector((state) => state.filters);
+  const appliedFilters = useAppSelector((state) => state.filters);
+  const [draft, setDraft] = useState(appliedFilters);
 
   const {
     data: filteredData,
     isLoading: isFilteredLoading,
     isError: isFilteredError,
     error: filteredError,
-  } = useSearchVacanciesQuery({
-    filters,
-  });
+  } = useSearchVacanciesQuery({ filters: appliedFilters });
 
   if (isFilteredLoading) return <div>Loading...</div>;
 
@@ -37,84 +32,89 @@ export const VacanciesList = () => {
       <div>Could not load vacancies - {getErrorMessage(filteredError)}</div>
     );
 
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    dispatch(applyFilters(draft));
+  };
+
+  const handleResetFilters = () => {
+    dispatch(resetFilters());
+    setDraft({ ...initialState });
+  };
+
   return (
     <div>
       <h3>Filter by...</h3>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          dispatch(setPage(1)); // Reset to first page on new search
-        }}
-      >
+      <form onSubmit={handleSubmit}>
         <input
-          value={filters.name}
-          onChange={(e) => dispatch(setName(e.target.value))}
+          value={draft.name}
+          onChange={(e) => setDraft({ ...draft, name: e.target.value })}
           placeholder='name'
         />
         <input
-          value={filters.minSalary ?? ''}
+          value={draft.minSalary ?? ''}
           onChange={(e) =>
-            dispatch(
-              setMinSalary(
+            setDraft({
+              ...draft,
+              minSalary:
                 e.target.value === '' ? undefined : Number(e.target.value),
-              ),
-            )
+            })
           }
           placeholder='min salary'
         />
         <input
-          value={filters.maxSalary ?? ''}
+          value={draft.maxSalary ?? ''}
           onChange={(e) =>
-            dispatch(
-              setMaxSalary(
+            setDraft({
+              ...draft,
+              maxSalary:
                 e.target.value === '' ? undefined : Number(e.target.value),
-              ),
-            )
+            })
           }
           placeholder='max salary'
         />
         <input
-          value={filters.tags.join(', ')}
-          onChange={(e) => dispatch(setTags(e.target.value.split(', ')))}
+          value={draft.tags.join(', ')}
+          onChange={(e) =>
+            setDraft({
+              ...draft,
+              tags: e.target.value.split(', ').map((tag) => tag.trim()),
+            })
+          }
           placeholder='tags (comma separated)'
         />
         <input
-          value={filters.minRequiredExperience ?? ''}
+          value={draft.minRequiredExperience ?? ''}
           onChange={(e) =>
-            dispatch(
-              setMinRequiredExperience(
+            setDraft({
+              ...draft,
+              minRequiredExperience:
                 e.target.value === '' ? undefined : Number(e.target.value),
-              ),
-            )
+            })
           }
           placeholder='minimum required experience'
         />
         <input
-          value={filters.maxRequiredExperience ?? ''}
+          value={draft.maxRequiredExperience ?? ''}
           onChange={(e) =>
-            dispatch(
-              setMaxRequiredExperience(
+            setDraft({
+              ...draft,
+              maxRequiredExperience:
                 e.target.value === '' ? undefined : Number(e.target.value),
-              ),
-            )
+            })
           }
           placeholder='maximum required experience'
         />
+
         <input
-          value={filters.page}
+          value={draft.limit}
           onChange={(e) =>
-            dispatch(setPage(e.target.value as unknown as number))
-          }
-          placeholder='page'
-        />
-        <input
-          value={filters.limit}
-          onChange={(e) =>
-            dispatch(setLimit(e.target.value as unknown as number))
+            setDraft({ ...draft, limit: Number(e.target.value) })
           }
           placeholder='limit'
         />
-        <button type='button' onClick={() => dispatch(resetFilters())}>
+        <button type='submit'>Apply Filters</button>
+        <button type='button' onClick={handleResetFilters}>
           Reset Filters
         </button>
       </form>
@@ -139,17 +139,17 @@ export const VacanciesList = () => {
           </li>
         ))}
       </ul>
-      {filters.page && (
+      {appliedFilters.page && (
         <>
           <button
-            disabled={filters.page <= 1}
-            onClick={() => dispatch(setPage(filters.page - 1))}
+            disabled={appliedFilters.page <= 1}
+            onClick={() => dispatch(setPage(appliedFilters.page - 1))}
           >
             Prev
           </button>
           <button
-            disabled={filters.page >= (filteredData?.totalPages ?? 0)}
-            onClick={() => dispatch(setPage(filters.page + 1))}
+            disabled={appliedFilters.page >= (filteredData?.totalPages ?? 0)}
+            onClick={() => dispatch(setPage(appliedFilters.page + 1))}
           >
             Next
           </button>
