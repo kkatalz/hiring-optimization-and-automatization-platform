@@ -36,10 +36,7 @@ export const filtersSlice = createSlice({
     setPage: (state, action: PayloadAction<number>) => {
       state.page = action.payload;
     },
-    setLimit: (state, action: PayloadAction<number>) => {
-      state.limit = action.payload;
-      state.page = 1;
-    },
+
     resetFilters: (state) => {
       state.name = '';
       state.minSalary = undefined;
@@ -52,6 +49,8 @@ export const filtersSlice = createSlice({
     },
     applyFilters: (state, action: PayloadAction<VacanciesFilters>) => ({
       ...action.payload,
+      sortBy: state.sortBy,
+      order: state.order,
       page: 1,
     }),
 
@@ -70,13 +69,7 @@ export const filtersSlice = createSlice({
   },
 });
 
-export const {
-  setPage,
-  setLimit,
-  resetFilters,
-  applyFilters,
-  setSortBy,
-  setOrder,
-} = filtersSlice.actions;
+export const { setPage, resetFilters, applyFilters, setSortBy, setOrder } =
+  filtersSlice.actions;
 
 export default filtersSlice.reducer;

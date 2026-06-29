@@ -206,7 +206,7 @@ export const VacanciesList = () => {
           </li>
         ))}
       </ul>
-      {appliedFilters.page && (
+      {(filteredData?.totalPages ?? 0) > 1 && (
         <>
           <button
             disabled={appliedFilters.page <= 1}
