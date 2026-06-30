@@ -2,6 +2,13 @@ import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { login } from './authSlice';
 import { useNavigate } from 'react-router-dom';
+import Container from '@mui/material/Container';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Alert from '@mui/material/Alert';
 
 interface LoginFields {
   email: string;
@@ -22,10 +29,12 @@ export const LoginForm = () => {
     setLoginFields({ ...loginFields, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async(e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await dispatch(login(loginFields)).unwrap();
+      await dispatch(
+        login({ email: loginFields.email, password: loginFields.password }),
+      ).unwrap();
       navigate('/vacancies');
     } catch (err) {
       console.error('Login failed:', err);
@@ -33,43 +42,73 @@ export const LoginForm = () => {
   };
 
   return (
-    <section>
-      <h2>Welcome!</h2>
-      <h3>Please log in:</h3>
-      <form
-        onSubmit={handleSubmit}
-        style={{
+    <Container
+      maxWidth='xs'
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        height: '100vh',
+      }}
+    >
+      <Paper
+        elevation={2}
+        sx={{
           display: 'flex',
           flexDirection: 'column',
-          gap: '10px',
-          width: '200px',
-          margin: '0 auto',
+          alignItems: 'center',
+          p: 4,
+          borderRadius: 2,
         }}
       >
-        <input
-          type='email'
-          name='email'
-          placeholder='Email'
-          value={loginFields.email}
-          onChange={handleChange}
-        />
-        <input
-          type='password'
-          name='password'
-          placeholder='Password'
-          value={loginFields.password}
-          onChange={handleChange}
-        />
-        <button type='submit' disabled={status === 'loading'}>
-          {status === 'loading' ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
+        <Typography variant='h5'>Sign in</Typography>
+        <Typography variant='body2' color='text.secondary'>
+          Hiring Platform · recruiter portal
+        </Typography>
 
-      {status === 'authenticated' && user && (
-        <p>Logged in as: ({user.email})</p>
-      )}
+        {/* Email & Password */}
+        <Stack
+          onSubmit={handleSubmit}
+          direction='column'
+          component='form'
+          spacing={2}
+          sx={{ width: '100%', mt: 2 }}
+        >
+          {error && <Alert severity='error'>{error}</Alert>}
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-    </section>
+          <TextField
+            name='email'
+            label='Email'
+            type='email'
+            size='small'
+            fullWidth
+            value={loginFields.email}
+            onChange={handleChange}
+          />
+          <TextField
+            name='password'
+            label='Password'
+            type='password'
+            size='small'
+            fullWidth
+            value={loginFields.password}
+            onChange={handleChange}
+          />
+
+          <Button
+            variant='contained'
+            type='submit'
+            disabled={status === 'loading'}
+          >
+            {status === 'loading' ? 'Logging in...' : 'SIGN IN'}
+          </Button>
+        </Stack>
+        {status === 'authenticated' && user && (
+          <Typography variant='body2' sx={{ mt: 2 }}>
+            Logged in as {user.email}
+          </Typography>
+        )}
+      </Paper>
+    </Container>
   );
 };
