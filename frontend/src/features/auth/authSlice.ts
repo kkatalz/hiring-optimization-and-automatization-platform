@@ -1,4 +1,8 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import {
+  createAsyncThunk,
+  createSlice,
+  type PayloadAction,
+} from '@reduxjs/toolkit';
 import api from '../../app/api';
 import { jwtDecode } from 'jwt-decode';
 import { getAxiosErrorMessage } from '../../utils/errorMessage';
@@ -48,13 +52,14 @@ const authSlice = createSlice({
       state.status = 'authenticated';
     });
 
-    builder.addCase(login.rejected, (state, action) => {
-      state.user = null;
-      state.status = 'unauthenticated';
-      // action.payload = backend message.
-      // action.error.message = generic axios fallback.
-      state.error = action.payload ?? action.error.message ?? 'Login failed';
-    });
+    builder.addCase(
+      login.rejected,
+      (state, action: PayloadAction<string | undefined>) => {
+        state.user = null;
+        state.status = 'unauthenticated';
+        state.error = action.payload ?? 'Login failed';
+      },
+    );
 
     // REFRESH SESSION
     builder.addCase(refreshSession.fulfilled, (state, action) => {
