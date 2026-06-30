@@ -6,7 +6,7 @@ ROOT="$(git rev-parse --show-toplevel)"
 echo "▶ pre-push: frontend typecheck + lint"
 cd "$ROOT/frontend" || exit 1
 
-npm run typecheck || { echo "✖ tsc --noEmit failed — push aborted (fix the types, or: git push --no-verify)"; exit 1; }
+npm run typecheck || { echo "✖ typecheck (tsc -b) failed — push aborted (fix the types, or: git push --no-verify)"; exit 1; }
 npm run lint      || { echo "✖ eslint failed — push aborted (fix it, or: git push --no-verify)"; exit 1; }
 
 echo "✓ frontend checks passed"
