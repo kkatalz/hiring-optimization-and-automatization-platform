@@ -24,7 +24,7 @@ export const api = createApi({
   endpoints: (builder) => ({
     getVacancyById: builder.query<Vacancy, string>({
       query: (id) => `/vacancies/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Vacancy', id }],
+      providesTags: (_result, _error, id) => [{ type: 'Vacancy', id }],
     }),
 
     searchVacancies: builder.query<
@@ -66,7 +66,7 @@ export const api = createApi({
         method: 'PATCH',
         body,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Vacancy', id }],
+      invalidatesTags: (_result, _error, { id }) => [{ type: 'Vacancy', id }],
     }),
 
     deleteVacancy: builder.mutation<Vacancy, string>({
@@ -74,7 +74,7 @@ export const api = createApi({
         url: `/vacancies/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: (result, error, id) => [
+      invalidatesTags: (_result, _error, id) => [
         { type: 'Vacancy', id },
         { type: 'Vacancy', id: 'LIST' },
       ],
