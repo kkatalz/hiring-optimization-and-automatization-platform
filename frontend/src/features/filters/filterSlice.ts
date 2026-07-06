@@ -48,7 +48,15 @@ export interface VacanciesFilters {
 
 export const initialState: VacanciesFilters = {
   name: '',
+  timeCommitment: [],
+  languageRequirements: [],
+  minSalary: undefined,
+  maxSalary: undefined,
   tags: [],
+  minRequiredExperience: undefined,
+  maxRequiredExperience: undefined,
+  sortBy: undefined,
+  order: undefined,
   page: 1,
   limit: 10,
 };
@@ -64,6 +72,8 @@ export const filtersSlice = createSlice({
 
     resetFilters: (state) => {
       state.name = '';
+      state.timeCommitment = [];
+      state.languageRequirements = [];
       state.minSalary = undefined;
       state.maxSalary = undefined;
       state.tags = [];
