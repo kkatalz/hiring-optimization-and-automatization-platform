@@ -143,17 +143,13 @@ export class VacancyController {
     const languagesCodes = new Set<string>();
     vacancies.forEach((vacancy) => {
       if (vacancy.languageRequirements) {
-        vacancy.languageRequirements.forEach((lang) =>
-          languagesCodes.add(lang.code ?? ''),
-        );
+        vacancy.languageRequirements.forEach((lang) => {
+          if (lang.code) languagesCodes.add(lang.code);
+        });
       }
     });
 
-    const filteredLanguagesCodes = Array.from(languagesCodes).filter(
-      (code) => code !== '',
-    );
-
-    return filteredLanguagesCodes;
+    return Array.from(languagesCodes);
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
