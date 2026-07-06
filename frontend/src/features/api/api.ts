@@ -48,6 +48,24 @@ export const api = createApi({
           : [{ type: 'Vacancy', id: 'LIST' }],
     }),
 
+    getAllVacanciesTags: builder.query<string[], void>({
+      query: () => ({
+        url: '/vacancies/existing-tags',
+        method: 'GET',
+      }),
+
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((tag) => ({
+                type: 'Vacancy' as const,
+                id: tag,
+              })),
+              { type: 'Vacancy', id: 'LIST' },
+            ]
+          : [{ type: 'Vacancy', id: 'LIST' }],
+    }),
+
     createVacancy: builder.mutation<Vacancy, CreateVacancyInput>({
       query: (body) => ({
         url: '/vacancies',
@@ -85,6 +103,7 @@ export const api = createApi({
 export const {
   useGetVacancyByIdQuery,
   useSearchVacanciesQuery,
+  useGetAllVacanciesTagsQuery,
   useCreateVacancyMutation,
   useUpdateVacancyMutation,
   useDeleteVacancyMutation,

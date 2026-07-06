@@ -110,6 +110,25 @@ export class VacancyController {
     );
   }
 
+  /** Returns all tags that exist across all vacancies within tenant, if provided */
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
+  @Get('existing-tags')
+  async findAllExistingTags(@AuthUser() requester: UserDto): Promise<string[]> {
+    const tenantId =
+      requester.role === UserRole.superAdmin ? undefined : requester.tenantId;
+
+    const vacancies = await this.vacancyService.findAllVacancies(tenantId);
+
+    const tagsSet = new Set<string>();
+    vacancies.forEach((vacancy) => {
+      if (vacancy.tags) {
+        vacancy.tags.forEach((tag) => tagsSet.add(tag));
+      }
+    });
+
+    return Array.from(tagsSet);
+  }
+
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get('tenant/:tenantId')
   findVacanciesByTenantId(
