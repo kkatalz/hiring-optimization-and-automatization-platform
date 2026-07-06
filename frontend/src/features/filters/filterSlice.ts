@@ -8,17 +8,26 @@ export type SortColumn =
 
 export type SortOrder = 'ASC' | 'DESC';
 
+export type TimeCommitment = 'FULL_TIME' | 'PART_TIME' | 'PROJECT_BASED';
+export const ALL_TIME_COMMITMENTS: TimeCommitment[] = [
+  'FULL_TIME',
+  'PART_TIME',
+  'PROJECT_BASED',
+];
+
 export interface VacanciesFilters {
-  name: string;
+  name?: string;
+  timeCommitment?: TimeCommitment[];
+  languageRequirements?: LanguageProficiency[];
   minSalary?: number;
   maxSalary?: number;
-  tags: string[];
+  tags?: string[];
   minRequiredExperience?: number;
   maxRequiredExperience?: number;
   sortBy?: SortColumn;
   order?: SortOrder;
-  page: number;
-  limit: number;
+  page?: number;
+  limit?: number;
 }
 
 export const initialState: VacanciesFilters = {
