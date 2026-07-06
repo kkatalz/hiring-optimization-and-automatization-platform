@@ -78,7 +78,7 @@ export const VacanciesList = () => {
           placeholder='max salary'
         />
         <input
-          value={draft.tags.join(', ')}
+          value={draft.tags?.join(', ')}
           onChange={(e) =>
             setDraft({
               ...draft,
@@ -206,17 +206,17 @@ export const VacanciesList = () => {
           </li>
         ))}
       </ul>
-      {(filteredData?.totalPages ?? 0) > 1 && (
+      {(filteredData?.totalPages ?? 0) > 1 && appliedFilters.page && (
         <>
           <button
             disabled={appliedFilters.page <= 1}
-            onClick={() => dispatch(setPage(appliedFilters.page - 1))}
+            onClick={() => dispatch(setPage(appliedFilters.page! - 1))}
           >
             Prev
           </button>
           <button
             disabled={appliedFilters.page >= (filteredData?.totalPages ?? 0)}
-            onClick={() => dispatch(setPage(appliedFilters.page + 1))}
+            onClick={() => dispatch(setPage(appliedFilters.page! + 1))}
           >
             Next
           </button>
