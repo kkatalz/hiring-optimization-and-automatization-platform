@@ -185,16 +185,6 @@ export const FiltersComponent = () => {
               },
             }}
           />
-
-          {/* Limit */}
-          <TextField
-            label='Limit'
-            value={draft.limit}
-            onChange={(e) =>
-              setDraft({ ...draft, limit: Number(e.target.value) })
-            }
-            sx={{ maxWidth: 100 }}
-          />
         </Stack>
 
         {/* Language requirements */}
@@ -239,6 +229,16 @@ export const FiltersComponent = () => {
               <MenuItem value='DESC'>Descending</MenuItem>
             </Select>
           </FormControl>
+
+          {/* Limit */}
+          <TextField
+            label='Limit'
+            value={draft.limit}
+            onChange={(e) =>
+              setDraft({ ...draft, limit: Number(e.target.value) })
+            }
+            sx={{ maxWidth: 100 }}
+          />
         </Stack>
 
         {/* Apply & Reset */}
