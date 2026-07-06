@@ -19,7 +19,11 @@ import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Autocomplete from '@mui/material/Autocomplete';
-import { useGetAllVacanciesTagsQuery } from '../api/api';
+import {
+  useGetAllVacanciesTagsQuery,
+  useGetAllVacanciesLanguagesCodesQuery,
+} from '../api/api';
+import { LanguageRequirementsFilter } from './LanguageRequirementsFilter';
 
 export const FiltersComponent = () => {
   const dispatch = useAppDispatch();
@@ -28,6 +32,7 @@ export const FiltersComponent = () => {
   const [draft, setDraft] = useState(appliedFilters);
 
   const { data: allTags } = useGetAllVacanciesTagsQuery();
+  const { data: languageCodes } = useGetAllVacanciesLanguagesCodesQuery();
 
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -191,6 +196,15 @@ export const FiltersComponent = () => {
             sx={{ maxWidth: 100 }}
           />
         </Stack>
+
+        {/* Language requirements */}
+        <LanguageRequirementsFilter
+          value={draft.languageRequirements ?? []}
+          onChange={(next) =>
+            setDraft({ ...draft, languageRequirements: next })
+          }
+          languageCodes={languageCodes ?? []}
+        />
 
         <Stack direction='row' spacing={2}>
           {/* Sorting */}

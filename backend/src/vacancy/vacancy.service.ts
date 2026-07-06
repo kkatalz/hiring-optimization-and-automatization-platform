@@ -179,6 +179,7 @@ export class VacancyService {
       );
     }
 
+    // Requires both fields: code and level
     if (filterDto?.languageRequirements?.length) {
       vacancies = vacancies.filter((v) => {
         if (!v.languageRequirements?.length) return false;

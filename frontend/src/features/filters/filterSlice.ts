@@ -15,6 +15,22 @@ export const ALL_TIME_COMMITMENTS: TimeCommitment[] = [
   'PROJECT_BASED',
 ];
 
+export type LanguageLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'NATIVE';
+export const ALL_LANGUAGE_LEVELS: LanguageLevel[] = [
+  'A1',
+  'A2',
+  'B1',
+  'B2',
+  'C1',
+  'C2',
+  'NATIVE',
+];
+
+export interface LanguageProficiency {
+  code: string;
+  level: LanguageLevel;
+}
+
 export interface VacanciesFilters {
   name?: string;
   timeCommitment?: TimeCommitment[];

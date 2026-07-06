@@ -129,6 +129,33 @@ export class VacancyController {
     return Array.from(tagsSet);
   }
 
+  // Returns all existing languages' codes across all vacancies within tenant, if provided
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
+  @Get('existing-languages-codes')
+  async findAllExistingLanguages(
+    @AuthUser() requester: UserDto,
+  ): Promise<string[]> {
+    const tenantId =
+      requester.role === UserRole.superAdmin ? undefined : requester.tenantId;
+
+    const vacancies = await this.vacancyService.findAllVacancies(tenantId);
+
+    const languagesCodes = new Set<string>();
+    vacancies.forEach((vacancy) => {
+      if (vacancy.languageRequirements) {
+        vacancy.languageRequirements.forEach((lang) =>
+          languagesCodes.add(lang.code ?? ''),
+        );
+      }
+    });
+
+    const filteredLanguagesCodes = Array.from(languagesCodes).filter(
+      (code) => code !== '',
+    );
+
+    return filteredLanguagesCodes;
+  }
+
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get('tenant/:tenantId')
   findVacanciesByTenantId(
