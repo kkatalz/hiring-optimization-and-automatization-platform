@@ -55,6 +55,14 @@ export class VacancyService {
     private readonly vacancySubmissionService: VacancySubmissionService,
   ) {}
 
+  async findAllVacancies(tenantId?: string): Promise<VacancyDto[]> {
+    const vacancies = await this.vacancyRepository.find({
+      where: tenantId ? { tenantId } : {},
+    });
+
+    return vacancies.map(vacancyToVacancyDto);
+  }
+
   async findAllWithFilters(
     filterDto?: VacancyFilterDto,
     tenantId?: string,
@@ -171,6 +179,7 @@ export class VacancyService {
       );
     }
 
+    // Requires both fields: code and level
     if (filterDto?.languageRequirements?.length) {
       vacancies = vacancies.filter((v) => {
         if (!v.languageRequirements?.length) return false;
