@@ -1,6 +1,11 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import {
+  createAsyncThunk,
+  createSlice,
+  type PayloadAction,
+} from '@reduxjs/toolkit';
 import api from '../../app/api';
 import { jwtDecode } from 'jwt-decode';
+import { getAxiosErrorMessage } from '../../utils/errorMessage';
 
 interface UserDto {
   id: string;
@@ -47,11 +52,14 @@ const authSlice = createSlice({
       state.status = 'authenticated';
     });
 
-    builder.addCase(login.rejected, (state, action) => {
-      state.user = null;
-      state.status = 'unauthenticated';
-      state.error = action.error.message ?? 'Login failed';
-    });
+    builder.addCase(
+      login.rejected,
+      (state, action: PayloadAction<string | undefined>) => {
+        state.user = null;
+        state.status = 'unauthenticated';
+        state.error = action.payload ?? 'Login failed';
+      },
+    );
 
     // REFRESH SESSION
     builder.addCase(refreshSession.fulfilled, (state, action) => {
@@ -68,10 +76,15 @@ const authSlice = createSlice({
 
 export const login = createAsyncThunk<
   UserDto,
-  { email: string; password: string }
->('auth/login', async (credentials) => {
-  const response = await api.post('/auth/login', credentials);
-  return response.data;
+  { email: string; password: string },
+  { rejectValue: string }
+>('auth/login', async (credentials, { rejectWithValue }) => {
+  try {
+    const response = await api.post<UserDto>('/auth/login', credentials);
+    return response.data;
+  } catch (err) {
+    return rejectWithValue(getAxiosErrorMessage(err, 'Login failed'));
+  }
 });
 
 export const refreshSession = createAsyncThunk<UserDto>(
