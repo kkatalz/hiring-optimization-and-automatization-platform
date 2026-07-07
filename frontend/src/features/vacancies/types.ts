@@ -8,8 +8,11 @@ export interface Vacancy {
   maxSalary?: number;
   tenantId: string;
   createdById: string;
+  timeCommitment?: string;
+  languageRequirements?: LanguageProficiency[];
   requiredYearsOfExperience?: number;
   tags?: string[];
+  customWeights?: CustomWeights;
   createdAt?: string;
 }
 
@@ -38,7 +41,7 @@ export interface CreateVacancyInput {
   languageRequirements?: LanguageProficiency[];
   requiredYearsOfExperience?: number;
   tags?: string[];
-  customWeights: CustomWeights;
+  customWeights?: CustomWeights;
 }
 
 export type UpdateVacancyInput = Partial<CreateVacancyInput>;
