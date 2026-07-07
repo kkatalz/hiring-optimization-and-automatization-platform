@@ -9,8 +9,17 @@ const EMPTY_VACANCY_FORM: CreateVacancyInput = {
   description: '',
   minSalary: undefined,
   maxSalary: undefined,
+  timeCommitment: undefined,
+  languageRequirements: [],
   requiredYearsOfExperience: undefined,
   tags: [],
+  customWeights: {
+    questions: 1,
+    tags: 1,
+    languages: 1,
+    experience: 1,
+    salary: 1,
+  },
 };
 
 const CreateVacancy = () => {
