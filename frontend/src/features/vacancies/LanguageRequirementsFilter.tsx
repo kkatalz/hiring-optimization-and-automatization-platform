@@ -54,7 +54,7 @@ export const LanguageRequirementsFilter = ({
   return (
     <Stack spacing={1.5} sx={{ color: 'primary.main' }}>
       <Divider />
-      <Typography variant='subtitle2'>Language requirements</Typography>
+      <Typography sx={{ fontWeight: 'bold' }}>Language requirements</Typography>
 
       {/* Already added pairs */}
       {value.length > 0 && (
@@ -79,12 +79,14 @@ export const LanguageRequirementsFilter = ({
           onChange={(_event, newCode) => setCode(newCode)}
           getOptionLabel={(code) => code.toUpperCase()}
           renderInput={(params) => (
-            <TextField {...params} label='Language' placeholder='e.g. en' />
+            <TextField {...params} label='Language' placeholder='EN' />
           )}
         />
 
         <FormControl sx={{ minWidth: 120 }}>
-          <InputLabel id='lang-level-label'>Level</InputLabel>
+          <InputLabel id='lang-level-label' shrink>
+            Level
+          </InputLabel>
           <Select
             labelId='lang-level-label'
             label='Level'
@@ -92,6 +94,13 @@ export const LanguageRequirementsFilter = ({
             onChange={(e: SelectChangeEvent) =>
               setLevel(e.target.value as LanguageLevel)
             }
+            displayEmpty
+            renderValue={(selected) => {
+              if (!selected || selected.length === 0)
+                return <span style={{ color: '#aaa' }}>B2</span>;
+
+              return selected;
+            }}
           >
             {ALL_LANGUAGE_LEVELS.map((lvl) => (
               <MenuItem key={lvl} value={lvl}>
