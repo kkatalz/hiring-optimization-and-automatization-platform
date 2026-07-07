@@ -1,7 +1,12 @@
-import { useCreateVacancyMutation } from '../api/api';
-import { getErrorMessage } from '../../utils/errorMessage';
-import { type CreateVacancyInput } from './types';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import { useState } from 'react';
+import { getErrorMessage } from '../../utils/errorMessage';
+import { useCreateVacancyMutation } from '../api/api';
+import { type CreateVacancyInput } from './types';
 import VacancyForm from './VacancyForm';
 
 const EMPTY_VACANCY_FORM: CreateVacancyInput = {
@@ -48,31 +53,25 @@ export const CreateVacancy = () => {
     }
   };
 
+  const handleClose = () => {
+    setOpen(false);
+  };
+
   return (
-    <div
-      style={{
-        margin: '30px',
-        padding: '20px',
-        backgroundColor: '#d7eec8e3',
-        borderRadius: '10px',
-      }}
-    >
-      <VacancyForm value={form} onChange={(next) => setForm(next)} />
-      <button
-        type='submit'
-        onClick={handleCreate}
-        disabled={isCreating}
-        style={{
-          fontWeight: 'bolder',
-          borderRadius: '5px',
-          backgroundColor: '#abe783e3',
-          border: '1px solid #abe783e3',
-          padding: '3px 7px',
-        }}
-      >
-        {isCreating ? 'Creating...' : 'Create Vacancy'}
-      </button>
-    </div>
+    <Dialog open={open} onClose={handleClose}>
+      <form onSubmit={handleCreate}>
+        <DialogTitle>Create Vacancy</DialogTitle>
+        <DialogContent>
+          <VacancyForm value={form} onChange={(next) => setForm(next)} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button type='submit' disabled={isCreating}>
+            {isCreating ? 'Creating...' : 'Create Vacancy'}
+          </Button>
+        </DialogActions>
+      </form>
+    </Dialog>
   );
 };
 export default CreateVacancy;
