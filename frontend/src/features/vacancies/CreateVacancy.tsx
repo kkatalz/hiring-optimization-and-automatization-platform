@@ -22,7 +22,9 @@ const EMPTY_VACANCY_FORM: CreateVacancyInput = {
   },
 };
 
-const CreateVacancy = () => {
+export const CreateVacancy = () => {
+  const [open, setOpen] = useState(true);
+
   const [form, setForm] = useState<CreateVacancyInput>(EMPTY_VACANCY_FORM);
 
   const [createVacancy, { isLoading: isCreating, error: createVacancyError }] =
@@ -31,12 +33,18 @@ const CreateVacancy = () => {
   const handleCreate = async () => {
     try {
       await createVacancy(form).unwrap();
+      setOpen(false);
       alert('Vacancy created successfully!');
-    } catch (error) {
+    } catch (error: any) {
+      const backendError = error?.data?.error || 'Unknown Error';
+      const backendMessage = error?.data?.message || 'No message provided';
+      const alternativeMessage = getErrorMessage(createVacancyError);
+
       alert(
-        `Failed to create vacancy: ${error} ` +
-          getErrorMessage(createVacancyError),
+        `Failed to create vacancy: ${backendError} - ${backendMessage || alternativeMessage}`,
       );
+
+      setOpen(false);
     }
   };
 
