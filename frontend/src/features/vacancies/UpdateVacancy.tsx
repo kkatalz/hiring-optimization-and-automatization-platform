@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { CreateVacancyInput } from './types';
+import type { UpdateVacancyInput } from './types';
 import { useUpdateVacancyMutation } from '../api/api';
 import { getErrorMessage } from '../../utils/errorMessage';
 import styles from '../../utils/styles';
@@ -11,11 +11,11 @@ const UpdateVacancyForm = ({
   initialData,
 }: {
   vacancyId: string;
-  initialData: CreateVacancyInput;
+  initialData: UpdateVacancyInput;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const [form, setForm] = useState<CreateVacancyInput>(initialData);
+  const [form, setForm] = useState<UpdateVacancyInput>(initialData);
 
   const [updateVacancy, { isLoading: isUpdating, error: updateVacancyError }] =
     useUpdateVacancyMutation();
