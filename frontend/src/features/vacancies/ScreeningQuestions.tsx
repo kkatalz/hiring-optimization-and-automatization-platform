@@ -24,12 +24,19 @@ interface ScreeningQuestionsProps {
   onChange: (form: VacancyQuestionInput[]) => void;
 }
 
+const EMPTY_QUESTION_FORM: VacancyQuestionInput = {
+  label: '',
+  priority: undefined,
+  answerOptions: [],
+  expectedValue: '',
+  isRequired: false,
+};
+
 const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
   const [error, setError] = useState<string | null>(null);
 
-  const [currentQuestion, setCurrentQuestion] = useState<VacancyQuestionInput>(
-    {} as VacancyQuestionInput,
-  );
+  const [currentQuestion, setCurrentQuestion] =
+    useState<VacancyQuestionInput>(EMPTY_QUESTION_FORM);
 
   const handleAddQuestion = () => {
     if (!currentQuestion.label?.trim()) {
@@ -37,10 +44,15 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
       return;
     }
 
+    if (!currentQuestion.type) {
+      setError('Please select a question type.');
+      return;
+    }
+
     setError(null);
 
     onChange([...value, currentQuestion]);
-    setCurrentQuestion({} as VacancyQuestionInput);
+    setCurrentQuestion(EMPTY_QUESTION_FORM);
   };
 
   const handleRemoveQuestion = (indexToRemove: number) => {
@@ -140,14 +152,15 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
             setCurrentQuestion({ ...currentQuestion, label: e.target.value })
           }
         />
-        <FormControl>
+
+        <FormControl required>
           <InputLabel id='question-type-select-label' shrink>
             Type
           </InputLabel>
           <Select
             labelId='question-type-select-label'
             id='question-type-select'
-            value={currentQuestion.type}
+            value={currentQuestion.type || ''}
             label='Type'
             onChange={(e) =>
               setCurrentQuestion({ ...currentQuestion, type: e.target.value })
