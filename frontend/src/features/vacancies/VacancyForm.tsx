@@ -6,7 +6,7 @@ import {
   useGetAllVacanciesLanguagesCodesQuery,
 } from '../api/api';
 import Stack from '@mui/material/Stack';
-import { ALL_TIME_COMMITMENTS } from '../filters/filterSlice';
+import { ALL_TIME_COMMITMENTS } from './types';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
