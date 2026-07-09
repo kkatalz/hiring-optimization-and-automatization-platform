@@ -1,5 +1,5 @@
 import TextField from '@mui/material/TextField';
-import type { CreateVacancyInput } from './types';
+import type { CreateVacancyInput, UpdateVacancyInput } from './types';
 import Autocomplete from '@mui/material/Autocomplete';
 import {
   useGetAllVacanciesTagsQuery,
@@ -14,10 +14,11 @@ import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import { LanguageRequirementsFilter } from './LanguageRequirementsFilter';
+import ScreeningQuestions from './ScreeningQuestions';
 
 interface VacancyProps {
-  value: CreateVacancyInput;
-  onChange: (form: CreateVacancyInput) => void;
+  value: CreateVacancyInput | UpdateVacancyInput;
+  onChange: (form: CreateVacancyInput | UpdateVacancyInput) => void;
 }
 
 const VacancyForm = ({ value, onChange }: VacancyProps) => {
@@ -25,7 +26,7 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
   const { data: languageCodes } = useGetAllVacanciesLanguagesCodesQuery();
 
   return (
-    <Stack direction='column' sx={{ display: 'flex', gap: '20px', mt: 2 }}>
+    <Stack direction='column' sx={{ gap: '20px', mt: 2 }}>
       <TextField
         required
         label='Name'
@@ -175,19 +176,133 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
           Choose from existing tags, or type a brand-new one and press Enter.
         </Typography>
       </Stack>
-      <Divider />
 
-        <LanguageRequirementsFilter
-          value={value.languageRequirements ?? []}
-          onChange={(newValue) => {
+      <LanguageRequirementsFilter
+        value={value.languageRequirements ?? []}
+        onChange={(newValue) => {
+          onChange({
+            ...value,
+            languageRequirements: newValue,
+          });
+        }}
+        languageCodes={languageCodes ?? []}
+        makeFreeSolo={true}
+      />
+
+      {/* Custom Weights */}
+      <Stack direction='row' spacing={1}>
+        <Typography>Scoring weights</Typography>
+        <Typography variant='subtitle2' sx={{ color: 'text.secondary' }}>
+          (optional · CustomWeights)
+        </Typography>
+      </Stack>
+
+      <Typography variant='subtitle2' sx={{ color: 'text.secondary' }}>
+        Override how much each dimension counts in the match score. Leave blank
+        for defaults. 1 - highest weight, 5 - lowest weight.
+      </Typography>
+
+      <Stack direction='row' spacing={2}>
+        <TextField
+          label='Questions'
+          placeholder='1'
+          slotProps={{
+            inputLabel: { shrink: true },
+          }}
+          value={value.customWeights?.questions ?? ''}
+          onChange={(e) =>
             onChange({
               ...value,
-              languageRequirements: newValue,
-            });
-          }}
-          languageCodes={languageCodes ?? []}
-          makeFreeSolo={true}
+              customWeights: {
+                ...value.customWeights,
+                questions: Number(e.target.value),
+              },
+            })
+          }
+          type='number'
         />
+        <TextField
+          label='Tags'
+          placeholder='1'
+          slotProps={{
+            inputLabel: { shrink: true },
+          }}
+          value={value.customWeights?.tags ?? ''}
+          onChange={(e) =>
+            onChange({
+              ...value,
+              customWeights: {
+                ...value.customWeights,
+                tags: Number(e.target.value),
+              },
+            })
+          }
+          type='number'
+        />
+        <TextField
+          label='Languages'
+          placeholder='1'
+          slotProps={{
+            inputLabel: { shrink: true },
+          }}
+          value={value.customWeights?.languages ?? ''}
+          onChange={(e) =>
+            onChange({
+              ...value,
+              customWeights: {
+                ...value.customWeights,
+                languages: Number(e.target.value),
+              },
+            })
+          }
+          type='number'
+        />
+      </Stack>
+      <Stack direction='row' spacing={2}>
+        <TextField
+          label='Experience'
+          placeholder='1'
+          slotProps={{
+            inputLabel: { shrink: true },
+          }}
+          value={value.customWeights?.experience ?? ''}
+          onChange={(e) =>
+            onChange({
+              ...value,
+              customWeights: {
+                ...value.customWeights,
+                experience: Number(e.target.value),
+              },
+            })
+          }
+          type='number'
+        />
+        <TextField
+          label='Salary'
+          placeholder='1'
+          slotProps={{
+            inputLabel: { shrink: true },
+          }}
+          value={value.customWeights?.salary ?? ''}
+          onChange={(e) =>
+            onChange({
+              ...value,
+              customWeights: {
+                ...value.customWeights,
+                salary: Number(e.target.value),
+              },
+            })
+          }
+          type='number'
+        />
+      </Stack>
+
+      <Divider />
+      {/* Screening questions */}
+      <ScreeningQuestions
+        value={value.vacancyQuestions ?? []}
+        onChange={(next) => onChange({ ...value, vacancyQuestions: next })}
+      />
     </Stack>
   );
 };

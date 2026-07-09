@@ -32,6 +32,18 @@ export interface CustomWeights {
   salary?: number;
 }
 
+type QuestionType = 'boolean' | 'text' | 'dropdown';
+export const QUESTION_TYPES: QuestionType[] = ['boolean', 'text', 'dropdown'];
+
+export interface VacancyQuestionInput {
+  label: string;
+  type: QuestionType;
+  answerOptions?: string[]; // Only for 'dropdown' type
+  isRequired: boolean;
+  priority?: number;
+  expectedValue?: string | string[];
+}
+
 export interface CreateVacancyInput {
   name: string;
   description: string;
@@ -42,6 +54,7 @@ export interface CreateVacancyInput {
   requiredYearsOfExperience?: number;
   tags?: string[];
   customWeights?: CustomWeights;
+  vacancyQuestions: VacancyQuestionInput[];
 }
 
 export type UpdateVacancyInput = Partial<CreateVacancyInput>;

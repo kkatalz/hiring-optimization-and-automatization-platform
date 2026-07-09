@@ -8,6 +8,7 @@ import { getErrorMessage } from '../../utils/errorMessage';
 import { useCreateVacancyMutation } from '../api/api';
 import { type CreateVacancyInput } from './types';
 import VacancyForm from './VacancyForm';
+import { Alert } from '@mui/material';
 
 const EMPTY_VACANCY_FORM: CreateVacancyInput = {
   name: '',
@@ -19,15 +20,19 @@ const EMPTY_VACANCY_FORM: CreateVacancyInput = {
   requiredYearsOfExperience: undefined,
   tags: [],
   customWeights: {
-    questions: 1,
-    tags: 1,
-    languages: 1,
-    experience: 1,
-    salary: 1,
+    questions: undefined,
+    tags: undefined,
+    languages: undefined,
+    experience: undefined,
+    salary: undefined,
   },
+  vacancyQuestions: [],
 };
 
 export const CreateVacancy = () => {
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<boolean>(false);
+
   const [open, setOpen] = useState(true);
 
   const [form, setForm] = useState<CreateVacancyInput>(EMPTY_VACANCY_FORM);
@@ -35,38 +40,70 @@ export const CreateVacancy = () => {
   const [createVacancy, { isLoading: isCreating, error: createVacancyError }] =
     useCreateVacancyMutation();
 
-  const handleCreate = async () => {
+  const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSuccess(false);
+    setError(null);
+
     try {
       await createVacancy(form).unwrap();
-      setOpen(false);
-      alert('Vacancy created successfully!');
+      setSuccess(true);
+      setForm(EMPTY_VACANCY_FORM);
     } catch (error: any) {
       const backendError = error?.data?.error || 'Unknown Error';
       const backendMessage = error?.data?.message || 'No message provided';
       const alternativeMessage = getErrorMessage(createVacancyError);
 
-      alert(
-        `Failed to create vacancy: ${backendError} - ${backendMessage || alternativeMessage}`,
+      setError(
+        `Failed to create vacancy. Error: ${backendError}. Message: ${backendMessage || alternativeMessage}. Please try again.`,
       );
-
-      setOpen(false);
     }
   };
 
   const handleClose = () => {
     setOpen(false);
+    setError(null);
   };
 
   return (
     <Dialog open={open} onClose={handleClose}>
       <form onSubmit={handleCreate}>
         <DialogTitle>Create Vacancy</DialogTitle>
-        <DialogContent>
-          <VacancyForm value={form} onChange={(next) => setForm(next)} />
+        <DialogContent sx={{ margin: '2px 6px' }}>
+          {/* Error Alert */}
+          {error && (
+            <Alert
+              severity='error'
+              sx={{ mb: 2 }}
+              onClose={() => setError(null)}
+            >
+              {error}
+            </Alert>
+          )}
+
+          {/* Success Alert */}
+          {success && (
+            <Alert severity='success' sx={{ mb: 2 }}>
+              Vacancy created successfully!
+            </Alert>
+          )}
+
+          <VacancyForm
+            value={form}
+            onChange={(next) => setForm(next as CreateVacancyInput)}
+          />
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ marginBottom: '15px', marginRight: '20px' }}>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button type='submit' disabled={isCreating}>
+          <Button
+            type='submit'
+            disabled={isCreating}
+            sx={{
+              backgroundColor: 'primary.main',
+              color: 'primary.light',
+              '&:hover': { backgroundColor: 'primary.dark' },
+            }}
+          >
             {isCreating ? 'Creating...' : 'Create Vacancy'}
           </Button>
         </DialogActions>
