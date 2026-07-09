@@ -190,8 +190,8 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
       />
 
       {/* Custom Weights */}
-      <Stack direction='row' spacing={1}>
-        <Typography>Scoring weights</Typography>
+      <Stack direction='row' spacing={1} sx={{ color: 'primary.main' }}>
+        <Typography sx={{ fontWeight: 'bold' }}>Scoring weights</Typography>
         <Typography variant='subtitle2' sx={{ color: 'text.secondary' }}>
           (optional · CustomWeights)
         </Typography>

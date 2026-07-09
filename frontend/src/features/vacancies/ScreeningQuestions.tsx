@@ -48,15 +48,15 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
   };
 
   return (
-    <Stack direction='column' sx={{ gap: '10px', mt: 2 }}>
+    <Stack direction='column' sx={{ gap: '10px' }}>
       {error && (
         <Alert severity='error' sx={{ mb: 2 }} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
 
-      <Stack direction='row' spacing={1}>
-        <Typography>Screening Questions</Typography>
+      <Stack direction='row' spacing={1} sx={{ color: 'primary.main' }}>
+        <Typography sx={{ fontWeight: 'bold' }}>Screening Questions</Typography>
         <Typography variant='subtitle2' sx={{ color: 'text.secondary' }}>
           (optional · vacancyQuestions)
         </Typography>
