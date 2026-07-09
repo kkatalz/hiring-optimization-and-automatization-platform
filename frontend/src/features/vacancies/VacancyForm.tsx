@@ -60,7 +60,11 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
           }}
           value={value.minSalary ?? ''}
           onChange={(e) =>
-            onChange({ ...value, minSalary: Number(e.target.value) })
+            onChange({
+              ...value,
+              minSalary:
+                e.target.value === '' ? undefined : Number(e.target.value),
+            })
           }
           type='number'
         />
@@ -72,7 +76,11 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
           }}
           value={value.maxSalary ?? ''}
           onChange={(e) =>
-            onChange({ ...value, maxSalary: Number(e.target.value) })
+            onChange({
+              ...value,
+              maxSalary:
+                e.target.value === '' ? undefined : Number(e.target.value),
+            })
           }
           type='number'
         />
@@ -91,7 +99,8 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
           onChange={(e) =>
             onChange({
               ...value,
-              requiredYearsOfExperience: Number(e.target.value),
+              requiredYearsOfExperience:
+                e.target.value === '' ? undefined : Number(e.target.value),
             })
           }
           type='number'
@@ -99,7 +108,7 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
 
         {/* Time Commitment */}
         <FormControl fullWidth sx={{ flex: 1 }}>
-          <InputLabel id='lang-level-label' shrink>
+          <InputLabel id='time-commitment-select-label' shrink>
             Time commitment
           </InputLabel>
           <Select
@@ -116,7 +125,9 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
             displayEmpty
             renderValue={(selected) => {
               if (!selected || selected.length === 0)
-                return <span style={{ color: '#aaa' }}>Full time</span>;
+                return (
+                  <span style={{ color: '#aaa' }}>Select time commitment</span>
+                );
 
               return selected.replace('_', ' ');
             }}
@@ -215,7 +226,8 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
               ...value,
               customWeights: {
                 ...value.customWeights,
-                questions: Number(e.target.value),
+                questions:
+                  e.target.value === '' ? undefined : Number(e.target.value),
               },
             })
           }
@@ -233,7 +245,8 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
               ...value,
               customWeights: {
                 ...value.customWeights,
-                tags: Number(e.target.value),
+                tags:
+                  e.target.value === '' ? undefined : Number(e.target.value),
               },
             })
           }
@@ -251,7 +264,8 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
               ...value,
               customWeights: {
                 ...value.customWeights,
-                languages: Number(e.target.value),
+                languages:
+                  e.target.value === '' ? undefined : Number(e.target.value),
               },
             })
           }
@@ -271,7 +285,8 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
               ...value,
               customWeights: {
                 ...value.customWeights,
-                experience: Number(e.target.value),
+                experience:
+                  e.target.value === '' ? undefined : Number(e.target.value),
               },
             })
           }
@@ -289,7 +304,8 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
               ...value,
               customWeights: {
                 ...value.customWeights,
-                salary: Number(e.target.value),
+                salary:
+                  e.target.value === '' ? undefined : Number(e.target.value),
               },
             })
           }
