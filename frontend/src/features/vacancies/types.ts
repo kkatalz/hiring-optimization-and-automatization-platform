@@ -37,7 +37,7 @@ export const QUESTION_TYPES: QuestionType[] = ['boolean', 'text', 'dropdown'];
 
 export interface VacancyQuestionInput {
   label: string;
-  type: QuestionType;
+  type?: QuestionType;
   answerOptions?: string[]; // Only for 'dropdown' type
   isRequired: boolean;
   priority?: number;

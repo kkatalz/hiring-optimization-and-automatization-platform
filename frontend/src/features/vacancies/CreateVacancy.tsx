@@ -81,18 +81,18 @@ export const CreateVacancy = () => {
             </Alert>
           )}
 
-          {/* Success Alert */}
-          {success && (
-            <Alert severity='success' sx={{ mb: 2 }}>
-              Vacancy created successfully!
-            </Alert>
-          )}
-
           <VacancyForm
             value={form}
             onChange={(next) => setForm(next as CreateVacancyInput)}
           />
         </DialogContent>
+
+        {/* Success Alert */}
+        {success && (
+          <Alert severity='success' sx={{ mb: 2 }}>
+            Vacancy created successfully!
+          </Alert>
+        )}
         <DialogActions sx={{ marginBottom: '15px', marginRight: '20px' }}>
           <Button onClick={handleClose}>Cancel</Button>
           <Button
