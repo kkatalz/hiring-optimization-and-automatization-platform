@@ -755,7 +755,9 @@ export class VacancySubmissionService {
     return { score: Math.round(totalScore * 100) / 100, explanation };
   }
 
-  /** Questions component (weight: 50 if not set otherwise). Scores boolean and dropdown questions with expectedValue. */
+  /** Questions component (weight: 50 if not set otherwise). Scores boolean and dropdown questions with expectedValue.
+   * Priority is used to weight the importance of each question (1 = highest, 2 = half, 3 = third, etc.).
+   */
   private scoreQuestions(
     answers: QuestionAnswerAllRequiredDto[],
     vacancyQuestions: VacancyQuestionDetailedDto[],

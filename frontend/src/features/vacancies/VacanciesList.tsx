@@ -7,14 +7,13 @@ import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import {
   resetFilters,
   applyFilters,
-  initialState,
   setPage,
   setSortBy,
-  type SortColumn,
   setOrder,
-  type SortOrder,
 } from '../filters/filterSlice';
+
 import { useState } from 'react';
+import { initialState, type SortColumn, type SortOrder } from './types';
 
 export const VacanciesList = () => {
   const dispatch = useAppDispatch();
@@ -201,8 +200,11 @@ export const VacanciesList = () => {
                 description: vacancy.description,
                 minSalary: vacancy.minSalary,
                 maxSalary: vacancy.maxSalary,
+                timeCommitment: vacancy.timeCommitment,
+                languageRequirements: vacancy.languageRequirements,
                 requiredYearsOfExperience: vacancy.requiredYearsOfExperience,
                 tags: vacancy.tags,
+                customWeights: vacancy.customWeights,
               }}
             />
             <DeleteVacancyButton vacancyId={vacancy.id} />

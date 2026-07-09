@@ -13,19 +13,21 @@ import {
   ALL_LANGUAGE_LEVELS,
   type LanguageLevel,
   type LanguageProficiency,
-} from '../filters/filterSlice';
+} from './types';
 import Divider from '@mui/material/Divider';
 
 interface LanguageRequirementsFilterProps {
   value: LanguageProficiency[];
   onChange: (next: LanguageProficiency[]) => void;
   languageCodes: string[];
+  makeFreeSolo?: boolean; // If true, the user can add a new language code
 }
 
 export const LanguageRequirementsFilter = ({
   value,
   onChange,
   languageCodes,
+  makeFreeSolo = false,
 }: LanguageRequirementsFilterProps) => {
   const [code, setCode] = useState<string | null>(null);
   const [level, setLevel] = useState<LanguageLevel | ''>('');
@@ -81,6 +83,7 @@ export const LanguageRequirementsFilter = ({
           renderInput={(params) => (
             <TextField {...params} label='Language' placeholder='EN' />
           )}
+          freeSolo={makeFreeSolo}
         />
 
         <FormControl sx={{ minWidth: 120 }}>
@@ -125,6 +128,11 @@ export const LanguageRequirementsFilter = ({
           + Add
         </Button>
       </Stack>
+      {makeFreeSolo && (
+        <Typography variant='subtitle2' sx={{ color: 'text.secondary' }}>
+          Pick an existing code or type a new one, choose a level, hit Add.
+        </Typography>
+      )}
       <Divider />
     </Stack>
   );

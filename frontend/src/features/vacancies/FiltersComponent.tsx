@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import {
-  ALL_TIME_COMMITMENTS,
-  applyFilters,
   initialState,
+  ALL_TIME_COMMITMENTS,
+  type SortColumn,
+  type SortOrder,
+} from './types';
+import {
+  applyFilters,
   resetFilters,
   setOrder,
   setSortBy,
-  type SortColumn,
-  type SortOrder,
 } from '../filters/filterSlice';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';

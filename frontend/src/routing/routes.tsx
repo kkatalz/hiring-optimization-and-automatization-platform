@@ -1,8 +1,8 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { LoginForm } from '../features/auth/LoginForm';
-import { VacanciesList } from '../features/vacancies/VacanciesList';
 import { RootLayout } from './RootLayout';
 import { ProtectedLayout } from './ProtectedLayout';
+import CreateVacancy from '../features/vacancies/CreateVacancy';
 
 const routes = createBrowserRouter([
   {
@@ -14,7 +14,7 @@ const routes = createBrowserRouter([
       },
       {
         Component: ProtectedLayout,
-        children: [{ path: '/vacancies', Component: VacanciesList }],
+        children: [{ path: '/vacancies', Component: CreateVacancy }],
       },
     ],
   },

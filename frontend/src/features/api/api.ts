@@ -6,7 +6,7 @@ import type {
   PaginatedResponse,
 } from '../vacancies/types';
 import type { RootState } from '../../app/store';
-import type { VacanciesFilters } from '../filters/filterSlice';
+import type { VacanciesFilters } from '../vacancies/types';
 
 export const api = createApi({
   reducerPath: 'api',
