@@ -114,12 +114,16 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
           <Select
             labelId='time-commitment-select-label'
             id='time-commitment-select'
-            value={value.timeCommitment || ''}
+            value={value.timeCommitment ?? ''}
             label='Time commitment'
             onChange={(e) => {
+              const targetValue = e.target.value as string;
               onChange({
                 ...value,
-                timeCommitment: e.target.value,
+                timeCommitment:
+                  targetValue === ''
+                    ? undefined
+                    : (targetValue as CreateVacancyInput['timeCommitment']),
               });
             }}
             displayEmpty

@@ -49,6 +49,15 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
       return;
     }
 
+    if (
+      currentQuestion.type === 'dropdown' &&
+      (!currentQuestion.answerOptions ||
+        currentQuestion.answerOptions.length === 0)
+    ) {
+      setError('Dropdown questions require at least one answer option.');
+      return;
+    }
+
     setError(null);
 
     onChange([...value, currentQuestion]);
@@ -153,7 +162,7 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
           }
         />
 
-        <FormControl required>
+        <FormControl>
           <InputLabel id='question-type-select-label' shrink>
             Type
           </InputLabel>
@@ -163,7 +172,10 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
             value={currentQuestion.type || ''}
             label='Type'
             onChange={(e) =>
-              setCurrentQuestion({ ...currentQuestion, type: e.target.value })
+              setCurrentQuestion({
+                ...currentQuestion,
+                type: e.target.value,
+              })
             }
             displayEmpty
             renderValue={(selected) => {
@@ -193,7 +205,8 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
           onChange={(e) =>
             setCurrentQuestion({
               ...currentQuestion,
-              priority: Number(e.target.value),
+              priority:
+                e.target.value === '' ? undefined : Number(e.target.value),
             })
           }
           type='number'

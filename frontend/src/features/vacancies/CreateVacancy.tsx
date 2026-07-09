@@ -52,12 +52,14 @@ export const CreateVacancy = () => {
     } catch (error: unknown) {
       const err = error as { data?: { error?: string; message?: string } };
 
-      const backendError = err?.data?.error || 'Unknown Error';
-      const backendMessage = err?.data?.message || 'No message provided';
+      const backendError = err?.data?.error ?? 'Unknown Error';
+      const backendMessage = err?.data?.message;
       const alternativeMessage = getErrorMessage(createVacancyError);
+      const message =
+        backendMessage ?? alternativeMessage ?? 'No message provided';
 
       setError(
-        `Failed to create vacancy. Error: ${backendError}. Message: ${backendMessage ?? alternativeMessage}. Please try again.`,
+        `Failed to create vacancy. Error: ${backendError}. Message: ${message}. Please try again.`,
       );
     }
   };
