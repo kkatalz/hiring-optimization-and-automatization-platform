@@ -92,12 +92,14 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
           </Typography>
 
           <Stack direction='row' spacing={1} sx={{ ml: 2 }}>
-            <Chip
-              label={question.type}
-              size='small'
-              variant='outlined'
-              sx={{ bgcolor: '#eaeff1', border: 'none', fontWeight: 500 }}
-            />
+            {question.type && (
+              <Chip
+                label={question.type}
+                size='small'
+                variant='outlined'
+                sx={{ bgcolor: '#eaeff1', border: 'none', fontWeight: 500 }}
+              />
+            )}
             {question.isRequired && (
               <Chip
                 label={question.isRequired ? 'required' : 'optional'}
