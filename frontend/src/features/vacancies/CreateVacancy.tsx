@@ -3,7 +3,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import { useState } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { getErrorMessage } from '../../utils/errorMessage';
 import { useCreateVacancyMutation } from '../api/api';
 import { type CreateVacancyInput } from './types';
@@ -40,7 +40,7 @@ export const CreateVacancy = () => {
   const [createVacancy, { isLoading: isCreating, error: createVacancyError }] =
     useCreateVacancyMutation();
 
-  const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleCreate = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSuccess(false);
     setError(null);
@@ -49,13 +49,15 @@ export const CreateVacancy = () => {
       await createVacancy(form).unwrap();
       setSuccess(true);
       setForm(EMPTY_VACANCY_FORM);
-    } catch (error: any) {
-      const backendError = error?.data?.error || 'Unknown Error';
-      const backendMessage = error?.data?.message || 'No message provided';
+    } catch (error: unknown) {
+      const err = error as { data?: { error?: string; message?: string } };
+
+      const backendError = err?.data?.error || 'Unknown Error';
+      const backendMessage = err?.data?.message || 'No message provided';
       const alternativeMessage = getErrorMessage(createVacancyError);
 
       setError(
-        `Failed to create vacancy. Error: ${backendError}. Message: ${backendMessage || alternativeMessage}. Please try again.`,
+        `Failed to create vacancy. Error: ${backendError}. Message: ${backendMessage ?? alternativeMessage}. Please try again.`,
       );
     }
   };
