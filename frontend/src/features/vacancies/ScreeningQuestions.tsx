@@ -77,7 +77,7 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
       {/* Screening Questions Chips */}
       {value.map((question, index) => (
         <Box
-          key='index'
+          key={index}
           sx={{
             position: 'relative',
             gap: '10px',
