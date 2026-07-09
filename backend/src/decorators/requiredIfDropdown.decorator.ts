@@ -18,9 +18,12 @@ class RequiredIfDropdownConstraint implements ValidatorConstraintInterface {
       return Array.isArray(value) && value.length > 0;
     }
 
-    // If it is NOT a dropdown: value must be undefined or null.
-    // If we send empty array, it still will return false and trigger an error.
-    return value === undefined || value === null;
+    // If it is NOT a dropdown: value must be undefined, null or an empty array.
+    return (
+      value === undefined ||
+      value === null ||
+      (Array.isArray(value) && value.length === 0)
+    );
   }
 
   defaultMessage(args: ValidationArguments) {
