@@ -1,4 +1,4 @@
-import { Card, Chip, List, ListItem, Stack, Typography } from '@mui/material';
+  CardContent,
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { getErrorMessage } from '../../utils/errorMessage';
 import { useSearchVacanciesQuery } from '../api/api';
@@ -43,123 +43,134 @@ export const VacanciesList = () => {
     );
 
   return (
-    <List sx={{ maxWidth: '600px' }}>
+    <List
+      sx={{
+        minWidth: '330px',
+        maxWidth: '900px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1,
+      }}
+    >
       {filteredData?.data.map((vacancy, index) => (
         <ListItem key={vacancy.id} alignItems='flex-start'>
-          <Card elevation={4}>
-            <Stack
-              direction='row'
-              spacing={2}
-              sx={{ alignItems: 'center', p: 2, gap: 2 }}
-            >
-              {/* Left panel */}
-              <Stack direction='column' spacing={1}>
-                <Stack
-                  key={index}
-                  direction='row'
-                  sx={{
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <Typography variant='h6'>{vacancy.name}</Typography>
-                  {vacancy.timeCommitment && (
-                    <Chip
-                      label={vacancy.timeCommitment.replace('_', ' ')}
-                      sx={{
-                        backgroundColor:
-                          index % 2 === 0
-                            ? 'primary.light'
-                            : 'secondary.contrastText',
-                      }}
-                    />
-                  )}
-                </Stack>
-
-                <Typography variant='subtitle2' color='primary.light'>
-                  {vacancy.description}
-                </Typography>
-
-                {/* ---- Chips ----- */}
-                <Stack direction='row' sx={{ flexWrap: 'wrap', gap: 1 }}>
-                  {/* Tags */}
-                  {vacancy.tags &&
-                    vacancy.tags.map((tag) => (
-                      <Chip key={tag} label={tag} variant='outlined' />
-                    ))}
-                  {/* Salary */}
-                  {getSalaryLabel(vacancy) && (
-                    <Chip
-                      icon={
-                        <img
-                          src={BagOfMoney}
-                          alt='Salary'
-                          style={{ width: 16, height: 16 }}
-                        />
-                      }
-                      label={getSalaryLabel(vacancy)}
-                      sx={{ px: 0.5, justifyContent: 'space-between' }}
-                    />
-                  )}
-                  {/* Experience */}
-                  {vacancy.requiredYearsOfExperience !== null && (
-                    <Chip
-                      icon={
-                        <img
-                          src={Statistics}
-                          alt='Experience'
-                          style={{ width: 16, height: 16 }}
-                        />
-                      }
-                      label={
-                        vacancy.requiredYearsOfExperience === 0
-                          ? 'No experience'
-                          : `${vacancy.requiredYearsOfExperience} yrs`
-                      }
-                      sx={{ px: 0.5, justifyContent: 'space-between' }}
-                    />
-                  )}
-                  {vacancy.languageRequirements &&
-                    vacancy.languageRequirements.length > 0 && (
+          <Card elevation={4} sx={{ width: '100%' }}>
+            <CardContent>
+              <Stack
+                direction='row'
+                sx={{
+                  alignItems: 'center',
+                  p: 2,
+                  gap: 3,
+                  justifyContent: 'space-between',
+                }}
+              >
+                {/* Left panel */}
+                <Stack spacing={1}>
+                  <Stack key={index} direction='row' spacing={1}>
+                    <Typography variant='h6'>{vacancy.name}</Typography>
+                    {vacancy.timeCommitment && (
                       <Chip
-                        label={vacancy.languageRequirements
-                          .map(
-                            (lang) =>
-                              `${lang.code.toUpperCase()} - ${lang.level}`,
-                          )
-                          .join(', ')}
+                        label={vacancy.timeCommitment.replace('_', ' ')}
+                        sx={{
+                          backgroundColor:
+                            index % 2 === 0
+                              ? 'primary.light'
+                              : 'secondary.contrastText',
+                        }}
+                      />
+                    )}
+                  </Stack>
+
+                  <Typography variant='subtitle2' color='primary.light'>
+                    {vacancy.description}
+                  </Typography>
+
+                  {/* ---- Chips ----- */}
+                  <Stack direction='row' sx={{ flexWrap: 'wrap', gap: 1 }}>
+                    {/* Tags */}
+                    {vacancy.tags &&
+                      vacancy.tags.map((tag) => (
+                        <Chip key={tag} label={tag} variant='outlined' />
+                      ))}
+                    {/* Salary */}
+                    {getSalaryLabel(vacancy) && (
+                      <Chip
                         icon={
                           <img
-                            src={TalkingPerson}
-                            alt='Language'
+                            src={BagOfMoney}
+                            alt='Salary'
                             style={{ width: 16, height: 16 }}
                           />
+                        }
+                        label={getSalaryLabel(vacancy)}
+                        sx={{ px: 0.5, justifyContent: 'space-between' }}
+                      />
+                    )}
+                    {/* Experience */}
+                    {vacancy.requiredYearsOfExperience !== null && (
+                      <Chip
+                        icon={
+                          <img
+                            src={Statistics}
+                            alt='Experience'
+                            style={{ width: 16, height: 16 }}
+                          />
+                        }
+                        label={
+                          vacancy.requiredYearsOfExperience === 0
+                            ? 'No experience'
+                            : `${vacancy.requiredYearsOfExperience} yrs`
                         }
                         sx={{ px: 0.5, justifyContent: 'space-between' }}
                       />
                     )}
+                    {vacancy.languageRequirements &&
+                      vacancy.languageRequirements.length > 0 &&
+                      vacancy.languageRequirements.map((lang) => (
+                        <Chip
+                          key={lang.code}
+                          label={`${lang.code.toUpperCase()} - ${lang.level}`}
+                          icon={
+                            <img
+                              src={TalkingPerson}
+                              alt='Language'
+                              style={{ width: 16, height: 16 }}
+                            />
+                          }
+                          sx={{ px: 0.5, justifyContent: 'space-between' }}
+                        />
+                      ))}
+                  </Stack>
+                </Stack>
+
+                {/* Edit & Delete */}
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  sx={{
+                    justifyContent: 'center',
+                    gap: 1,
+                  }}
+                >
+                  <UpdateVacancyForm
+                    vacancyId={vacancy.id}
+                    initialData={{
+                      name: vacancy.name,
+                      description: vacancy.description,
+                      minSalary: vacancy.minSalary,
+                      maxSalary: vacancy.maxSalary,
+                      timeCommitment: vacancy.timeCommitment,
+                      languageRequirements: vacancy.languageRequirements,
+                      requiredYearsOfExperience:
+                        vacancy.requiredYearsOfExperience,
+                      tags: vacancy.tags,
+                      customWeights: vacancy.customWeights,
+                    }}
+                  />
                 </Stack>
               </Stack>
-
-              {/* Edit & Delete */}
-              <Stack direction='row' spacing={1}>
-                <UpdateVacancyForm
-                  vacancyId={vacancy.id}
-                  initialData={{
-                    name: vacancy.name,
-                    description: vacancy.description,
-                    minSalary: vacancy.minSalary,
-                    maxSalary: vacancy.maxSalary,
-                    timeCommitment: vacancy.timeCommitment,
-                    languageRequirements: vacancy.languageRequirements,
-                    requiredYearsOfExperience:
-                      vacancy.requiredYearsOfExperience,
-                    tags: vacancy.tags,
-                    customWeights: vacancy.customWeights,
-                  }}
-                />
-                <DeleteVacancyButton vacancyId={vacancy.id} />
-              </Stack>
-            </Stack>
+            </CardContent>
           </Card>
         </ListItem>
       ))}
