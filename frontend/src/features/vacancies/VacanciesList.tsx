@@ -1,4 +1,15 @@
+import {
+  Alert,
+  Card,
   CardContent,
+  Chip,
+  List,
+  ListItem,
+  Snackbar,
+  Stack,
+  Typography,
+} from '@mui/material';
+import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { getErrorMessage } from '../../utils/errorMessage';
 import { useSearchVacanciesQuery } from '../api/api';
@@ -20,8 +31,15 @@ const getSalaryLabel = (vacancy: Vacancy) => {
   return null;
 };
 
+type Notification = {
+  message: string;
+  severity: 'success' | 'error';
+};
+
 export const VacanciesList = () => {
   const dispatch = useAppDispatch();
+
+  const [notification, setNotification] = useState<Notification | null>(null);
 
   const appliedFilters = useAppSelector((state) => state.filters);
 
@@ -168,6 +186,12 @@ export const VacanciesList = () => {
                       customWeights: vacancy.customWeights,
                     }}
                   />
+                  <DeleteVacancyButton
+                    vacancyId={vacancy.id}
+                    onNotify={(message, severity) =>
+                      setNotification({ message, severity })
+                    }
+                  />
                 </Stack>
               </Stack>
             </CardContent>
@@ -191,6 +215,23 @@ export const VacanciesList = () => {
           </button>
         </>
       )}
+
+      <Snackbar
+        open={notification !== null}
+        onClose={() => setNotification(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        {notification ? (
+          <Alert
+            severity={notification.severity}
+            variant='filled'
+            onClose={() => setNotification(null)}
+            sx={{ width: '100%' }}
+          >
+            {notification.message}
+          </Alert>
+        ) : undefined}
+      </Snackbar>
     </List>
   );
 };

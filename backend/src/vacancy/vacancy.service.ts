@@ -355,7 +355,15 @@ export class VacancyService {
   async remove(vacancyId: string): Promise<VacancyDto> {
     const vacancy = await this.findVacancyById(vacancyId);
 
-    await this.vacancyRepository.delete(vacancyId);
+    try {
+      await this.vacancyRepository.delete(vacancyId);
+    } catch (error) {
+      throw new HttpException(
+        `Failed to delete vacancy: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
     return vacancy;
   }
 
