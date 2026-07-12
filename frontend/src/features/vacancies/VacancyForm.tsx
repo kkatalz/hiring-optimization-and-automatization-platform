@@ -4,7 +4,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import {
   useGetAllVacanciesTagsQuery,
   useGetAllVacanciesLanguagesCodesQuery,
-} from '../api/api';
+} from '../api/vacancyApi';
 import Stack from '@mui/material/Stack';
 import { ALL_TIME_COMMITMENTS } from './types';
 import Select from '@mui/material/Select';

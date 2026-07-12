@@ -12,7 +12,7 @@ import {
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { getErrorMessage } from '../../utils/errorMessage';
-import { useSearchVacanciesQuery } from '../api/api';
+import { useSearchVacanciesQuery } from '../api/vacancyApi';
 import { setPage } from '../filters/filterSlice';
 import DeleteVacancyButton from './DeleteVacancyButton';
 import UpdateVacancyForm from './UpdateVacancy';

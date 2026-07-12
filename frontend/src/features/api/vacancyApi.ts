@@ -8,8 +8,8 @@ import type {
 import type { RootState } from '../../app/store';
 import type { VacanciesFilters } from '../vacancies/types';
 
-export const api = createApi({
-  reducerPath: 'api',
+export const vacancyApi = createApi({
+  reducerPath: 'vacancyApi',
   baseQuery: fetchBaseQuery({
     baseUrl: 'http://localhost:3000',
     credentials: 'include',
@@ -125,4 +125,4 @@ export const {
   useCreateVacancyMutation,
   useUpdateVacancyMutation,
   useDeleteVacancyMutation,
-} = api;
+} = vacancyApi;

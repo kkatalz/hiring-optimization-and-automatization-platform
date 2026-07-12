@@ -1,4 +1,4 @@
-import { useDeleteVacancyMutation } from '../api/api';
+import { useDeleteVacancyMutation } from '../api/vacancyApi';
 import { getErrorMessage } from '../../utils/errorMessage';
 import { Button } from '@mui/material';
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
