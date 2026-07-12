@@ -1,5 +1,4 @@
 import type { InterviewStatus } from './statuses.enum';
-import type { VacancySubmission } from './vacancySubmission';
 
 export interface Interview {
   id: string;
@@ -10,9 +9,8 @@ export interface Interview {
   tenantId: string;
   interviewersEmails: string[];
   candidateEmail: string;
-  notes: string;
+  notes?: string;
   status: InterviewStatus;
-  submission: VacancySubmission;
   createdAt: string;
   updatedAt: string;
 }

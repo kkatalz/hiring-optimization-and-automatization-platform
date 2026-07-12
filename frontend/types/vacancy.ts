@@ -1,9 +1,7 @@
 import type { LanguageProficiency, TimeCommitment } from './hiring.enum';
 import type { QuestionType } from './question.enum';
 import type { CustomWeights } from './matchingScore';
-import type { User } from './user';
 import type { VacancyQuestion } from './vacancyQuestion';
-import type { VacancySubmission } from './vacancySubmission';
 
 export interface Vacancy {
   id: string;
@@ -13,17 +11,14 @@ export interface Vacancy {
   maxSalary?: number;
   tenantId: string;
   createdById: string;
+  numberOfSubmissions?: number;
   timeCommitment?: TimeCommitment;
   languageRequirements?: LanguageProficiency[];
   requiredYearsOfExperience?: number;
   tags?: string[];
   customWeights?: CustomWeights;
-  createdAt?: string;
-  needsReclustering?: boolean;
-  createdBy?: User;
-  submissions?: VacancySubmission[];
-  numberOfSubmissions?: number;
   vacancyQuestions?: VacancyQuestion[];
+  createdAt?: string;
 }
 
 /* Frontend-specific vacancy DTOs, filters and helpers */

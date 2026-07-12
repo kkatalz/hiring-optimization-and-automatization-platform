@@ -1,5 +1,4 @@
-import type { Question } from './question';
-import type { Vacancy } from './vacancy';
+import type { QuestionType } from './question.enum';
 
 export interface VacancyQuestion {
   vacancyId: string;
@@ -7,6 +6,10 @@ export interface VacancyQuestion {
   isRequired: boolean;
   priority: number;
   expectedValue?: string | string[];
-  vacancy: Vacancy;
-  question: Question;
+}
+
+export interface VacancyQuestionDetailed extends VacancyQuestion {
+  label: string;
+  type: QuestionType;
+  answerOptions?: string[] | null;
 }

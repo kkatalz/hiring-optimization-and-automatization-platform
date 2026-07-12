@@ -1,10 +1,26 @@
 import type { LanguageProficiency } from './hiring.enum';
+import type { UserRole } from './role.enum';
+import type { VacancySubmissionStatus } from './statuses.enum';
 import type { SentenceScore } from './scores.interface';
-import type { User } from './user';
-import type { VacancySubmission } from './vacancySubmission';
+
+export interface CandidateSubmission {
+  id: string;
+  vacancyId: string;
+  status: VacancySubmissionStatus;
+  comment?: string;
+  resume?: string;
+  tags?: string[];
+  expectedSalary?: number | null;
+  createdAt: string;
+}
 
 export interface CandidateProfile {
-  id: string;
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  token?: string;
   yearsOfExperience: number;
   country: string;
   city: string;
@@ -12,7 +28,5 @@ export interface CandidateProfile {
   resume?: string;
   resumeAiScore?: number | null;
   resumeAiSentenceScores?: SentenceScore[] | null;
-  userId?: string;
-  user: User;
-  submissions?: VacancySubmission[];
+  submissions?: CandidateSubmission[];
 }
