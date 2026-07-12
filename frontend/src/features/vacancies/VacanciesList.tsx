@@ -164,34 +164,47 @@ export const VacanciesList = () => {
 
                 {/* Edit & Delete */}
                 <Stack
-                  direction='row'
+                  direction='column'
                   spacing={1}
-                  sx={{
-                    justifyContent: 'center',
-                    gap: 1,
-                  }}
+                  sx={{ alignItems: 'center' }}
                 >
-                  <UpdateVacancyForm
-                    vacancyId={vacancy.id}
-                    initialData={{
-                      name: vacancy.name,
-                      description: vacancy.description,
-                      minSalary: vacancy.minSalary,
-                      maxSalary: vacancy.maxSalary,
-                      timeCommitment: vacancy.timeCommitment,
-                      languageRequirements: vacancy.languageRequirements,
-                      requiredYearsOfExperience:
-                        vacancy.requiredYearsOfExperience,
-                      tags: vacancy.tags,
-                      customWeights: vacancy.customWeights,
+                  <Typography
+                    variant='subtitle2'
+                    color='primary.light'
+                    sx={{ whiteSpace: 'nowrap' }}
+                  >
+                    {vacancy?.submissions?.length ?? 0} submissions
+                  </Typography>
+                  <Stack
+                    direction='row'
+                    spacing={1}
+                    sx={{
+                      justifyContent: 'center',
+                      gap: 1,
                     }}
-                  />
-                  <DeleteVacancyButton
-                    vacancyId={vacancy.id}
-                    onNotify={(message, severity) =>
-                      setNotification({ message, severity })
-                    }
-                  />
+                  >
+                    <UpdateVacancyForm
+                      vacancyId={vacancy.id}
+                      initialData={{
+                        name: vacancy.name,
+                        description: vacancy.description,
+                        minSalary: vacancy.minSalary,
+                        maxSalary: vacancy.maxSalary,
+                        timeCommitment: vacancy.timeCommitment,
+                        languageRequirements: vacancy.languageRequirements,
+                        requiredYearsOfExperience:
+                          vacancy.requiredYearsOfExperience,
+                        tags: vacancy.tags,
+                        customWeights: vacancy.customWeights,
+                      }}
+                    />
+                    <DeleteVacancyButton
+                      vacancyId={vacancy.id}
+                      onNotify={(message, severity) =>
+                        setNotification({ message, severity })
+                      }
+                    />
+                  </Stack>
                 </Stack>
               </Stack>
             </CardContent>

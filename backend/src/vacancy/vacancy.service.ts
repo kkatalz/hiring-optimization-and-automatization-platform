@@ -114,7 +114,8 @@ export class VacancyService {
   ): Promise<Vacancy[]> {
     const query = this.vacancyRepository
       .createQueryBuilder('vacancy')
-      .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq');
+      .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq')
+      .leftJoinAndSelect('vacancy.submissions', 'submission');
 
     if (loadSubmissionCount) {
       query.loadRelationCountAndMap(

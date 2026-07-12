@@ -5,6 +5,7 @@ import { getErrorMessage } from '../../utils/errorMessage';
 import styles from '../../utils/styles';
 import VacancyForm from './VacancyForm';
 import { CloseButton } from '../../utils/CloseButton';
+import { Button } from '@mui/material';
 
 const UpdateVacancyForm = ({
   vacancyId,
@@ -53,7 +54,9 @@ const UpdateVacancyForm = ({
         </div>
       )}
 
-      <button onClick={() => setIsOpen(true)}>Update Vacancy</button>
+      <Button variant='outlined' onClick={() => setIsOpen(true)}>
+        Edit
+      </Button>
     </>
   );
 };
