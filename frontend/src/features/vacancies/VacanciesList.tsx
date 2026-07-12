@@ -19,7 +19,7 @@ import UpdateVacancyForm from './UpdateVacancy';
 import BagOfMoney from '../../assets/BagOfMoney.svg';
 import Statistics from '../../assets/Statistics.svg';
 import TalkingPerson from '../../assets/TalkingPerson.svg';
-import type { Vacancy } from '../../../types/vacancy';
+import type { Vacancy } from '../../../types';
 
 const getSalaryLabel = (vacancy: Vacancy) => {
   const { minSalary, maxSalary } = vacancy;

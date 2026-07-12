@@ -1,3 +1,8 @@
+import type { LanguageProficiency, TimeCommitment } from './hiring.enum';
+import type { QuestionType } from './question.enum';
+import type { CustomWeights } from './matchingScore';
+import type { User } from './user';
+import type { VacancyQuestion } from './vacancyQuestion';
 import type { VacancySubmission } from './vacancySubmission';
 
 export interface Vacancy {
@@ -8,23 +13,19 @@ export interface Vacancy {
   maxSalary?: number;
   tenantId: string;
   createdById: string;
-  submissions?: VacancySubmission[];
   timeCommitment?: TimeCommitment;
   languageRequirements?: LanguageProficiency[];
   requiredYearsOfExperience?: number;
   tags?: string[];
   customWeights?: CustomWeights;
   createdAt?: string;
+  needsReclustering?: boolean;
+  createdBy?: User;
+  submissions?: VacancySubmission[];
+  vacancyQuestions?: VacancyQuestion[];
 }
 
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
+/* Frontend-specific vacancy DTOs, filters and helpers */
 export type SortColumn =
   | 'createdAt'
   | 'requiredYearsOfExperience'
@@ -32,29 +33,6 @@ export type SortColumn =
   | 'maxSalary';
 
 export type SortOrder = 'ASC' | 'DESC';
-
-export type TimeCommitment = 'FULL_TIME' | 'PART_TIME' | 'PROJECT_BASED';
-export const ALL_TIME_COMMITMENTS: TimeCommitment[] = [
-  'FULL_TIME',
-  'PART_TIME',
-  'PROJECT_BASED',
-];
-
-export type LanguageLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'NATIVE';
-export const ALL_LANGUAGE_LEVELS: LanguageLevel[] = [
-  'A1',
-  'A2',
-  'B1',
-  'B2',
-  'C1',
-  'C2',
-  'NATIVE',
-];
-
-export interface LanguageProficiency {
-  code: string;
-  level: LanguageLevel;
-}
 
 export interface VacanciesFilters {
   name?: string;
@@ -85,17 +63,6 @@ export const initialState: VacanciesFilters = {
   page: 1,
   limit: 10,
 };
-
-export interface CustomWeights {
-  questions?: number;
-  tags?: number;
-  languages?: number;
-  experience?: number;
-  salary?: number;
-}
-
-type QuestionType = 'boolean' | 'text' | 'dropdown';
-export const QUESTION_TYPES: QuestionType[] = ['boolean', 'text', 'dropdown'];
 
 export interface VacancyQuestionInput {
   label: string;

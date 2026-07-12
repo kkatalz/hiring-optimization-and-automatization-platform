@@ -2,7 +2,7 @@ import Stack from '@mui/material/Stack';
 import {
   QUESTION_TYPES,
   type VacancyQuestionInput,
-} from '../../../types/vacancy';
+} from '../../../types';
 import Typography from '@mui/material/Typography';
 import {
   Alert,

@@ -3,8 +3,8 @@ import type {
   SortColumn,
   SortOrder,
   VacanciesFilters,
-} from '../../../types/vacancy';
-import { initialState } from '../../../types/vacancy';
+} from '../../../types';
+import { initialState } from '../../../types';
 
 export const filtersSlice = createSlice({
   name: 'filters',
