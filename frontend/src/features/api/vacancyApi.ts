@@ -4,9 +4,9 @@ import type {
   UpdateVacancyInput,
   Vacancy,
   PaginatedResponse,
-} from '../vacancies/types';
+} from '../../../types/vacancy';
 import type { RootState } from '../../app/store';
-import type { VacanciesFilters } from '../vacancies/types';
+import type { VacanciesFilters } from '../../../types/vacancy';
 
 export const vacancyApi = createApi({
   reducerPath: 'vacancyApi',

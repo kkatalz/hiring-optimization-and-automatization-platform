@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { UpdateVacancyInput } from './types';
+import type { UpdateVacancyInput } from '../../../types/vacancy';
 import { useUpdateVacancyMutation } from '../api/vacancyApi';
 import { getErrorMessage } from '../../utils/errorMessage';
 import styles from '../../utils/styles';

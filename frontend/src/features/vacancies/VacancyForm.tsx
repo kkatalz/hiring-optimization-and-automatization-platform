@@ -1,12 +1,15 @@
 import TextField from '@mui/material/TextField';
-import type { CreateVacancyInput, UpdateVacancyInput } from './types';
+import type {
+  CreateVacancyInput,
+  UpdateVacancyInput,
+} from '../../../types/vacancy';
 import Autocomplete from '@mui/material/Autocomplete';
 import {
   useGetAllVacanciesTagsQuery,
   useGetAllVacanciesLanguagesCodesQuery,
 } from '../api/vacancyApi';
 import Stack from '@mui/material/Stack';
-import { ALL_TIME_COMMITMENTS } from './types';
+import { ALL_TIME_COMMITMENTS } from '../../../types/vacancy';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';

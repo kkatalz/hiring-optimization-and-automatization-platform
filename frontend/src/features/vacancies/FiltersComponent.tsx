@@ -5,7 +5,7 @@ import {
   ALL_TIME_COMMITMENTS,
   type SortColumn,
   type SortOrder,
-} from './types';
+} from '../../../types/vacancy';
 import {
   applyFilters,
   resetFilters,

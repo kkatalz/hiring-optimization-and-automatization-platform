@@ -1,3 +1,5 @@
+import type { VacancySubmission } from './vacancySubmission';
+
 export interface Vacancy {
   id: string;
   name: string;
@@ -6,6 +8,7 @@ export interface Vacancy {
   maxSalary?: number;
   tenantId: string;
   createdById: string;
+  submissions?: VacancySubmission[];
   timeCommitment?: TimeCommitment;
   languageRequirements?: LanguageProficiency[];
   requiredYearsOfExperience?: number;
