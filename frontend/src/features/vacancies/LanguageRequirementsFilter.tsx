@@ -13,7 +13,7 @@ import {
   ALL_LANGUAGE_LEVELS,
   type LanguageLevel,
   type LanguageProficiency,
-} from './types';
+} from '../../../types';
 import Divider from '@mui/material/Divider';
 
 interface LanguageRequirementsFilterProps {

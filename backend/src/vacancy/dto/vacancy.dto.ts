@@ -1,4 +1,3 @@
-import { VacancySubmission } from '../../entities/vacancySubmission';
 import {
   LanguageProficiency,
   TimeCommitment,
@@ -14,7 +13,7 @@ export class VacancyDto {
   maxSalary?: number | null;
   tenantId: string;
   createdById: string;
-  submissions?: VacancySubmission[];
+  numberOfSubmissions?: number;
   timeCommitment?: TimeCommitment;
   languageRequirements?: LanguageProficiency[];
   requiredYearsOfExperience?: number;

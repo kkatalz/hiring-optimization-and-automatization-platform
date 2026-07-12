@@ -1,5 +1,8 @@
 import Stack from '@mui/material/Stack';
-import { QUESTION_TYPES, type VacancyQuestionInput } from './types';
+import {
+  QUESTION_TYPES,
+  type VacancyQuestionInput,
+} from '../../../types';
 import Typography from '@mui/material/Typography';
 import {
   Alert,

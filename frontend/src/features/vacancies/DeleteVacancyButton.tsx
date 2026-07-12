@@ -1,26 +1,43 @@
-import { useDeleteVacancyMutation } from '../api/api';
+import { useDeleteVacancyMutation } from '../api/vacancyApi';
 import { getErrorMessage } from '../../utils/errorMessage';
+import { Button } from '@mui/material';
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import type { SerializedError } from '@reduxjs/toolkit';
 
-const DeleteVacancyButton = ({ vacancyId }: { vacancyId: string }) => {
-  const [deleteVacancy, { isLoading, error: deleteVacancyError }] =
-    useDeleteVacancyMutation();
+type DeleteVacancyButtonProps = {
+  vacancyId: string;
+  onNotify: (message: string, severity: 'success' | 'error') => void;
+};
 
-  const handleDelete = async () => {
+const DeleteVacancyButton = ({
+  vacancyId,
+  onNotify,
+}: DeleteVacancyButtonProps) => {
+  const [deleteVacancy, { isLoading }] = useDeleteVacancyMutation();
+
+  const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
     try {
       await deleteVacancy(vacancyId).unwrap();
-      alert('Vacancy deleted successfully!');
+      onNotify('Vacancy deleted successfully!', 'success');
     } catch (error) {
-      alert(
-        `Failed to delete vacancy: ${error} ` +
-          getErrorMessage(deleteVacancyError),
+      const message = getErrorMessage(
+        error as FetchBaseQueryError | SerializedError,
       );
+      onNotify(`Failed to delete vacancy: ${message}`, 'error');
     }
   };
 
   return (
-    <button onClick={handleDelete} disabled={isLoading}>
-      {isLoading ? 'Deleting...' : 'Delete Vacancy'}
-    </button>
+    <Button
+      variant='outlined'
+      onClick={handleDelete}
+      disabled={isLoading}
+      color='error'
+    >
+      {isLoading ? 'Deleting...' : 'Delete'}
+    </Button>
   );
 };
 
