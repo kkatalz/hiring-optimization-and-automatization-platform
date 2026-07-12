@@ -5,6 +5,7 @@ import { Vacancy } from '../entities/vacancy';
 import { VacancyQuestion } from '../entities/vacancyQuestion';
 import {
   BadRequestException,
+  ConflictException,
   forwardRef,
   HttpException,
   HttpStatus,
@@ -69,7 +70,7 @@ export class VacancyService {
   ): Promise<PaginatedResponse<VacancyDto>> {
     const vacancies = await this.fetchVacanciesWithFilters(
       filterDto,
-      false,
+      true,
       tenantId,
     );
     return paginateArray(
@@ -114,8 +115,7 @@ export class VacancyService {
   ): Promise<Vacancy[]> {
     const query = this.vacancyRepository
       .createQueryBuilder('vacancy')
-      .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq')
-      .leftJoinAndSelect('vacancy.submissions', 'submission');
+      .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq');
 
     if (loadSubmissionCount) {
       query.loadRelationCountAndMap(
@@ -359,10 +359,12 @@ export class VacancyService {
     try {
       await this.vacancyRepository.delete(vacancyId);
     } catch (error) {
-      throw new HttpException(
-        `Failed to delete vacancy: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      if (error?.driverError?.code === '23503' || error?.code === '23503') {
+        throw new ConflictException(
+          'Cannot delete this vacancy because related records depend on it.',
+        );
+      }
+      throw error; // unexpected → bubbles up as 500, without leaking DB internals
     }
 
     return vacancy;

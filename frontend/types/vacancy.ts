@@ -22,6 +22,7 @@ export interface Vacancy {
   needsReclustering?: boolean;
   createdBy?: User;
   submissions?: VacancySubmission[];
+  numberOfSubmissions?: number;
   vacancyQuestions?: VacancyQuestion[];
 }
 
