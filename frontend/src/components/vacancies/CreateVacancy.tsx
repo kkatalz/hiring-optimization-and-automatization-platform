@@ -33,7 +33,7 @@ export const CreateVacancy = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   const [form, setForm] = useState<CreateVacancyInput>(EMPTY_VACANCY_FORM);
 

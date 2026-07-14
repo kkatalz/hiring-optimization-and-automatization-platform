@@ -14,7 +14,8 @@ const UpdateVacancyForm = ({
   vacancyId: string;
   initialData: UpdateVacancyInput;
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+
 
   const [form, setForm] = useState<UpdateVacancyInput>(initialData);
 
