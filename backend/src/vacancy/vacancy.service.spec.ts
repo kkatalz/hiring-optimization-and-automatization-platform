@@ -711,31 +711,32 @@ describe('VacancyService', () => {
       expect(submissionAfter!.matchScore).to.equal(scoreBefore);
     });
 
-    it('should throw 400 when update includes a question not linked to the vacancy', async () => {
+    it('should replace the question set on update, linking newly included questions and unlinking omitted ones', async () => {
       const vacancyId = testVacancies[0].id;
-      // testQuestions[1] is NOT linked to vacancy[0]
-      const unlinkedQuestionId = testQuestions[1].id;
+      // questions [0] and [2] are linked to vacancy[0]; question[1] is not.
+      const newlyIncluded = testQuestions[1];
 
-      try {
-        await service.update(vacancyId, {
-          name: testVacancies[0].name,
-          description: testVacancies[0].description,
-          vacancyQuestions: [
-            {
-              questionId: unlinkedQuestionId,
-              label: testQuestions[1].label,
-              type: testQuestions[1].type,
-              isRequired: true,
-            },
-          ],
-        });
-        expect.fail('Should have thrown a BAD_REQUEST error but did not');
-      } catch (e: any) {
-        expect(e.status).to.equal(400);
-        expect(e.response.message).to.include(
-          `Question '${unlinkedQuestionId}' is not linked to this vacancy`,
-        );
-      }
+      await service.update(vacancyId, {
+        name: testVacancies[0].name,
+        description: testVacancies[0].description,
+        // Only include the newly added question in the update payload
+        vacancyQuestions: [
+          {
+            questionId: newlyIncluded.id,
+            label: newlyIncluded.label,
+            type: newlyIncluded.type,
+            isRequired: true,
+          },
+        ],
+      });
+
+      const questions = await service.findAllQuestionsByVacancyId(vacancyId);
+
+      // Full sync: the payload is the complete desired set, so only the
+      // included question remains and the previously linked ones are dropped.
+      expect(questions).to.have.lengthOf(1);
+      expect(questions[0].label).to.equal(newlyIncluded.label);
+      expect(questions[0].isRequired).to.equal(true);
     });
 
     it('should throw 400 when update includes invalid expectedValue for boolean question', async () => {

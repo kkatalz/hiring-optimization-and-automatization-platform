@@ -664,12 +664,43 @@ export class VacancyService {
     vacancy: Vacancy,
     incoming: UpdateVacancyQuestionInlineDto[],
   ): Promise<void> {
-    const desiredByQuestionId = new Map<
-      string,
-      UpdateVacancyQuestionInlineDto
-    >();
+    const existingLinks = vacancy.vacancyQuestions ?? [];
+    const existingLinkById = new Map(
+      existingLinks.map((link) => [link.questionId, link]),
+    );
+
+    const linksToSave: VacancyQuestion[] = [];
+    const keptQuestionIds = new Set<string>();
 
     for (const q of incoming) {
+      const currentLink = q.questionId
+        ? existingLinkById.get(q.questionId)
+        : undefined;
+
+      // An already-linked question whose identity fields weren't changed is
+      // updated in place; its answer options come from the linked Question.
+      if (currentLink && !this.questionIdentityChanged(q, currentLink)) {
+        if (q.expectedValue !== undefined) {
+          this.validateExpectedValue(
+            q.expectedValue,
+            q.type,
+            q.answerOptions ?? currentLink.question?.answerOptions,
+            q.label,
+          );
+        }
+
+        currentLink.isRequired = q.isRequired;
+        currentLink.priority = q.priority ?? currentLink.priority;
+        currentLink.expectedValue = q.expectedValue;
+
+        keptQuestionIds.add(currentLink.questionId);
+        linksToSave.push(currentLink);
+        continue;
+      }
+
+      // A newly added question, or an existing one whose (label, type,
+      // answerOptions) identity was edited: resolve it to a concrete Question
+      // (creating one if needed), mirroring the create flow.
       let question = await this.questionService.findExistingQuestion(
         q,
         vacancy.tenantId,
@@ -691,40 +722,62 @@ export class VacancyService {
         );
       }
 
-      desiredByQuestionId.set(question.id, q);
+      // Skip if this question ended up resolving to one already handled.
+      if (keptQuestionIds.has(question.id)) continue;
+
+      const link =
+        existingLinkById.get(question.id) ??
+        this.vacancyQuestionRepository.create({
+          vacancyId: vacancy.id,
+          questionId: question.id,
+        });
+
+      link.isRequired = q.isRequired;
+      link.priority = q.priority ?? link.priority ?? 1;
+      link.expectedValue = q.expectedValue;
+
+      keptQuestionIds.add(question.id);
+      linksToSave.push(link);
     }
 
-    const existingLinks = vacancy.vacancyQuestions ?? [];
-
-    // Unlink questions the user removed (or renamed ) in the form.
+    // Unlink questions the user removed (or renamed away from) in the form.
     const linksToRemove = existingLinks.filter(
-      (link) => !desiredByQuestionId.has(link.questionId),
+      (link) => !keptQuestionIds.has(link.questionId),
     );
     if (linksToRemove.length) {
       await this.vacancyQuestionRepository.remove(linksToRemove);
     }
 
-    // Update kept links in place and create newly added ones.
-    const linksToSave = Array.from(desiredByQuestionId.entries()).map(
-      ([questionId, q]) => {
-        const link =
-          existingLinks.find((l) => l.questionId === questionId) ??
-          this.vacancyQuestionRepository.create({
-            vacancyId: vacancy.id,
-            questionId,
-          });
-
-        link.isRequired = q.isRequired;
-        link.priority = q.priority ?? link.priority ?? 1;
-        link.expectedValue = q.expectedValue;
-
-        return link;
-      },
-    );
-
     if (linksToSave.length) {
       await this.vacancyQuestionRepository.save(linksToSave);
     }
+  }
+
+  /**
+   * Whether an incoming question changes the identity (label, type, or answer
+   * options) of the Question currently linked. Omitted answerOptions means
+   * "unspecified, keep as is" rather than "cleared", so it never counts as a
+   * change on its own.
+   */
+  private questionIdentityChanged(
+    q: UpdateVacancyQuestionInlineDto,
+    link: VacancyQuestion,
+  ): boolean {
+    const linkedQuestion = link.question;
+    if (!linkedQuestion) return true;
+
+    if (q.label !== linkedQuestion.label) return true;
+    if (q.type !== linkedQuestion.type) return true;
+
+    if (
+      q.answerOptions !== undefined &&
+      JSON.stringify(q.answerOptions) !==
+        JSON.stringify(linkedQuestion.answerOptions ?? [])
+    ) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
