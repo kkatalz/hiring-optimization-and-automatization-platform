@@ -39,10 +39,9 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
   const [currentQuestion, setCurrentQuestion] =
     useState<VacancyQuestionInput>(EMPTY_QUESTION_FORM);
 
-  // null → the form adds a new question; a number → it's editing value[index].
+  // null -> the form adds a new question; a number -> it's editing value[index]
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  // Returns an error message if the draft question is invalid, otherwise null.
   const validateCurrentQuestion = (): string | null => {
     if (!currentQuestion.label?.trim())
       return 'No question was added. Please provide a question label.';
