@@ -1,8 +1,5 @@
 import Stack from '@mui/material/Stack';
-import {
-  QUESTION_TYPES,
-  type VacancyQuestionInput,
-} from '../../../types';
+import { QUESTION_TYPES, type VacancyQuestionInput } from '../../../types';
 import Typography from '@mui/material/Typography';
 import {
   Alert,
@@ -21,6 +18,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import CloseIcon from '@mui/icons-material/Close';
+import EditIcon from '@mui/icons-material/Edit';
 
 interface ScreeningQuestionsProps {
   value: VacancyQuestionInput[];
@@ -41,35 +39,74 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
   const [currentQuestion, setCurrentQuestion] =
     useState<VacancyQuestionInput>(EMPTY_QUESTION_FORM);
 
-  const handleAddQuestion = () => {
-    if (!currentQuestion.label?.trim()) {
-      setError('No question was added. Please provide a question label.');
-      return;
-    }
+  // null → the form adds a new question; a number → it's editing value[index].
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-    if (!currentQuestion.type) {
-      setError('Please select a question type.');
-      return;
-    }
+  // Returns an error message if the draft question is invalid, otherwise null.
+  const validateCurrentQuestion = (): string | null => {
+    if (!currentQuestion.label?.trim())
+      return 'No question was added. Please provide a question label.';
+
+    if (!currentQuestion.type) return 'Please select a question type.';
 
     if (
       currentQuestion.type === 'dropdown' &&
       (!currentQuestion.answerOptions ||
         currentQuestion.answerOptions.length === 0)
-    ) {
-      setError('Dropdown questions require at least one answer option.');
+    )
+      return 'Dropdown questions require at least one answer option.';
+
+    return null;
+  };
+
+  const resetForm = () => {
+    setCurrentQuestion(EMPTY_QUESTION_FORM);
+    setEditingIndex(null);
+    setError(null);
+  };
+
+  const handleAddQuestion = () => {
+    const validationError = validateCurrentQuestion();
+
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
-    setError(null);
-
     onChange([...value, currentQuestion]);
-    setCurrentQuestion(EMPTY_QUESTION_FORM);
+    resetForm();
+  };
+
+  const handleStartEdit = (indexToEdit: number) => {
+    setCurrentQuestion(value[indexToEdit]);
+    setEditingIndex(indexToEdit);
+    setError(null);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingIndex === null) return;
+
+    const validationError = validateCurrentQuestion();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    onChange(
+      value.map((question, index) =>
+        index === editingIndex ? currentQuestion : question,
+      ),
+    );
+    resetForm();
   };
 
   const handleRemoveQuestion = (indexToRemove: number) => {
+    // If the row being edited is removed, drop the in-progress edit too.
+    if (editingIndex === indexToRemove) resetForm();
     onChange(value.filter((_, index) => index !== indexToRemove));
   };
+
+  const isEditing = editingIndex !== null;
 
   return (
     <Stack direction='column' sx={{ gap: '10px' }}>
@@ -94,23 +131,32 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
             position: 'relative',
             gap: '10px',
             padding: '5px',
-            border: '1px solid #ccc',
+            border: '1px solid',
+            borderColor: editingIndex === index ? 'primary.main' : '#ccc',
             borderRadius: '6px',
           }}
         >
-          <IconButton
-            size='small'
-            onClick={() => handleRemoveQuestion(index)}
+          <Stack
+            direction='row'
+            spacing={0.5}
             sx={{ position: 'absolute', top: 8, right: 8 }}
           >
-            <CloseIcon fontSize='small' />
-          </IconButton>
+            <IconButton size='small' onClick={() => handleStartEdit(index)}>
+              <EditIcon fontSize='small' />
+            </IconButton>
+            <IconButton
+              size='small'
+              onClick={() => handleRemoveQuestion(index)}
+            >
+              <CloseIcon fontSize='small' />
+            </IconButton>
+          </Stack>
 
           <Typography
             key={index}
             variant='subtitle2'
             gutterBottom
-            sx={{ fontWeight: 600, mb: 1, ml: 2, pr: 4 }}
+            sx={{ fontWeight: 600, mb: 1, ml: 2, pr: 9 }}
           >
             {index + 1}. {question.label}
           </Typography>
@@ -257,7 +303,7 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
         />
       </Box>
 
-      <Stack direction='row' sx={{ mt: 1, ml: 1 }}>
+      <Stack direction='row' spacing={1} sx={{ mt: 1, ml: 1 }}>
         <FormControlLabel
           control={
             <Checkbox
@@ -282,12 +328,22 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
         ></FormControlLabel>
         <Button
           variant='outlined'
-          onClick={handleAddQuestion}
+          onClick={isEditing ? handleSaveEdit : handleAddQuestion}
           color='success'
           sx={{ textTransform: 'uppercase' }}
         >
-          + Add Question
+          {isEditing ? 'Save changes' : '+ Add Question'}
         </Button>
+        {isEditing && (
+          <Button
+            variant='outlined'
+            onClick={resetForm}
+            color='inherit'
+            sx={{ textTransform: 'uppercase' }}
+          >
+            Cancel
+          </Button>
+        )}
       </Stack>
     </Stack>
   );

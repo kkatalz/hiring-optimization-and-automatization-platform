@@ -1,10 +1,11 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type {
-  CreateVacancyInput,
-  UpdateVacancyInput,
-  Vacancy,
-  PaginatedResponse,
-  VacanciesFilters,
+import {
+  type CreateVacancyInput,
+  type UpdateVacancyInput,
+  type Vacancy,
+  type PaginatedResponse,
+  type VacanciesFilters,
+  type VacancyQuestionDetailed,
 } from '../../../types';
 import type { RootState } from '../../app/store';
 
@@ -83,6 +84,23 @@ export const vacancyApi = createApi({
           : [{ type: 'Vacancy', id: 'LIST' }],
     }),
 
+    getAllVacancyQuestions: builder.query<VacancyQuestionDetailed[], string>({
+      query: (vacancyId) => ({
+        url: `/vacancies/all-questions/${vacancyId}`,
+        method: 'GET',
+      }),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((question) => ({
+                type: 'Vacancy' as const,
+                id: question.questionId,
+              })),
+              { type: 'Vacancy', id: 'LIST' },
+            ]
+          : [{ type: 'Vacancy', id: 'LIST' }],
+    }),
+
     createVacancy: builder.mutation<Vacancy, CreateVacancyInput>({
       query: (body) => ({
         url: '/vacancies',
@@ -122,6 +140,7 @@ export const {
   useSearchVacanciesQuery,
   useGetAllVacanciesTagsQuery,
   useGetAllVacanciesLanguagesCodesQuery,
+  useGetAllVacancyQuestionsQuery,
   useCreateVacancyMutation,
   useUpdateVacancyMutation,
   useDeleteVacancyMutation,
