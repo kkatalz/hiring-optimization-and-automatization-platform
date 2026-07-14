@@ -29,6 +29,7 @@ import { CreateVacancyQuestionDto } from './dto/createVacancyQuestion.dto';
 import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
 import { vacancyQuestionToDetailedDto } from './map/vacancyQuestionDetailed.map';
 import { CreateVacancyQuestionInlineDto } from './dto/createVacancyWithQuestions.dto';
+import { UpdateVacancyQuestionInlineDto } from './dto/updateVacancyWithQuestions.dto';
 import { VacancySubmissionService } from '../vacancySubmission/vacancySubmission.service';
 import { VacancyFilterDto } from '../vacancy/dto/vacancyFilter.dto';
 import { LanguageLevelRank } from '../entities/hiring.enum';
@@ -323,7 +324,12 @@ export class VacancyService {
       );
     }
 
-    this.applyVacancyQuestionUpdates(updateVacancyDto, vacancy);
+    if (updateVacancyDto.vacancyQuestions !== undefined) {
+      await this.syncVacancyQuestions(
+        vacancy,
+        updateVacancyDto.vacancyQuestions,
+      );
+    }
 
     const fieldsThatAffectMatchScore = [
       updateVacancyDto.vacancyQuestions,
@@ -344,6 +350,9 @@ export class VacancyService {
       vacancy.needsReclustering = true;
     }
 
+    // Questions were already reconciled explicitly via syncVacancyQuestions;
+    // detach the relation so the cascade on save doesn't re-insert removed links.
+    vacancy.vacancyQuestions = undefined;
     await this.vacancyRepository.save(vacancy);
 
     if (shouldRecalculateMatchScores) {
@@ -639,39 +648,136 @@ export class VacancyService {
     return vacancyToVacancyDto(vacancy);
   }
 
-  private applyVacancyQuestionUpdates(
-    updateVacancyDto: UpdateVacancyDto,
+  /**
+   * Reconciles a vacancy's existing questions against the set sent on update:
+   *  - questions matching an existing linked Question are updated in place,
+   *  - questions with a new (label, type, answerOptions) identity are created
+   *    (or matched to an existing tenant Question) and linked,
+   *  - previously linked questions absent from the payload are unlinked.
+   *
+   * -renaming a question resolves to a different Question rather than mutating
+   * the shared one (which other vacancies may use).
+   * - Unlinking never deletes the Question entity or any submission answers:
+   *     the question is getting unlinked.
+   */
+  private async syncVacancyQuestions(
     vacancy: Vacancy,
-  ): void {
-    if (!updateVacancyDto.vacancyQuestions || !vacancy.vacancyQuestions) return;
+    incoming: UpdateVacancyQuestionInlineDto[],
+  ): Promise<void> {
+    const existingLinks = vacancy.vacancyQuestions ?? [];
+    const existingLinkById = new Map(
+      existingLinks.map((link) => [link.questionId, link]),
+    );
 
-    updateVacancyDto.vacancyQuestions.forEach((updatedQuestion) => {
-      const existingQuestion = vacancy.vacancyQuestions!.find(
-        (vq) => vq.questionId === updatedQuestion.questionId,
+    const linksToSave: VacancyQuestion[] = [];
+    const keptQuestionIds = new Set<string>();
+
+    for (const q of incoming) {
+      const currentLink = q.questionId
+        ? existingLinkById.get(q.questionId)
+        : undefined;
+
+      // An already-linked question whose identity fields weren't changed is
+      // updated in place; its answer options come from the linked Question.
+      if (currentLink && !this.questionIdentityChanged(q, currentLink)) {
+        if (q.expectedValue !== undefined) {
+          this.validateExpectedValue(
+            q.expectedValue,
+            q.type,
+            q.answerOptions ?? currentLink.question?.answerOptions,
+            q.label,
+          );
+        }
+
+        currentLink.isRequired = q.isRequired;
+        currentLink.priority = q.priority ?? currentLink.priority;
+        currentLink.expectedValue = q.expectedValue;
+
+        keptQuestionIds.add(currentLink.questionId);
+        linksToSave.push(currentLink);
+        continue;
+      }
+
+      // A newly added question, or an existing one whose (label, type,
+      // answerOptions) identity was edited: resolve it to a concrete Question
+      // (creating one if needed), mirroring the create flow.
+      let question = await this.questionService.findExistingQuestion(
+        q,
+        vacancy.tenantId,
       );
 
-      if (!existingQuestion) {
-        throw new BadRequestException(
-          `Question '${updatedQuestion.questionId}' is not linked to this vacancy. First, add a question to the vacancy. Then you can update it.`,
+      if (!question) {
+        question = await this.questionService.create(
+          { label: q.label, type: q.type, answerOptions: q.answerOptions },
+          vacancy.tenantId,
         );
       }
 
-      if (updatedQuestion.expectedValue !== undefined) {
+      if (q.expectedValue !== undefined) {
         this.validateExpectedValue(
-          updatedQuestion.expectedValue,
-          updatedQuestion.type,
-          updatedQuestion.answerOptions ??
-            existingQuestion.question?.answerOptions,
-          updatedQuestion.label,
+          q.expectedValue,
+          q.type,
+          q.answerOptions ?? question.answerOptions,
+          q.label,
         );
       }
 
-      existingQuestion.isRequired = updatedQuestion.isRequired;
-      existingQuestion.priority =
-        updatedQuestion.priority ?? existingQuestion.priority;
-      existingQuestion.expectedValue =
-        updatedQuestion.expectedValue ?? existingQuestion.expectedValue;
-    });
+      // Skip if this question ended up resolving to one already handled.
+      if (keptQuestionIds.has(question.id)) continue;
+
+      const link =
+        existingLinkById.get(question.id) ??
+        this.vacancyQuestionRepository.create({
+          vacancyId: vacancy.id,
+          questionId: question.id,
+        });
+
+      link.isRequired = q.isRequired;
+      link.priority = q.priority ?? link.priority ?? 1;
+      link.expectedValue = q.expectedValue;
+
+      keptQuestionIds.add(question.id);
+      linksToSave.push(link);
+    }
+
+    // Unlink questions the user removed (or renamed away from) in the form.
+    const linksToRemove = existingLinks.filter(
+      (link) => !keptQuestionIds.has(link.questionId),
+    );
+    if (linksToRemove.length) {
+      await this.vacancyQuestionRepository.remove(linksToRemove);
+    }
+
+    if (linksToSave.length) {
+      await this.vacancyQuestionRepository.save(linksToSave);
+    }
+  }
+
+  /**
+   * Whether an incoming question changes the identity (label, type, or answer
+   * options) of the Question currently linked. Omitted answerOptions means
+   * "unspecified, keep as is" rather than "cleared", so it never counts as a
+   * change on its own.
+   */
+  private questionIdentityChanged(
+    q: UpdateVacancyQuestionInlineDto,
+    link: VacancyQuestion,
+  ): boolean {
+    const linkedQuestion = link.question;
+    if (!linkedQuestion) return true;
+
+    if (q.label !== linkedQuestion.label) return true;
+    if (q.type !== linkedQuestion.type) return true;
+
+    if (
+      q.answerOptions !== undefined &&
+      JSON.stringify(q.answerOptions) !==
+        JSON.stringify(linkedQuestion.answerOptions ?? [])
+    ) {
+      return true;
+    }
+
+    return false;
   }
 
   /**

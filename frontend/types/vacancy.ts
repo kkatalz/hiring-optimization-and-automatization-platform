@@ -1,7 +1,6 @@
 import type { LanguageProficiency, TimeCommitment } from './hiring.enum';
-import type { QuestionType } from './question.enum';
 import type { CustomWeights } from './matchingScore';
-import type { VacancyQuestion } from './vacancyQuestion';
+import type { VacancyQuestion, VacancyQuestionInput } from './vacancyQuestion';
 
 export interface Vacancy {
   id: string;
@@ -59,15 +58,6 @@ export const initialState: VacanciesFilters = {
   page: 1,
   limit: 10,
 };
-
-export interface VacancyQuestionInput {
-  label: string;
-  type?: QuestionType;
-  answerOptions?: string[]; // Only for 'dropdown' type
-  isRequired: boolean;
-  priority?: number;
-  expectedValue?: string | string[];
-}
 
 export interface CreateVacancyInput {
   name: string;

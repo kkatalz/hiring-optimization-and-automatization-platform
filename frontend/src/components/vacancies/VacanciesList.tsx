@@ -2,8 +2,8 @@ import { Alert, List, Snackbar } from '@mui/material';
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { getErrorMessage } from '../../utils/errorMessage';
-import { useSearchVacanciesQuery } from '../api/vacancyApi';
-import { setPage } from '../filters/filterSlice';
+import { useSearchVacanciesQuery } from '../../features/api/vacancyApi';
+import { setPage } from '../../features/filters/filterSlice';
 import VacancyCard from './VacancyCard';
 
 export type Notification = {

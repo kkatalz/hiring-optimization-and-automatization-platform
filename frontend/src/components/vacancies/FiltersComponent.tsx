@@ -11,7 +11,7 @@ import {
   resetFilters,
   setOrder,
   setSortBy,
-} from '../filters/filterSlice';
+} from '../../features/filters/filterSlice';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
 import FormControl from '@mui/material/FormControl';
@@ -24,7 +24,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import {
   useGetAllVacanciesTagsQuery,
   useGetAllVacanciesLanguagesCodesQuery,
-} from '../api/vacancyApi';
+} from '../../features/api/vacancyApi';
 import { LanguageRequirementsFilter } from './LanguageRequirementsFilter';
 
 export const FiltersComponent = () => {

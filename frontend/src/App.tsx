@@ -1,5 +1,5 @@
-import { LoginForm } from './features/auth/LoginForm';
-import { VacanciesList } from './features/vacancies/VacanciesList';
+import { LoginForm } from './components/auth/LoginForm';
+import { VacanciesList } from './components/vacancies/VacanciesList';
 
 function App() {
   return (

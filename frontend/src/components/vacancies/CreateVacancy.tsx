@@ -5,7 +5,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import { useState, type SubmitEvent } from 'react';
 import { getErrorMessage } from '../../utils/errorMessage';
-import { useCreateVacancyMutation } from '../api/vacancyApi';
+import { useCreateVacancyMutation } from '../../features/api/vacancyApi';
 import { type CreateVacancyInput } from '../../../types';
 import VacancyForm from './VacancyForm';
 import { Alert } from '@mui/material';
@@ -33,7 +33,7 @@ export const CreateVacancy = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   const [form, setForm] = useState<CreateVacancyInput>(EMPTY_VACANCY_FORM);
 

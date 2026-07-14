@@ -12,9 +12,12 @@ import { QuestionType } from '../../entities/question.enum';
 import { Type } from 'class-transformer';
 
 export class UpdateVacancyQuestionInlineDto {
-  @IsNotEmpty()
+  // Omitted for brand-new questions;
+  // present for questions already linked to the vacancy.
+  @IsOptional()
   @IsString()
-  questionId: string;
+  @IsNotEmpty()
+  questionId?: string;
 
   @IsNotEmpty()
   @IsString()
