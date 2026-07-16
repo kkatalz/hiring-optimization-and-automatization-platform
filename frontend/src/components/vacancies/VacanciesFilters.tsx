@@ -27,7 +27,7 @@ import {
 } from '../../features/api/vacancyApi';
 import { LanguageRequirementsFilter } from './LanguageRequirementsFilter';
 
-export const FiltersComponent = () => {
+export const VacanciesFilters = () => {
   const dispatch = useAppDispatch();
 
   const appliedFilters = useAppSelector((state) => state.filters);
