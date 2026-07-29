@@ -33,7 +33,7 @@ const VacancyCard = ({ vacancy, index, setNotification }: VacancyCardProps) => {
   const salaryLabel = getSalaryLabel(vacancy);
 
   return (
-    <ListItem alignItems='flex-start'>
+    <ListItem alignItems='flex-start' disableGutters>
       <Card elevation={4} sx={{ width: '100%' }}>
         <CardContent>
           <Stack
@@ -41,7 +41,7 @@ const VacancyCard = ({ vacancy, index, setNotification }: VacancyCardProps) => {
             sx={{
               alignItems: 'center',
               p: 2,
-              gap: 3,
+              gap: 5,
               justifyContent: 'space-between',
             }}
           >

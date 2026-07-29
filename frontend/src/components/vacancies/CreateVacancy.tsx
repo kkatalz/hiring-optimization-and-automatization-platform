@@ -70,49 +70,54 @@ export const CreateVacancy = () => {
   };
 
   return (
-    <Dialog open={open} onClose={handleClose}>
-      <form onSubmit={handleCreate}>
-        <DialogTitle>Create Vacancy</DialogTitle>
-        <DialogContent sx={{ margin: '2px 6px' }}>
-          {/* Error Alert */}
-          {error && (
-            <Alert
-              severity='error'
-              sx={{ mb: 2 }}
-              onClose={() => setError(null)}
-            >
-              {error}
+    <>
+      <Dialog open={open} onClose={handleClose}>
+        <form onSubmit={handleCreate}>
+          <DialogTitle>Create Vacancy</DialogTitle>
+          <DialogContent sx={{ margin: '2px 6px' }}>
+            {/* Error Alert */}
+            {error && (
+              <Alert
+                severity='error'
+                sx={{ mb: 2 }}
+                onClose={() => setError(null)}
+              >
+                {error}
+              </Alert>
+            )}
+
+            <VacancyForm
+              value={form}
+              onChange={(next) => setForm(next as CreateVacancyInput)}
+            />
+          </DialogContent>
+
+          {/* Success Alert */}
+          {success && (
+            <Alert severity='success' sx={{ mb: 2 }}>
+              Vacancy created successfully!
             </Alert>
           )}
-
-          <VacancyForm
-            value={form}
-            onChange={(next) => setForm(next as CreateVacancyInput)}
-          />
-        </DialogContent>
-
-        {/* Success Alert */}
-        {success && (
-          <Alert severity='success' sx={{ mb: 2 }}>
-            Vacancy created successfully!
-          </Alert>
-        )}
-        <DialogActions sx={{ marginBottom: '15px', marginRight: '20px' }}>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button
-            type='submit'
-            disabled={isCreating}
-            sx={{
-              backgroundColor: 'primary.main',
-              color: 'primary.light',
-              '&:hover': { backgroundColor: 'primary.dark' },
-            }}
-          >
-            {isCreating ? 'Creating...' : 'Create Vacancy'}
-          </Button>
-        </DialogActions>
-      </form>
-    </Dialog>
+          <DialogActions sx={{ marginBottom: '15px', marginRight: '20px' }}>
+            <Button onClick={handleClose}>Cancel</Button>
+            <Button
+              type='submit'
+              disabled={isCreating}
+              sx={{
+                backgroundColor: 'primary.main',
+                color: 'primary.light',
+                '&:hover': { backgroundColor: 'primary.dark' },
+              }}
+            >
+              {isCreating ? 'Creating...' : 'Create Vacancy'}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+      <Button variant='contained' onClick={() => setOpen(true)}>
+        + New Vacancy
+      </Button>
+    </>
   );
 };
 export default CreateVacancy;

@@ -1,4 +1,4 @@
-import { Alert, List, Snackbar } from '@mui/material';
+import { Alert, List, Pagination, Snackbar } from '@mui/material';
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { getErrorMessage } from '../../utils/errorMessage';
@@ -18,8 +18,7 @@ export const VacanciesList = () => {
 
   const appliedFilters = useAppSelector((state) => state.filters);
 
-  const currentPage =
-    typeof appliedFilters.page === 'number' ? appliedFilters.page : 1;
+  const currentPage = appliedFilters.page;
 
   const {
     data: filteredData,
@@ -38,8 +37,8 @@ export const VacanciesList = () => {
   return (
     <List
       sx={{
+        width: '100%',
         minWidth: '330px',
-        maxWidth: '900px',
         display: 'flex',
         flexDirection: 'column',
         gap: 1,
@@ -56,22 +55,17 @@ export const VacanciesList = () => {
         />
       ))}
 
-      {(filteredData?.totalPages ?? 0) > 1 && appliedFilters.page && (
-        <>
-          <button
-            disabled={appliedFilters.page <= 1}
-            onClick={() => dispatch(setPage(currentPage - 1))}
-          >
-            Prev
-          </button>
-          <button
-            disabled={currentPage >= (filteredData?.totalPages ?? 0)}
-            onClick={() => dispatch(setPage(currentPage + 1))}
-          >
-            Next
-          </button>
-        </>
-      )}
+      <Pagination
+        count={filteredData?.totalPages ?? 0}
+        shape='rounded'
+        color='primary'
+        size='large'
+        sx={{ alignSelf: 'center' }}
+        onChange={(_event, page) => {
+          dispatch(setPage(page));
+        }}
+        page={currentPage}
+      />
 
       <Snackbar
         open={notification !== null}
