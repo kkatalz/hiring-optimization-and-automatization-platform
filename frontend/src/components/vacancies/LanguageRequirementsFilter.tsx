@@ -81,7 +81,17 @@ export const LanguageRequirementsFilter = ({
           onChange={(_event, newCode) => setCode(newCode)}
           getOptionLabel={(code) => code.toUpperCase()}
           renderInput={(params) => (
-            <TextField {...params} label='Language' placeholder='EN' />
+            <TextField
+              {...params}
+              label='Language'
+              placeholder='EN'
+              onKeyDown={(event) => {
+                // Enter commits the typed code inside the Autocomplete, but it
+                // would also submit the surrounding CreateVacancy form. Block
+                // the implicit submit so the code is added instead.
+                if (event.key === 'Enter') event.preventDefault();
+              }}
+            />
           )}
           freeSolo={makeFreeSolo}
         />

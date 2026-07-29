@@ -38,8 +38,8 @@ export const VacanciesList = () => {
   return (
     <List
       sx={{
+        width: '100%',
         minWidth: '330px',
-        maxWidth: '900px',
         display: 'flex',
         flexDirection: 'column',
         gap: 1,

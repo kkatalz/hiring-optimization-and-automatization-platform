@@ -44,7 +44,7 @@ export class AuthService {
         tenantId: user.tenantId,
       },
       process.env.JWT_ACCESS_SECRET!,
-      { expiresIn: '15m' },
+      { expiresIn: '60m' },
     );
   }
 
