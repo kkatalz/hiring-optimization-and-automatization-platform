@@ -55,19 +55,17 @@ export const VacanciesList = () => {
         />
       ))}
 
-      <Stack spacing={2}>
-        <Pagination
-          count={filteredData?.totalPages ?? 0}
-          shape='rounded'
-          color='primary'
-          size='large'
-          sx={{ alignSelf: 'center' }}
-          onChange={(_event, page) => {
-            dispatch(setPage(page));
-          }}
-          page={currentPage}
-        />
-      </Stack>
+      <Pagination
+        count={filteredData?.totalPages ?? 0}
+        shape='rounded'
+        color='primary'
+        size='large'
+        sx={{ alignSelf: 'center' }}
+        onChange={(_event, page) => {
+          dispatch(setPage(page));
+        }}
+        page={currentPage}
+      />
 
       <Snackbar
         open={notification !== null}

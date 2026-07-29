@@ -47,6 +47,7 @@ const renderNavList = (items: NavItem[]) => (
   </List>
 );
 
+// TODO: Implement navigation functionality for the drawer items.
 export default function PermanentDrawer() {
   return (
     <Drawer

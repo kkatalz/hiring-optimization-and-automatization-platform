@@ -30,7 +30,7 @@ const MainVacanciesPage = () => {
           justifyContent: 'flex-start',
           alignItems: 'flex-start',
           flexGrow: 5,
-          p: 3,
+          paddingY: 3,
           paddingX: 10,
         }}
       >

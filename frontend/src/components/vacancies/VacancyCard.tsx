@@ -41,7 +41,7 @@ const VacancyCard = ({ vacancy, index, setNotification }: VacancyCardProps) => {
             sx={{
               alignItems: 'center',
               p: 2,
-              gap: 30,
+              gap: 5,
               justifyContent: 'space-between',
             }}
           >
