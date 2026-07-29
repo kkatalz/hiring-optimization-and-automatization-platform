@@ -107,10 +107,10 @@ const VacancyCard = ({ vacancy, index, setNotification }: VacancyCardProps) => {
                 )}
                 {vacancy.languageRequirements &&
                   vacancy.languageRequirements.length > 0 &&
-                  vacancy.languageRequirements.map((lang) => (
+                  vacancy.languageRequirements.map((lang, langIndex) => (
                     <Chip
-                      key={lang.code}
-                      label={`${lang.code.toUpperCase()} - ${lang.level}`}
+                      key={`${lang.code ?? 'any'}-${lang.level ?? 'any'}-${langIndex}`}
+                      label={`${lang.code?.toUpperCase() ?? 'Any'} - ${lang.level ?? 'Any'}`}
                       icon={
                         <img
                           src={TalkingPerson}

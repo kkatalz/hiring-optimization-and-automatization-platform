@@ -1,4 +1,7 @@
-import type { LanguageProficiency } from './hiring.enum';
+import type {
+  CandidateLanguageProficiency,
+  LanguageProficiency,
+} from './hiring.enum';
 
 export interface CustomWeights {
   questions?: number;
@@ -17,7 +20,7 @@ export interface ScoreResult {
 }
 
 export interface MatchScoreOptions {
-  candidateLanguages?: LanguageProficiency[];
+  candidateLanguages?: CandidateLanguageProficiency[];
   candidateYearsOfExperience?: number;
   vacancyLanguageRequirements?: LanguageProficiency[];
   vacancyRequiredYearsOfExperience?: number;

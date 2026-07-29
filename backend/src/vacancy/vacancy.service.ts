@@ -181,7 +181,11 @@ export class VacancyService {
       );
     }
 
-    // Requires both fields: code and level
+    // Keep only vacancies whose fields match the filter.
+    // Blank fields are treated as "no requirement" and will not be filtered out.
+    // Example: filter { code: undefined, level: 'B2' } keeps a vacancy that has English C1 (C1 >= B2), but drops
+    // one whose requirement has no level.
+    // See LanguageProficiency for the full semantics.
     if (filterDto?.languageRequirements?.length) {
       vacancies = vacancies.filter((v) => {
         if (!v.languageRequirements?.length) return false;
@@ -191,7 +195,9 @@ export class VacancyService {
             if (filterLang.code && vacLang.code !== filterLang.code)
               return false;
 
-            if (filterLang.level && vacLang.level) {
+            if (filterLang.level) {
+              if (!vacLang.level) return false;
+
               return (
                 LanguageLevelRank.indexOf(vacLang.level) >=
                 LanguageLevelRank.indexOf(filterLang.level)
