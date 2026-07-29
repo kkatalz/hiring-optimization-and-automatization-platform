@@ -8,6 +8,8 @@ import PrimarySearchAppBar from './PrimarySearchAppBar';
 import PermanentDrawer from './PermanentDrawer';
 import { VacanciesFilters } from './VacanciesFilters';
 import { VacanciesList } from './VacanciesList';
+import CreateVacancy from './CreateVacancy';
+import { Stack } from '@mui/material';
 
 const MainVacanciesPage = () => {
   const appliedFilters = useAppSelector((state) => state.filters);
@@ -27,17 +29,30 @@ const MainVacanciesPage = () => {
           flexDirection: 'column',
           justifyContent: 'flex-start',
           alignItems: 'flex-start',
-          flexGrow: 1,
+          flexGrow: 5,
           p: 3,
+          paddingX: 10,
         }}
       >
         <Toolbar />
-        <Typography variant='h5' gutterBottom>
-          Vacancies
-        </Typography>
-        <Typography variant='subtitle1' gutterBottom color='textSecondary'>
-          {numberOfAvailableVacancies} open positions
-        </Typography>
+        <Stack
+          direction='row'
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: '100%',
+          }}
+        >
+          <Stack direction='column' spacing={1} sx={{ mb: 2 }}>
+            <Typography variant='h5' gutterBottom>
+              Vacancies
+            </Typography>
+            <Typography variant='subtitle1' gutterBottom color='textSecondary'>
+              {numberOfAvailableVacancies} open positions
+            </Typography>
+          </Stack>
+          <CreateVacancy />
+        </Stack>
         <VacanciesFilters />
         <VacanciesList />
       </Box>

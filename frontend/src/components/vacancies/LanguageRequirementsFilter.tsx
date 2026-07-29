@@ -3,7 +3,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
-import Select, { type SelectChangeEvent } from '@mui/material/Select';
+import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
@@ -30,7 +30,7 @@ export const LanguageRequirementsFilter = ({
   makeFreeSolo = false,
 }: LanguageRequirementsFilterProps) => {
   const [code, setCode] = useState<string | null>(null);
-  const [level, setLevel] = useState<LanguageLevel | ''>('');
+  const [level, setLevel] = useState<LanguageLevel | null>(null);
 
   // Hide languages that are already added, so one language can't be added twice.
   const selectedCodes = value.map((pair) => pair.code);
@@ -38,7 +38,7 @@ export const LanguageRequirementsFilter = ({
     (c) => !selectedCodes.includes(c),
   );
 
-  const canAdd = code !== null && level !== '';
+  const canAdd = code !== null && level !== null;
 
   const handleAdd = () => {
     if (!canAdd) return;
@@ -46,7 +46,7 @@ export const LanguageRequirementsFilter = ({
     onChange([...value, { code, level }]);
 
     setCode(null);
-    setLevel('');
+    setLevel(null);
   };
 
   const handleRemove = (codeToRemove: string) => {
@@ -104,9 +104,7 @@ export const LanguageRequirementsFilter = ({
             labelId='lang-level-label'
             label='Level'
             value={level}
-            onChange={(e: SelectChangeEvent) =>
-              setLevel(e.target.value as LanguageLevel)
-            }
+            onChange={(e) => setLevel(e.target.value as LanguageLevel)}
             displayEmpty
             renderValue={(selected) => {
               if (!selected || selected.length === 0)
