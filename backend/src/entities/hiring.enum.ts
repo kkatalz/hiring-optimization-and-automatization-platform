@@ -16,6 +16,21 @@ export enum LanguageLevel {
   NATIVE = 'NATIVE',
 }
 
+/**
+ * In LanguageProficiency, both `code` and `level` are deliberately optional.
+ * Code alone means "this language, any level";
+ * Level alone means "any language, at least this level";
+ * Matching is strict: for each field that IS set, the target must have that field and satisfy it.
+ * BUT: An empty `{}` matches everything.
+ *
+ * Used in:
+ *   - CreateVacancyDto / UpdateVacancyDto `languageRequirements` (a vacancy's requirements)
+ *   - VacancyFilterDto `languageRequirements` — matched in VacancyService.fetchVacanciesWithFilters
+ *   - CandidateProfileFilterDto / VacancySubmissionFilterDto `languages` — matched in
+ *     filterByLanguages / meetsLanguageRequirement and scored in scoreLanguages
+ *
+ * For candidate's languages (CandidateLanguageProficiency) both fields are required, since a held skill is always fully known.
+ */
 export class LanguageProficiency {
   /**
    * @example "en"

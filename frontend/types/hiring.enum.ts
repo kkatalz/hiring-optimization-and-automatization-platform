@@ -38,7 +38,15 @@ export const ALL_LANGUAGE_LEVELS: LanguageLevel[] = [
 /** Language levels ordered from weakest to strongest. */
 export const LanguageLevelRank: LanguageLevel[] = [...ALL_LANGUAGE_LEVELS];
 
+/**
+ * LanguageProficiency = language requirement: a partial language constraint used for vacancy requirements and for
+ * search filters. Both fields are deliberately optional — so an omitted field means "any" for that field:
+ * ("this language, any level" / "any language, at least this level").
+ */
 export interface LanguageProficiency {
+  code?: string;
+  level?: LanguageLevel;
+}
   code: string;
   level: LanguageLevel;
 }
