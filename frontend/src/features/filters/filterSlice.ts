@@ -1,9 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type {
-  SortColumn,
-  SortOrder,
-  VacanciesFilters,
-} from '../../../types';
+import type { SortColumn, SortOrder, VacanciesFilters } from '../../../types';
 import { initialState } from '../../../types';
 
 export const filtersSlice = createSlice({
@@ -12,7 +8,7 @@ export const filtersSlice = createSlice({
   reducers: {
     // Pagination, Limit and Filtering
     setPage: (state, action: PayloadAction<number>) => {
-      state.page = action.payload;
+      state.page = Number(action.payload);
     },
 
     resetFilters: (state) => {
