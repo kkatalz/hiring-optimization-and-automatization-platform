@@ -38,19 +38,23 @@ export const LanguageRequirementsFilter = ({
     (c) => !selectedCodes.includes(c),
   );
 
-  const canAdd = code !== null && level !== null;
+  // At least one of code/level must be set, but not necessarily both.
+  const canAdd = code !== null || level !== null;
 
   const handleAdd = () => {
     if (!canAdd) return;
 
-    onChange([...value, { code, level }]);
+    onChange([
+      ...value,
+      { code: code ?? undefined, level: level ?? undefined },
+    ]);
 
     setCode(null);
     setLevel(null);
   };
 
-  const handleRemove = (codeToRemove: string) => {
-    onChange(value.filter((pair) => pair.code !== codeToRemove));
+  const handleRemove = (indexToRemove: number) => {
+    onChange(value.filter((_pair, i) => i !== indexToRemove));
   };
 
   return (
@@ -61,11 +65,11 @@ export const LanguageRequirementsFilter = ({
       {/* Already added pairs */}
       {value.length > 0 && (
         <Stack direction='row' spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
-          {value.map((pair) => (
+          {value.map((pair, index) => (
             <Chip
-              key={pair.code}
-              label={`${pair.code.toUpperCase()} · ${pair.level}`}
-              onDelete={() => handleRemove(pair.code)}
+              key={`${pair.code ?? 'any'}-${pair.level ?? 'any'}-${index}`}
+              label={`${pair.code?.toUpperCase() ?? 'Any'} · ${pair.level ?? 'Any'}`}
+              onDelete={() => handleRemove(index)}
               color='primary'
               variant='outlined'
             />

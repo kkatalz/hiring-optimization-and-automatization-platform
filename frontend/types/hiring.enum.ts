@@ -47,6 +47,9 @@ export interface LanguageProficiency {
   code?: string;
   level?: LanguageLevel;
 }
+
+/** A known held language skill (both fields required) */
+export interface CandidateLanguageProficiency {
   code: string;
   level: LanguageLevel;
 }
