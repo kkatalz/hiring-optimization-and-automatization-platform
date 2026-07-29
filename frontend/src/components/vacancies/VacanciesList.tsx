@@ -1,4 +1,4 @@
-import { Alert, List, Pagination, Snackbar, Stack } from '@mui/material';
+import { Alert, List, Pagination, Snackbar } from '@mui/material';
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { getErrorMessage } from '../../utils/errorMessage';
