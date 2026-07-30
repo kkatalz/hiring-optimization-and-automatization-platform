@@ -33,6 +33,41 @@ const EMPTY_QUESTION_FORM: VacancyQuestionInput = {
   isRequired: false,
 };
 
+const expectedValueToString = (
+  expectedValue: VacancyQuestionInput['expectedValue'],
+): string =>
+  Array.isArray(expectedValue)
+    ? expectedValue.join(', ')
+    : (expectedValue ?? '');
+
+// Dropdowns can expect several accepted options, entered comma-separated.
+const splitExpectedValues = (text: string): string[] =>
+  text
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean); // drop the empty ones
+
+const normalizeExpectedValue = (
+  question: VacancyQuestionInput,
+): VacancyQuestionInput => {
+  const text = expectedValueToString(question.expectedValue).trim();
+
+  if (!text) return { ...question, expectedValue: undefined };
+
+  if (question.type !== 'dropdown') return { ...question, expectedValue: text };
+
+  // Drop anything no longer offered, e.g. an option removed after being picked.
+  const answerOptions = question.answerOptions ?? [];
+  const selected = splitExpectedValues(text).filter((expected) =>
+    answerOptions.includes(expected),
+  );
+
+  return {
+    ...question,
+    expectedValue: selected.length > 0 ? selected : undefined,
+  };
+};
+
 const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
   const [error, setError] = useState<string | null>(null);
 
@@ -42,17 +77,22 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
   // null -> the form adds a new question; a number -> it's editing value[index]
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
+  const answerOptions = currentQuestion.answerOptions ?? [];
+  const expectedValueText = expectedValueToString(
+    currentQuestion.expectedValue,
+  );
+
+  const selectedExpectedValues = splitExpectedValues(expectedValueText).filter(
+    (expected) => answerOptions.includes(expected),
+  );
+
   const validateCurrentQuestion = (): string | null => {
     if (!currentQuestion.label?.trim())
       return 'No question was added. Please provide a question label.';
 
     if (!currentQuestion.type) return 'Please select a question type.';
 
-    if (
-      currentQuestion.type === 'dropdown' &&
-      (!currentQuestion.answerOptions ||
-        currentQuestion.answerOptions.length === 0)
-    )
+    if (currentQuestion.type === 'dropdown' && answerOptions.length === 0)
       return 'Dropdown questions require at least one answer option.';
 
     return null;
@@ -72,7 +112,7 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
       return;
     }
 
-    onChange([...value, currentQuestion]);
+    onChange([...value, normalizeExpectedValue(currentQuestion)]);
     resetForm();
   };
 
@@ -93,7 +133,9 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
 
     onChange(
       value.map((question, index) =>
-        index === editingIndex ? currentQuestion : question,
+        index === editingIndex
+          ? normalizeExpectedValue(currentQuestion)
+          : question,
       ),
     );
     resetForm();
@@ -223,6 +265,7 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
               setCurrentQuestion({
                 ...currentQuestion,
                 type: e.target.value,
+                expectedValue: '',
               })
             }
             displayEmpty
@@ -286,20 +329,96 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
             });
           }}
         />
-        <TextField
-          label='Expected value'
-          placeholder='e.g. 5'
-          slotProps={{
-            inputLabel: { shrink: true },
-          }}
-          value={currentQuestion.expectedValue ?? ''}
-          onChange={(e) =>
-            setCurrentQuestion({
-              ...currentQuestion,
-              expectedValue: e.target.value,
-            })
-          }
-        />
+        {currentQuestion.type === 'dropdown' ? (
+          <FormControl disabled={answerOptions.length === 0}>
+            <InputLabel id='expected-value-select-label' shrink>
+              Expected value
+            </InputLabel>
+            <Select
+              labelId='expected-value-select-label'
+              id='expected-value-select'
+              multiple
+              label='Expected value'
+              value={selectedExpectedValues}
+              onChange={(e) =>
+                setCurrentQuestion({
+                  ...currentQuestion,
+                  expectedValue: e.target.value as string[],
+                })
+              }
+              displayEmpty
+              renderValue={(selected) => {
+                if (selected.length === 0) {
+                  return (
+                    <span style={{ color: '#aaa' }}>
+                      {answerOptions.length === 0
+                        ? 'add answer options first'
+                        : 'any answer'}
+                    </span>
+                  );
+                }
+
+                return (
+                  <Stack
+                    direction='row'
+                    spacing={0.5}
+                    sx={{ flexWrap: 'wrap' }}
+                  >
+                    {selected.map((option) => (
+                      <Chip key={option} label={option} size='small' />
+                    ))}
+                  </Stack>
+                );
+              }}
+            >
+              {answerOptions.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        ) : currentQuestion.type === 'boolean' ? (
+          <FormControl>
+            <InputLabel id='expected-value-boolean-label' shrink>
+              Expected value
+            </InputLabel>
+            <Select
+              labelId='expected-value-boolean-label'
+              id='expected-value-boolean'
+              label='Expected value'
+              value={expectedValueText}
+              onChange={(e) =>
+                setCurrentQuestion({
+                  ...currentQuestion,
+                  expectedValue: e.target.value,
+                })
+              }
+              displayEmpty
+              renderValue={(selected) =>
+                selected || <span style={{ color: '#aaa' }}>any answer</span>
+              }
+            >
+              <MenuItem value='true'>true</MenuItem>
+              <MenuItem value='false'>false</MenuItem>
+            </Select>
+          </FormControl>
+        ) : (
+          <TextField
+            label='Expected value'
+            placeholder='e.g. 5'
+            slotProps={{
+              inputLabel: { shrink: true },
+            }}
+            value={expectedValueText}
+            onChange={(e) =>
+              setCurrentQuestion({
+                ...currentQuestion,
+                expectedValue: e.target.value,
+              })
+            }
+          />
+        )}
       </Box>
 
       <Stack direction='row' spacing={1} sx={{ mt: 1, ml: 1 }}>
