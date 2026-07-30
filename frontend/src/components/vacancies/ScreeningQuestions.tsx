@@ -1,5 +1,9 @@
 import Stack from '@mui/material/Stack';
-import { QUESTION_TYPES, type VacancyQuestionInput } from '../../../types';
+import {
+  QUESTION_TYPES,
+  type QuestionType,
+  type VacancyQuestionInput,
+} from '../../../types';
 import Typography from '@mui/material/Typography';
 import {
   Alert,
@@ -8,13 +12,11 @@ import {
   Button,
   Checkbox,
   Chip,
-  FormControl,
   FormControlLabel,
   IconButton,
-  InputLabel,
   MenuItem,
-  Select,
   TextField,
+  type AutocompleteRenderInputParams,
 } from '@mui/material';
 import { useState } from 'react';
 import CloseIcon from '@mui/icons-material/Close';
@@ -33,6 +35,59 @@ const EMPTY_QUESTION_FORM: VacancyQuestionInput = {
   isRequired: false,
 };
 
+const FLOATING_LABEL = { inputLabel: { shrink: true } };
+
+const renderFieldInput = (
+  params: AutocompleteRenderInputParams,
+  label: string,
+  placeholder: string,
+) => (
+  <TextField
+    {...params}
+    label={label}
+    placeholder={placeholder}
+    slotProps={{
+      ...params.slotProps,
+      inputLabel: { ...params.slotProps.inputLabel, shrink: true },
+    }}
+  />
+);
+
+const expectedValueToString = (
+  expectedValue: VacancyQuestionInput['expectedValue'],
+): string =>
+  Array.isArray(expectedValue)
+    ? expectedValue.join(', ')
+    : (expectedValue ?? '');
+
+// Dropdowns can expect several accepted options, entered comma-separated.
+const splitExpectedValues = (text: string): string[] =>
+  text
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean); // drop the empty ones
+
+const normalizeExpectedValue = (
+  question: VacancyQuestionInput,
+): VacancyQuestionInput => {
+  const text = expectedValueToString(question.expectedValue).trim();
+
+  if (!text) return { ...question, expectedValue: undefined };
+
+  if (question.type !== 'dropdown') return { ...question, expectedValue: text };
+
+  // Drop anything no longer offered, e.g. an option removed after being picked.
+  const answerOptions = question.answerOptions ?? [];
+  const selected = splitExpectedValues(text).filter((expected) =>
+    answerOptions.includes(expected),
+  );
+
+  return {
+    ...question,
+    expectedValue: selected.length > 0 ? selected : undefined,
+  };
+};
+
 const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
   const [error, setError] = useState<string | null>(null);
 
@@ -42,17 +97,22 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
   // null -> the form adds a new question; a number -> it's editing value[index]
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
+  const answerOptions = currentQuestion.answerOptions ?? [];
+  const expectedValueText = expectedValueToString(
+    currentQuestion.expectedValue,
+  );
+
+  const selectedExpectedValues = splitExpectedValues(expectedValueText).filter(
+    (expected) => answerOptions.includes(expected),
+  );
+
   const validateCurrentQuestion = (): string | null => {
     if (!currentQuestion.label?.trim())
       return 'No question was added. Please provide a question label.';
 
     if (!currentQuestion.type) return 'Please select a question type.';
 
-    if (
-      currentQuestion.type === 'dropdown' &&
-      (!currentQuestion.answerOptions ||
-        currentQuestion.answerOptions.length === 0)
-    )
+    if (currentQuestion.type === 'dropdown' && answerOptions.length === 0)
       return 'Dropdown questions require at least one answer option.';
 
     return null;
@@ -72,7 +132,7 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
       return;
     }
 
-    onChange([...value, currentQuestion]);
+    onChange([...value, normalizeExpectedValue(currentQuestion)]);
     resetForm();
   };
 
@@ -93,7 +153,9 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
 
     onChange(
       value.map((question, index) =>
-        index === editingIndex ? currentQuestion : question,
+        index === editingIndex
+          ? normalizeExpectedValue(currentQuestion)
+          : question,
       ),
     );
     resetForm();
@@ -201,54 +263,49 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
         <TextField
           label='Question label'
           placeholder='e.g. How many years with React?'
-          slotProps={{
-            inputLabel: { shrink: true },
-          }}
+          slotProps={FLOATING_LABEL}
           value={currentQuestion.label}
           onChange={(e) =>
             setCurrentQuestion({ ...currentQuestion, label: e.target.value })
           }
         />
 
-        <FormControl>
-          <InputLabel id='question-type-select-label' shrink>
-            Type
-          </InputLabel>
-          <Select
-            labelId='question-type-select-label'
-            id='question-type-select'
-            value={currentQuestion.type || ''}
-            label='Type'
-            onChange={(e) =>
-              setCurrentQuestion({
-                ...currentQuestion,
-                type: e.target.value,
-              })
-            }
-            displayEmpty
-            renderValue={(selected) => {
-              if (!selected || selected.length === 0)
-                return <span style={{ color: '#aaa' }}>text</span>;
-
-              return selected;
-            }}
-          >
-            {QUESTION_TYPES.map((type) => (
-              <MenuItem key={type} value={type}>
-                {type}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <TextField
+          select
+          label='Type'
+          value={currentQuestion.type ?? ''}
+          onChange={(e) =>
+            setCurrentQuestion({
+              ...currentQuestion,
+              type: e.target.value as QuestionType,
+              expectedValue: '',
+            })
+          }
+          slotProps={{
+            ...FLOATING_LABEL,
+            select: {
+              displayEmpty: true,
+              renderValue: (selected) =>
+                (selected as string) || (
+                  <span style={{ color: '#aaa' }}>text</span>
+                ),
+            },
+          }}
+        >
+          {QUESTION_TYPES.map((type) => (
+            <MenuItem key={type} value={type}>
+              {type}
+            </MenuItem>
+          ))}
+        </TextField>
       </Box>
 
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2 }}>
         <TextField
           label='Priority'
           placeholder='1'
-          slotProps={{
-            inputLabel: { shrink: true },
-          }}
+          type='number'
+          slotProps={FLOATING_LABEL}
           value={currentQuestion.priority ?? ''}
           onChange={(e) =>
             setCurrentQuestion({
@@ -257,49 +314,81 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
                 e.target.value === '' ? undefined : Number(e.target.value),
             })
           }
-          type='number'
         />
+
         <Autocomplete
           multiple
           freeSolo
-          id='answer-options-autocomplete'
           options={[]}
-          value={currentQuestion.answerOptions ?? []}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label='Answer options'
-              placeholder='dropdown only'
-              slotProps={{
-                ...params.slotProps,
-                inputLabel: {
-                  ...params.slotProps?.inputLabel,
-                  shrink: true,
-                },
-              }}
-            />
-          )}
-          onChange={(_event, newValue) => {
-            setCurrentQuestion({
-              ...currentQuestion,
-              answerOptions: newValue,
-            });
-          }}
-        />
-        <TextField
-          label='Expected value'
-          placeholder='e.g. 5'
-          slotProps={{
-            inputLabel: { shrink: true },
-          }}
-          value={currentQuestion.expectedValue ?? ''}
-          onChange={(e) =>
-            setCurrentQuestion({
-              ...currentQuestion,
-              expectedValue: e.target.value,
-            })
+          value={answerOptions}
+          onChange={(_event, newValue) =>
+            setCurrentQuestion({ ...currentQuestion, answerOptions: newValue })
+          }
+          renderInput={(params) =>
+            renderFieldInput(params, 'Answer options', 'dropdown only')
           }
         />
+        {currentQuestion.type === 'dropdown' ? (
+          <Autocomplete
+            multiple
+            options={answerOptions}
+            disabled={answerOptions.length === 0}
+            value={selectedExpectedValues}
+            onChange={(_event, newValue) =>
+              setCurrentQuestion({
+                ...currentQuestion,
+                expectedValue: newValue,
+              })
+            }
+            renderInput={(params) =>
+              renderFieldInput(
+                params,
+                'Expected value',
+                answerOptions.length === 0
+                  ? 'add answer options first'
+                  : 'any answer',
+              )
+            }
+          />
+        ) : currentQuestion.type === 'boolean' ? (
+          <TextField
+            select
+            label='Expected value'
+            value={expectedValueText}
+            onChange={(e) =>
+              setCurrentQuestion({
+                ...currentQuestion,
+                expectedValue: e.target.value,
+              })
+            }
+            slotProps={{
+              ...FLOATING_LABEL,
+              select: {
+                displayEmpty: true,
+                renderValue: (selected) =>
+                  (selected as string) || (
+                    <span style={{ color: '#aaa' }}>any answer</span>
+                  ),
+              },
+            }}
+          >
+            <MenuItem value='true'>true</MenuItem>
+            <MenuItem value='false'>false</MenuItem>
+          </TextField>
+        ) : (
+          <TextField
+            label='Expected value'
+            placeholder='e.g. 5'
+            slotProps={FLOATING_LABEL}
+            value={expectedValueText}
+            onChange={(e) =>
+              setCurrentQuestion({
+                ...currentQuestion,
+                expectedValue: e.target.value,
+              })
+            }
+          />
+        )}
       </Box>
 
       <Stack direction='row' spacing={1} sx={{ mt: 1, ml: 1 }}>
