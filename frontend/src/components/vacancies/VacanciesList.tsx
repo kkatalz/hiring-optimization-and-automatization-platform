@@ -5,6 +5,7 @@ import { getErrorMessage } from '../../utils/errorMessage';
 import { useSearchVacanciesQuery } from '../../features/api/vacancyApi';
 import { setPage } from '../../features/filters/filterSlice';
 import VacancyCard from './VacancyCard';
+import { useNavigate } from 'react-router-dom';
 
 export type Notification = {
   message: string;
@@ -13,6 +14,7 @@ export type Notification = {
 
 export const VacanciesList = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   const [notification, setNotification] = useState<Notification | null>(null);
 
@@ -52,6 +54,7 @@ export const VacanciesList = () => {
           setNotification={(message, severity) =>
             setNotification({ message, severity })
           }
+          onClick={() => navigate(`/vacancies/${vacancy.id}`)}
         />
       ))}
 

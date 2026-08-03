@@ -27,13 +27,22 @@ interface VacancyCardProps {
   vacancy: Vacancy;
   index: number;
   setNotification: (message: string, severity: 'success' | 'error') => void;
+  onClick: () => void;
 }
 
-const VacancyCard = ({ vacancy, index, setNotification }: VacancyCardProps) => {
-  const salaryLabel = getSalaryLabel(vacancy);
-
+const VacancyCard = ({
+  vacancy,
+  index,
+  setNotification,
+  onClick,
+}: VacancyCardProps) => {
   return (
-    <ListItem alignItems='flex-start' disableGutters>
+    <ListItem
+      alignItems='flex-start'
+      disableGutters
+      onClick={onClick}
+      sx={{ cursor: 'pointer' }}
+    >
       <Card elevation={4} sx={{ width: '100%' }}>
         <CardContent>
           <Stack
