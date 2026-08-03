@@ -1,27 +1,8 @@
-import {
-  Card,
-  CardContent,
-  Chip,
-  ListItem,
-  Stack,
-  Typography,
-} from '@mui/material';
+import { Card, CardContent, ListItem, Stack, Typography } from '@mui/material';
 import UpdateVacancyForm from './UpdateVacancy';
 import DeleteVacancyButton from './DeleteVacancyButton';
 import type { Vacancy } from '../../../types';
-import BagOfMoney from '../../assets/BagOfMoney.svg';
-import Statistics from '../../assets/Statistics.svg';
-import TalkingPerson from '../../assets/TalkingPerson.svg';
-
-const getSalaryLabel = (vacancy: Vacancy) => {
-  const { minSalary, maxSalary } = vacancy;
-
-  if (minSalary && maxSalary) return `$${minSalary} - $${maxSalary}`;
-  if (minSalary) return `$${minSalary}+`;
-  if (maxSalary) return `Up to $${maxSalary}`;
-
-  return null;
-};
+import ShortVacancyInfo from './ShortVacancyInfo';
 
 interface VacancyCardProps {
   vacancy: Vacancy;
@@ -55,83 +36,11 @@ const VacancyCard = ({
             }}
           >
             {/* Left panel */}
-            <Stack spacing={1}>
-              <Stack direction='row' spacing={1}>
-                <Typography variant='h6'>{vacancy.name}</Typography>
-                {vacancy.timeCommitment && (
-                  <Chip
-                    label={vacancy.timeCommitment.replace('_', ' ')}
-                    sx={{
-                      backgroundColor:
-                        index % 2 === 0
-                          ? 'primary.light'
-                          : 'secondary.contrastText',
-                    }}
-                  />
-                )}
-              </Stack>
-
-              <Typography variant='subtitle2' color='primary.light'>
-                {vacancy.description}
-              </Typography>
-
-              {/* ---- Chips ----- */}
-              <Stack direction='row' sx={{ flexWrap: 'wrap', gap: 1 }}>
-                {/* Tags */}
-                {vacancy.tags &&
-                  vacancy.tags.map((tag) => (
-                    <Chip key={tag} label={tag} variant='outlined' />
-                  ))}
-                {/* Salary */}
-                {salaryLabel && (
-                  <Chip
-                    icon={
-                      <img
-                        src={BagOfMoney}
-                        alt='Salary'
-                        style={{ width: 16, height: 16 }}
-                      />
-                    }
-                    label={salaryLabel}
-                    sx={{ px: 0.5, justifyContent: 'space-between' }}
-                  />
-                )}
-                {/* Experience */}
-                {typeof vacancy.requiredYearsOfExperience === 'number' && (
-                  <Chip
-                    icon={
-                      <img
-                        src={Statistics}
-                        alt='Experience'
-                        style={{ width: 16, height: 16 }}
-                      />
-                    }
-                    label={
-                      vacancy.requiredYearsOfExperience === 0
-                        ? 'No experience'
-                        : `${vacancy.requiredYearsOfExperience} yrs`
-                    }
-                    sx={{ px: 0.5, justifyContent: 'space-between' }}
-                  />
-                )}
-                {vacancy.languageRequirements &&
-                  vacancy.languageRequirements.length > 0 &&
-                  vacancy.languageRequirements.map((lang, langIndex) => (
-                    <Chip
-                      key={`${lang.code ?? 'any'}-${lang.level ?? 'any'}-${langIndex}`}
-                      label={`${lang.code?.toUpperCase() ?? 'Any'} - ${lang.level ?? 'Any'}`}
-                      icon={
-                        <img
-                          src={TalkingPerson}
-                          alt='Language'
-                          style={{ width: 16, height: 16 }}
-                        />
-                      }
-                      sx={{ px: 0.5, justifyContent: 'space-between' }}
-                    />
-                  ))}
-              </Stack>
-            </Stack>
+            <ShortVacancyInfo
+              vacancy={vacancy}
+              index={index}
+              showDescription={true}
+            />
 
             {/* Edit & Delete */}
             <Stack direction='column' spacing={1} sx={{ alignItems: 'center' }}>
