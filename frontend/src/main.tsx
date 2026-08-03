@@ -10,7 +10,8 @@ import CssBaseline from '@mui/material/CssBaseline';
 
 const theme = createTheme({
   palette: {
-    primary: { main: '#2e6b34', light: '#EDF7ED' },
+    text: { primary: '#202020', secondary: '#626263' },
+    primary: { main: '#2e6b34', light: '#ecfbec' },
     secondary: { main: '#900C3F', contrastText: '#E5F6FD' },
     background: { default: '#F4F5F7', paper: '#FFFFFF' },
   },

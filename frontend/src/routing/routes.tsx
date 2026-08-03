@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { RootLayout } from './RootLayout';
 import { LoginForm } from '../components/auth/LoginForm';
 import { ProtectedLayout } from './ProtectedLayout';
@@ -7,6 +7,7 @@ import VacancyDetailsPage from '../components/vacancies/VacancyDetailsPage';
 import VacancySubmissionsList from '../components/vacancySubmissions/VacancySubmissionsList';
 import VacancyOverview from '../components/vacancies/VacancyOverview';
 import ScreeningQuestionsView from '../components/vacancies/ScreeningQuestionsView';
+import AppLayout from './AppLayout';
 
 const routes = createBrowserRouter([
   {
@@ -19,16 +20,25 @@ const routes = createBrowserRouter([
       {
         Component: ProtectedLayout,
         children: [
-          { path: '/vacancies', Component: MainVacanciesPage },
           {
-            path: '/vacancies/:vacancyId',
-            Component: VacancyDetailsPage,
+            Component: AppLayout,
             children: [
-              { path: 'candidates', Component: VacancySubmissionsList },
-              { path: 'overview', Component: VacancyOverview },
+              { path: '/vacancies', Component: MainVacanciesPage },
               {
-                path: 'screening-questions',
-                Component: ScreeningQuestionsView,
+                path: '/vacancies/:vacancyId',
+                Component: VacancyDetailsPage,
+                children: [
+                  {
+                    index: true,
+                    element: <Navigate to='candidates' replace />,
+                  },
+                  { path: 'candidates', Component: VacancySubmissionsList },
+                  { path: 'overview', Component: VacancyOverview },
+                  {
+                    path: 'screening-questions',
+                    Component: ScreeningQuestionsView,
+                  },
+                ],
               },
             ],
           },
