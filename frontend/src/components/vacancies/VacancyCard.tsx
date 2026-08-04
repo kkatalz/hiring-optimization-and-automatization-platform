@@ -1,13 +1,14 @@
 import { Card, CardContent, ListItem, Stack, Typography } from '@mui/material';
 import UpdateVacancyForm from './UpdateVacancy';
 import DeleteVacancyButton from './DeleteVacancyButton';
-import type { Vacancy } from '../../../types';
+import type { NotifyHandler, Vacancy } from '../../../types';
+import { toUpdateVacancyInput } from '../../utils/vacancyMappers';
 import ShortVacancyInfo from './ShortVacancyInfo';
 
 interface VacancyCardProps {
   vacancy: Vacancy;
   index: number;
-  setNotification: (message: string, severity: 'success' | 'error') => void;
+  setNotification: NotifyHandler;
   onClick: () => void;
 }
 
@@ -61,18 +62,7 @@ const VacancyCard = ({
               >
                 <UpdateVacancyForm
                   vacancyId={vacancy.id}
-                  initialData={{
-                    name: vacancy.name,
-                    description: vacancy.description,
-                    minSalary: vacancy.minSalary,
-                    maxSalary: vacancy.maxSalary,
-                    timeCommitment: vacancy.timeCommitment,
-                    languageRequirements: vacancy.languageRequirements,
-                    requiredYearsOfExperience:
-                      vacancy.requiredYearsOfExperience,
-                    tags: vacancy.tags,
-                    customWeights: vacancy.customWeights,
-                  }}
+                  initialData={toUpdateVacancyInput(vacancy)}
                 />
                 <DeleteVacancyButton
                   vacancyId={vacancy.id}

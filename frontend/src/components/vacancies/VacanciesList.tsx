@@ -6,11 +6,7 @@ import { useSearchVacanciesQuery } from '../../features/api/api';
 import { setPage } from '../../features/filters/filterSlice';
 import VacancyCard from './VacancyCard';
 import { useNavigate } from 'react-router-dom';
-
-export type Notification = {
-  message: string;
-  severity: 'success' | 'error';
-};
+import type { Notification } from '../../../types';
 
 export const VacanciesList = () => {
   const dispatch = useAppDispatch();
