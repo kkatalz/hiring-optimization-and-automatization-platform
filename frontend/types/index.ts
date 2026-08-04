@@ -17,6 +17,5 @@ export * from './candidateProfile';
 export * from './vacancy';
 export * from './vacancyQuestion';
 export * from './question';
-export * from './submissionAnswers';
 export * from './vacancySubmission';
 export * from './interview';
