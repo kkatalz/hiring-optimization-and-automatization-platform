@@ -3,9 +3,9 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { useAppSelector } from '../../app/hooks';
-import { useSearchVacanciesQuery } from '../../features/api/vacancyApi';
-import PrimarySearchAppBar from './PrimarySearchAppBar';
-import PermanentDrawer from './PermanentDrawer';
+import { useSearchVacanciesQuery } from '../../features/api/api';
+import AppTopBar from '../layout/AppTopBar';
+import PermanentDrawer from '../layout/PermanentDrawer';
 import { VacanciesFilters } from './VacanciesFilters';
 import { VacanciesList } from './VacanciesList';
 import CreateVacancy from './CreateVacancy';
@@ -20,7 +20,7 @@ const MainVacanciesPage = () => {
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
-      <PrimarySearchAppBar />
+      <AppTopBar />
       <PermanentDrawer />
       <Box
         component='main'

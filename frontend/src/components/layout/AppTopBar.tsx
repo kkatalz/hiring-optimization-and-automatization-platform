@@ -55,7 +55,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 // TODO: Implement the functionality. Now it is just a visual component.
-export default function PrimarySearchAppBar() {
+export default function AppTopBar() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const isMenuOpen = Boolean(anchorEl);

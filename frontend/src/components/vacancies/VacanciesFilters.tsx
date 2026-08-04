@@ -24,7 +24,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import {
   useGetAllVacanciesTagsQuery,
   useGetAllVacanciesLanguagesCodesQuery,
-} from '../../features/api/vacancyApi';
+} from '../../features/api/api';
 import { LanguageRequirementsFilter } from './LanguageRequirementsFilter';
 
 export const VacanciesFilters = () => {

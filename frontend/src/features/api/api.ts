@@ -6,6 +6,9 @@ import {
   type PaginatedResponse,
   type VacanciesFilters,
   type VacancyQuestionDetailed,
+  type VacancySubmission,
+  type SubmissionFilter,
+  type SubmissionSortQuery,
 } from '../../../types';
 import type { RootState } from '../../app/store';
 
@@ -21,8 +24,9 @@ export const vacancyApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Vacancy'],
+  tagTypes: ['Vacancy', 'Submission'],
   endpoints: (builder) => ({
+    // VACANCY QUERIES
     getVacancyById: builder.query<Vacancy, string>({
       query: (id) => `/vacancies/${id}`,
       providesTags: (_result, _error, id) => [{ type: 'Vacancy', id }],
@@ -101,6 +105,7 @@ export const vacancyApi = createApi({
           : [{ type: 'Vacancy', id: 'LIST' }],
     }),
 
+    // VACANCY MUTATIONS
     createVacancy: builder.mutation<Vacancy, CreateVacancyInput>({
       query: (body) => ({
         url: '/vacancies',
@@ -132,10 +137,52 @@ export const vacancyApi = createApi({
         { type: 'Vacancy', id: 'LIST' },
       ],
     }),
+
+    // SUBMISSION QUERIES
+    getSubmissionsByVacancyId: builder.query<
+      VacancySubmission[],
+      {
+        vacancyId: string;
+        sortQuery?: SubmissionSortQuery;
+        filterSubmissionsDto?: SubmissionFilter;
+      }
+    >({
+      query: ({ vacancyId, sortQuery, filterSubmissionsDto }) => ({
+        url: `/vacanciesSubmissions/get/filter/within/vacancy/${vacancyId}`,
+        method: 'POST',
+        params: {
+          sortBy: sortQuery?.sortBy,
+          order: sortQuery?.order,
+        },
+        body: filterSubmissionsDto,
+      }),
+      providesTags: (result, _error, { vacancyId }) =>
+        result
+          ? [
+              ...result.map((submission) => ({
+                type: 'Submission' as const,
+                id: submission.id,
+              })),
+              { type: 'Submission', id: `VACANCY_${vacancyId}` },
+            ]
+          : [{ type: 'Submission', id: `VACANCY_${vacancyId}` }],
+    }),
+
+    // CLUSTERING
+    runClustering: builder.mutation<{ message: string }, string>({
+      query: (vacancyId) => ({
+        url: `/clustering/run/${vacancyId}`,
+        method: 'POST',
+      }),
+      invalidatesTags: (_result, _error, vacancyId) => [
+        { type: 'Submission', id: `VACANCY_${vacancyId}` },
+      ],
+    }),
   }),
 });
 
 export const {
+  // VACANCIES
   useGetVacancyByIdQuery,
   useSearchVacanciesQuery,
   useGetAllVacanciesTagsQuery,
@@ -144,4 +191,8 @@ export const {
   useCreateVacancyMutation,
   useUpdateVacancyMutation,
   useDeleteVacancyMutation,
+  // SUBMISSIONS
+  useGetSubmissionsByVacancyIdQuery,
+  // CLUSTERING
+  useRunClusteringMutation,
 } = vacancyApi;

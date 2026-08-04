@@ -2,17 +2,15 @@ import { Alert, List, Pagination, Snackbar } from '@mui/material';
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { getErrorMessage } from '../../utils/errorMessage';
-import { useSearchVacanciesQuery } from '../../features/api/vacancyApi';
+import { useSearchVacanciesQuery } from '../../features/api/api';
 import { setPage } from '../../features/filters/filterSlice';
 import VacancyCard from './VacancyCard';
-
-export type Notification = {
-  message: string;
-  severity: 'success' | 'error';
-};
+import { useNavigate } from 'react-router-dom';
+import type { Notification } from '../../../types';
 
 export const VacanciesList = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   const [notification, setNotification] = useState<Notification | null>(null);
 
@@ -52,6 +50,7 @@ export const VacanciesList = () => {
           setNotification={(message, severity) =>
             setNotification({ message, severity })
           }
+          onClick={() => navigate(`/vacancies/${vacancy.id}`)}
         />
       ))}
 
