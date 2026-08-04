@@ -3,7 +3,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { useAppSelector } from '../../app/hooks';
-import { useSearchVacanciesQuery } from '../../features/api/vacancyApi';
+import { useSearchVacanciesQuery } from '../../features/api/api';
 import AppTopBar from '../layout/AppTopBar';
 import PermanentDrawer from '../layout/PermanentDrawer';
 import { VacanciesFilters } from './VacanciesFilters';

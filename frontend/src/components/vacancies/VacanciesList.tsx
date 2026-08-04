@@ -2,7 +2,7 @@ import { Alert, List, Pagination, Snackbar } from '@mui/material';
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { getErrorMessage } from '../../utils/errorMessage';
-import { useSearchVacanciesQuery } from '../../features/api/vacancyApi';
+import { useSearchVacanciesQuery } from '../../features/api/api';
 import { setPage } from '../../features/filters/filterSlice';
 import VacancyCard from './VacancyCard';
 import { useNavigate } from 'react-router-dom';

@@ -8,7 +8,7 @@ import {
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Link as RouterLink, Outlet, useParams } from 'react-router-dom';
 import ShortVacancyInfo from './ShortVacancyInfo';
-import { useGetVacancyByIdQuery } from '../../features/api/vacancyApi';
+import { useGetVacancyByIdQuery } from '../../features/api/api';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { capitalizeVacancyName } from '../../utils/formatText';
 import Link from '@mui/material/Link';

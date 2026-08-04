@@ -21,8 +21,9 @@ export const vacancyApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Vacancy'],
+  tagTypes: ['Vacancy', 'Submission'],
   endpoints: (builder) => ({
+    // VACANCY QUERIES
     getVacancyById: builder.query<Vacancy, string>({
       query: (id) => `/vacancies/${id}`,
       providesTags: (_result, _error, id) => [{ type: 'Vacancy', id }],
@@ -101,6 +102,7 @@ export const vacancyApi = createApi({
           : [{ type: 'Vacancy', id: 'LIST' }],
     }),
 
+    // VACANCY MUTATIONS
     createVacancy: builder.mutation<Vacancy, CreateVacancyInput>({
       query: (body) => ({
         url: '/vacancies',
