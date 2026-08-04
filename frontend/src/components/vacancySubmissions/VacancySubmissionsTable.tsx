@@ -30,11 +30,10 @@ const showCandidateInfo = (candidateProfile: CandidateProfile) => {
 };
 
 interface Props {
-  vacancyId: string;
   submissions?: VacancySubmission[];
 }
 
-export const VacancySubmissionsTable = ({ vacancyId, submissions }: Props) => {
+export const VacancySubmissionsTable = ({ submissions }: Props) => {
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 650 }} aria-label='simple table'>

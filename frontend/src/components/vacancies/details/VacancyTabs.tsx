@@ -44,7 +44,7 @@ export const VacancyTabs = ({ vacancy, submissions }: VacancyTabsProps) => {
 
   const [value, setValue] = React.useState(0);
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
 
@@ -68,10 +68,7 @@ export const VacancyTabs = ({ vacancy, submissions }: VacancyTabsProps) => {
         </Tabs>
       </Box>
       <CustomTabPanel value={value} index={0}>
-        <VacancySubmissionsTable
-          vacancyId={vacancy.id}
-          submissions={submissions}
-        />
+        <VacancySubmissionsTable submissions={submissions} />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={1}>
         Item Two
