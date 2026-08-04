@@ -1,7 +1,7 @@
 import { Breadcrumbs, Link, Typography } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Link as RouterLink } from 'react-router-dom';
-import { capitalizeVacancyName } from '../../../utils/formatText';
+import { capitalizeName } from '../../../utils/formatText';
 
 interface VacancyDetailsBreadcrumbsProps {
   vacancyName: string;
@@ -26,7 +26,7 @@ const VacancyDetailsBreadcrumbs = ({
       </Link>
 
       <Typography sx={{ color: 'text.primary' }}>
-        {capitalizeVacancyName(vacancyName)}
+        {capitalizeName(vacancyName)}
       </Typography>
     </Breadcrumbs>
   );

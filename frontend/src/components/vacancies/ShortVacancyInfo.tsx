@@ -3,7 +3,7 @@ import BagOfMoney from '../../assets/BagOfMoney.svg';
 import Statistics from '../../assets/Statistics.svg';
 import TalkingPerson from '../../assets/TalkingPerson.svg';
 import type { Vacancy } from '../../../types';
-import { capitalizeVacancyName } from '../../utils/formatText';
+import { capitalizeName } from '../../utils/formatText';
 
 const getSalaryLabel = (vacancy: Vacancy) => {
   const { minSalary, maxSalary } = vacancy;
@@ -33,7 +33,7 @@ const ShortVacancyInfo = ({
     <Stack spacing={1}>
       <Stack direction='row' spacing={1}>
         <Typography variant='h6'>
-          {capitalizeVacancyName(vacancy.name)}
+          {capitalizeName(vacancy.name)}
         </Typography>
         {vacancy.timeCommitment && (
           <Chip

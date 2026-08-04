@@ -12,6 +12,7 @@ import NotificationAlert from '../common/NotificationAlert';
 import VacancyDetailsBreadcrumbs from './details/VacancyDetailsBreadcrumbs';
 import VacancyDetailsHeader from './details/VacancyDetailsHeader';
 import VacancySubmissionsStats from './details/VacancySubmissionsStats';
+import { VacancyTabs } from './details/VacancyTabs';
 
 const VacancyDetailsPage = () => {
   const { vacancyId } = useParams();
@@ -55,6 +56,8 @@ const VacancyDetailsPage = () => {
         submissions={submissions}
         isLoading={isLoadingSubmissions}
       />
+
+      <VacancyTabs vacancy={vacancy} submissions={submissions} />
 
       <Outlet />
     </>

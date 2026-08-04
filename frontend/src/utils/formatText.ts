@@ -1,4 +1,4 @@
-export const capitalizeVacancyName = (name: string) => {
+export const capitalizeName = (name: string) => {
   if (!name) return '';
   return name
     .split(' ')
