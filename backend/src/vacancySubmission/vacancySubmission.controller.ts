@@ -105,7 +105,7 @@ export class VacancySubmissionController {
   async findAllSubmissionsWithinVacancy(
     @AuthUser() viewer: UserDto,
     @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
-    @Query() sortQuery: SubmissionSortQueryDto,
+    @Query() sortQuery?: SubmissionSortQueryDto,
     @Body() filterSubmissionsDto?: VacancySubmissionFilterDto,
   ): Promise<VacancySubmissionDto[]> {
     const vacancyTenantId =
@@ -116,8 +116,8 @@ export class VacancySubmissionController {
     return await this.vacancySubmissionService.findAllSubmissionsWithinVacancyWithFilters(
       vacancyId,
       filterSubmissionsDto,
-      sortQuery.sortBy,
-      sortQuery.order,
+      sortQuery?.sortBy,
+      sortQuery?.order,
     );
   }
 
