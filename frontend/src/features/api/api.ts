@@ -167,6 +167,17 @@ export const vacancyApi = createApi({
             ]
           : [{ type: 'Submission', id: `VACANCY_${vacancyId}` }],
     }),
+
+    // CLUSTERING
+    runClustering: builder.mutation<{ message: string }, string>({
+      query: (vacancyId) => ({
+        url: `/clustering/run/${vacancyId}`,
+        method: 'POST',
+      }),
+      invalidatesTags: (_result, _error, vacancyId) => [
+        { type: 'Submission', id: `VACANCY_${vacancyId}` },
+      ],
+    }),
   }),
 });
 
@@ -182,4 +193,6 @@ export const {
   useDeleteVacancyMutation,
   // SUBMISSIONS
   useGetSubmissionsByVacancyIdQuery,
+  // CLUSTERING
+  useRunClusteringMutation,
 } = vacancyApi;
