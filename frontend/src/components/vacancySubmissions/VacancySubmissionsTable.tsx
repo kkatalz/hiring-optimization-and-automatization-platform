@@ -1,5 +1,13 @@
 import CircleIcon from '@mui/icons-material/Circle';
-import { Chip, LinearProgress, Stack, Typography } from '@mui/material';
+import StarIcon from '@mui/icons-material/Star';
+import {
+  Button,
+  Chip,
+  LinearProgress,
+  Stack,
+  TableFooter,
+  Typography,
+} from '@mui/material';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -7,24 +15,56 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import type { VacancySubmission } from '../../../types';
+import { useState } from 'react';
+import type { Notification, VacancySubmission } from '../../../types';
+import {
+  useApproveSubmissionMutation,
+  useRejectSubmissionMutation,
+} from '../../features/api/api';
 import { formatDate } from '../../utils/formatDate';
-import CandidateInfo from '../candidateProfile/CandidateInfo';
+import { capitalizeName } from '../../utils/formatText';
 import {
   chipColorBasedOnStatus,
   progressBarColorBasedOnScore,
   themeColorsBasedOnScore,
 } from '../../utils/muiColors';
-import { capitalizeName } from '../../utils/formatText';
-import StarIcon from '@mui/icons-material/Star';
+import CandidateInfo from '../candidateProfile/CandidateInfo';
+import NotificationAlert from '../common/NotificationAlert';
+import { CustomTablePagination } from './SubmissionTablePagination';
 
 interface Props {
   submissions?: VacancySubmission[];
 }
 
 export const VacancySubmissionsTable = ({ submissions }: Props) => {
+  const [notification, setNotification] = useState<Notification | null>(null);
+
   const [approveSubmission] = useApproveSubmissionMutation();
   const [rejectSubmission] = useRejectSubmissionMutation();
+
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  // Avoid a layout jump when reaching the last page with empty rows.
+  const emptyRows =
+    page > 0
+      ? Math.max(0, (1 + page) * rowsPerPage - (submissions?.length || 0))
+      : 0;
+
+  const handleChangePage = (
+    _event: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number,
+  ) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   const handleApprove = async (submissionId: string) => {
     try {
       await approveSubmission(submissionId).unwrap();
@@ -56,6 +96,7 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
       });
     }
   };
+
   return (
     <TableContainer component={Paper}>
       <NotificationAlert
@@ -89,7 +130,13 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {submissions?.map((submission) => (
+          {(rowsPerPage > 0
+            ? submissions?.slice(
+                page * rowsPerPage,
+                page * rowsPerPage + rowsPerPage,
+              )
+            : submissions
+          )?.map((submission) => (
             <TableRow
               key={submission.id}
               sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -252,7 +299,32 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
               </TableCell>
             </TableRow>
           ))}
+
+          {emptyRows > 0 && (
+            <tr style={{ height: 41 * emptyRows }}>
+              <td colSpan={3} aria-hidden />
+            </tr>
+          )}
         </TableBody>
+
+        <TableFooter>
+          <TableRow>
+            <CustomTablePagination
+              rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
+              colSpan={3}
+              count={submissions?.length || 0}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              slotProps={{
+                select: {
+                  'aria-label': 'rows per page',
+                },
+              }}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </TableRow>
+        </TableFooter>
       </Table>
     </TableContainer>
   );
