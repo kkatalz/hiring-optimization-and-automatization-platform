@@ -1,5 +1,6 @@
 import { useTheme } from '@mui/material/styles';
 import type { ChipProps, Palette } from '@mui/material';
+import { VacancySubmissionStatus } from '../../types';
 
 export const useChipColors = (): NonNullable<ChipProps['color']>[] => {
   const theme = useTheme();
@@ -16,6 +17,22 @@ export const useChipColors = (): NonNullable<ChipProps['color']>[] => {
   ];
 };
 
+export const progressBarColorBasedOnScore = (
+  score: number,
+  baseThemePalette: Palette,
+): { bgColor: string } => {
+  const isLow = score <= 40;
+  const isMedium = score <= 80;
+
+  const bgColor = isLow
+    ? baseThemePalette.secondary.main
+    : isMedium
+      ? baseThemePalette.info.main
+      : baseThemePalette.success.main;
+
+  return { bgColor };
+};
+/** Used for Resume AI score (Chip) */
 export const themeColorsBasedOnScore = (
   score: number,
   baseThemePalette: Palette,
@@ -38,18 +55,19 @@ export const themeColorsBasedOnScore = (
   return { bgColor, textColor };
 };
 
+/** Used for Vacancy Submission Status (Chip) */
 export const chipColorBasedOnStatus = (
   status: string,
   baseThemePalette: Palette,
 ): { bgColor: string } => {
   const bgColor =
-    status === 'interview'
+    status === VacancySubmissionStatus.interviewing
       ? baseThemePalette.secondary.contrastText
-      : status === 'pending'
+      : status === VacancySubmissionStatus.pending
         ? baseThemePalette.info.light
-        : status === 'rejected'
+        : status === VacancySubmissionStatus.rejected
           ? baseThemePalette.warning.main
-          : status === 'approved'
+          : status === VacancySubmissionStatus.approved
             ? baseThemePalette.success.main
             : baseThemePalette.grey[300];
 
