@@ -23,8 +23,46 @@ interface Props {
 }
 
 export const VacancySubmissionsTable = ({ submissions }: Props) => {
+  const [approveSubmission] = useApproveSubmissionMutation();
+  const [rejectSubmission] = useRejectSubmissionMutation();
+  const handleApprove = async (submissionId: string) => {
+    try {
+      await approveSubmission(submissionId).unwrap();
+      setNotification({
+        message: 'Submission approved successfully.',
+        severity: 'success',
+      });
+    } catch (error) {
+      console.error('Error approving submission:', error);
+      setNotification({
+        message: 'Failed to approve submission.',
+        severity: 'error',
+      });
+    }
+  };
+
+  const handleReject = async (submissionId: string) => {
+    try {
+      await rejectSubmission(submissionId).unwrap();
+      setNotification({
+        message: 'Submission rejected successfully.',
+        severity: 'success',
+      });
+    } catch (error) {
+      console.error('Error rejecting submission:', error);
+      setNotification({
+        message: 'Failed to reject submission.',
+        severity: 'error',
+      });
+    }
+  };
   return (
     <TableContainer component={Paper}>
+      <NotificationAlert
+        notification={notification}
+        onClose={() => setNotification(null)}
+      />
+
       <Table sx={{ minWidth: 650 }} aria-label='simple table'>
         <TableHead>
           <TableRow
@@ -44,6 +82,10 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
             <TableCell align='center'>Status</TableCell>
             <TableCell align='center'>Rating</TableCell>
             <TableCell align='center'>Cluster</TableCell>
+            {/* Approve & Reject & View */}
+            <TableCell align='center'></TableCell>
+            <TableCell align='center'></TableCell>
+            <TableCell align='center'></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -175,6 +217,38 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
                     Not clustered
                   </Typography>
                 )}
+              </TableCell>
+
+              <TableCell align='center'>
+                <Button
+                  variant='text'
+                  color='success'
+                  size='small'
+                  onClick={() => handleApprove(submission.id)}
+                >
+                  Approve
+                </Button>
+              </TableCell>
+
+              <TableCell align='center'>
+                <Button
+                  variant='text'
+                  color='error'
+                  size='small'
+                  onClick={() => handleReject(submission.id)}
+                >
+                  Reject
+                </Button>
+              </TableCell>
+
+              <TableCell align='center'>
+                <Button
+                  variant='text'
+                  size='small'
+                  sx={{ color: 'info.contrastText' }}
+                >
+                  View
+                </Button>
               </TableCell>
             </TableRow>
           ))}

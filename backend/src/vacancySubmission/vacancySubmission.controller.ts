@@ -41,7 +41,7 @@ export class VacancySubmissionController {
   ) {}
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
-  @Post('approve/:submissionId')
+  @Post(':submissionId/approve')
   async approveVacancySubmission(
     @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
     @AuthUser() requester: UserDto,
@@ -56,7 +56,7 @@ export class VacancySubmissionController {
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
-  @Post('reject/:submissionId')
+  @Post(':submissionId/reject')
   async rejectVacancySubmission(
     @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
     @AuthUser() requester: UserDto,
@@ -181,7 +181,7 @@ export class VacancySubmissionController {
   }
 
   @Roles(UserRole.candidate)
-  @Patch(':submissionId/parse-resume-file')
+  @Post(':submissionId/parse-resume-file')
   @UploadResume()
   async parseResumeFile(
     @AuthUser() requester: UserDto,

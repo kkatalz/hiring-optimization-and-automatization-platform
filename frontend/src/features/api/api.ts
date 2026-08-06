@@ -167,6 +167,26 @@ export const vacancyApi = createApi({
             ]
           : [{ type: 'Submission', id: `VACANCY_${vacancyId}` }],
     }),
+    // SUBMISSION MUTATIONS
+    approveSubmission: builder.mutation<VacancySubmission, string>({
+      query: (submissionId) => ({
+        url: `/vacanciesSubmissions/${submissionId}/approve`,
+        method: 'POST',
+      }),
+      invalidatesTags: (_result, _error, submissionId) => [
+        { type: 'Submission', id: submissionId },
+      ],
+    }),
+
+    rejectSubmission: builder.mutation<VacancySubmission, string>({
+      query: (submissionId) => ({
+        url: `/vacanciesSubmissions/${submissionId}/reject`,
+        method: 'POST',
+      }),
+      invalidatesTags: (_result, _error, submissionId) => [
+        { type: 'Submission', id: submissionId },
+      ],
+    }),
 
     // CLUSTERING
     runClustering: builder.mutation<{ message: string }, string>({
@@ -193,6 +213,8 @@ export const {
   useDeleteVacancyMutation,
   // SUBMISSIONS
   useGetSubmissionsByVacancyIdQuery,
+  useApproveSubmissionMutation,
+  useRejectSubmissionMutation,
   // CLUSTERING
   useRunClusteringMutation,
 } = vacancyApi;
