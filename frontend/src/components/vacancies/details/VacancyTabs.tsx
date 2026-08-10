@@ -1,81 +1,48 @@
-import * as React from 'react';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
-import type { Vacancy, VacancySubmission } from '../../../../types';
 import { Card } from '@mui/material';
-import { VacancySubmissionsTable } from '../../vacancySubmissions/VacancySubmissionsTable';
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function CustomTabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role='tabpanel'
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
-}
-
-function a11yProps(index: number) {
-  return {
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-  };
-}
+import { Link, Outlet, useMatch } from 'react-router-dom';
+import type { Vacancy } from '../../../../types';
 
 interface VacancyTabsProps {
   vacancy: Vacancy;
-  submissions?: VacancySubmission[];
 }
-export const VacancyTabs = ({ vacancy, submissions }: VacancyTabsProps) => {
+
+export const VacancyTabs = ({ vacancy }: VacancyTabsProps) => {
   const screeningQuestionsCount = vacancy.vacancyQuestions?.length ?? 0;
 
-  const [value, setValue] = React.useState(0);
-
-  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
-  };
+  const match = useMatch('/vacancies/:vacancyId/:tab');
+  const currentTab = match?.params.tab ?? 'candidates';
 
   return (
     <Card sx={{ width: '100%', mt: 3 }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs
-          value={value}
-          onChange={handleChange}
-          aria-label='basic tabs example'
-        >
+        <Tabs value={currentTab} aria-label='Vacancy sections'>
           <Tab
-            label={`Candidates (${vacancy.numberOfSubmissions ?? 0} )`}
-            {...a11yProps(0)}
+            value='candidates'
+            label={`Candidates (${vacancy.numberOfSubmissions ?? 0})`}
+            component={Link}
+            to='candidates'
           />
-          <Tab label='Overview' {...a11yProps(1)} />
           <Tab
+            value='overview'
+            label='Overview'
+            component={Link}
+            to='overview'
+          />
+          <Tab
+            value='screening-questions'
             label={`Screening questions (${screeningQuestionsCount})`}
-            {...a11yProps(2)}
+            component={Link}
+            to='screening-questions'
           />
         </Tabs>
       </Box>
-      <CustomTabPanel value={value} index={0}>
-        <VacancySubmissionsTable submissions={submissions} />
-      </CustomTabPanel>
-      <CustomTabPanel value={value} index={1}>
-        Item Two
-      </CustomTabPanel>
-      <CustomTabPanel value={value} index={2}>
-        Item Three
-      </CustomTabPanel>
+
+      <Box sx={{ p: 3 }}>
+        <Outlet />
+      </Box>
     </Card>
   );
 };

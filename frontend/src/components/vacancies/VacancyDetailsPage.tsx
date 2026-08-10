@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Alert, CircularProgress } from '@mui/material';
-import { Outlet, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 import type { Notification } from '../../../types';
 import {
@@ -57,9 +57,7 @@ const VacancyDetailsPage = () => {
         isLoading={isLoadingSubmissions}
       />
 
-      <VacancyTabs vacancy={vacancy} submissions={submissions} />
-
-      <Outlet />
+      <VacancyTabs vacancy={vacancy} />
     </>
   );
 };
