@@ -3,6 +3,7 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { CircularProgress } from '@mui/material';
 import { useGetSubmissionsByVacancyIdQuery } from '../../features/api/api';
 import { VacancySubmissionsTable } from './VacancySubmissionsTable';
+import VacancySubmissionsFilters from './VacancySubmissionsFilters';
 
 const VacancySubmissionsList = () => {
   const { vacancyId } = useParams();
@@ -13,7 +14,12 @@ const VacancySubmissionsList = () => {
 
   if (isLoading) return <CircularProgress aria-label='Loading candidates…' />;
 
-  return <VacancySubmissionsTable submissions={submissions} />;
+  return (
+    <>
+      <VacancySubmissionsFilters />
+      <VacancySubmissionsTable submissions={submissions} />;
+    </>
+  );
 };
 
 export default VacancySubmissionsList;
