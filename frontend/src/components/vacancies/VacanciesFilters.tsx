@@ -1,30 +1,17 @@
+import Autocomplete from '@mui/material/Autocomplete';
+import Button from '@mui/material/Button';
+import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
 import { useState } from 'react';
+import { ALL_TIME_COMMITMENTS, initialState } from '../../../types';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import {
-  initialState,
-  ALL_TIME_COMMITMENTS,
-  type SortColumn,
-  type SortOrder,
-} from '../../../types';
-import {
-  applyFilters,
-  resetFilters,
-  setOrder,
-  setSortBy,
-} from '../../features/filters/filterSlice';
-import Paper from '@mui/material/Paper';
-import TextField from '@mui/material/TextField';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Select, { type SelectChangeEvent } from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
-import Autocomplete from '@mui/material/Autocomplete';
-import {
-  useGetAllVacanciesTagsQuery,
   useGetAllVacanciesLanguagesCodesQuery,
+  useGetAllVacanciesTagsQuery,
 } from '../../features/api/api';
+import { applyFilters, resetFilters } from '../../features/filters/filterSlice';
+import SortOrderLimitFilters from '../common/SortOrderLimitFilters';
 import { LanguageRequirementsFilter } from './LanguageRequirementsFilter';
 
 export const VacanciesFilters = () => {
@@ -198,50 +185,7 @@ export const VacanciesFilters = () => {
           languageCodes={languageCodes ?? []}
         />
 
-        <Stack direction='row' spacing={2}>
-          {/* Sorting */}
-          <FormControl sx={{ minWidth: 150 }}>
-            <InputLabel id='sortby-label'>Sort by</InputLabel>
-            <Select
-              labelId='sortby-label'
-              value={appliedFilters.sortBy ?? ''}
-              onChange={(e: SelectChangeEvent) =>
-                dispatch(setSortBy(e.target.value as SortColumn))
-              }
-            >
-              <MenuItem value='createdAt'>Created at</MenuItem>
-              <MenuItem value='requiredYearsOfExperience'>
-                Required experience
-              </MenuItem>
-              <MenuItem value='minSalary'>Minimum salary</MenuItem>
-              <MenuItem value='maxSalary'>Maximum salary</MenuItem>
-            </Select>
-          </FormControl>
-
-          {/* Order */}
-          <FormControl sx={{ minWidth: 150 }}>
-            <InputLabel id='order-label'>Order</InputLabel>
-            <Select
-              labelId='order-label'
-              value={appliedFilters.order ?? ''}
-              disabled={!appliedFilters.sortBy}
-              onChange={(e) => dispatch(setOrder(e.target.value as SortOrder))}
-            >
-              <MenuItem value='ASC'>Ascending</MenuItem>
-              <MenuItem value='DESC'>Descending</MenuItem>
-            </Select>
-          </FormControl>
-
-          {/* Limit */}
-          <TextField
-            label='Limit'
-            value={draft.limit}
-            onChange={(e) =>
-              setDraft({ ...draft, limit: Number(e.target.value) })
-            }
-            sx={{ maxWidth: 100 }}
-          />
-        </Stack>
+        <SortOrderLimitFilters entity='vacancies' />
 
         {/* Apply & Reset */}
         <Stack direction='row' spacing={2}>

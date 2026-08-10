@@ -3,6 +3,7 @@ import type { VacancySubmissionStatus } from './statuses.enum';
 import type { CandidateProfile } from './candidateProfile';
 import type { LanguageProficiency } from './hiring.enum';
 import type { QuestionAnswer } from './question';
+import type { SortOrder } from './common/Order';
 
 export interface VacancySubmission {
   id: string;
@@ -27,18 +28,19 @@ export interface VacancySubmission {
   answers?: QuestionAnswer[];
 }
 
-type SubmissionSortFields =
-  | 'createdAt'
-  | 'expectedSalary'
-  | 'recruiterRating'
-  | 'matchScore'
-  | 'commentAiScore'
-  | 'resumeAiScore';
-type SubmissionSortOrder = 'ASC' | 'DESC';
+export const SUBMISSION_SORT_FIELDS = [
+  'createdAt',
+  'expectedSalary',
+  'recruiterRating',
+  'matchScore',
+  'commentAiScore',
+  'resumeAiScore',
+];
+export type SubmissionSortColumn = (typeof SUBMISSION_SORT_FIELDS)[number];
 
 export interface SubmissionSortQuery {
-  sortBy?: SubmissionSortFields;
-  order?: SubmissionSortOrder;
+  sortBy?: SubmissionSortColumn;
+  order?: SortOrder;
 }
 
 export interface SubmissionFilter {
