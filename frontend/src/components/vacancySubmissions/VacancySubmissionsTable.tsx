@@ -165,8 +165,8 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
                 >
                   <LinearProgress
                     variant='determinate'
-                    aria-label='Loading…'
-                    value={submission.matchScore}
+                    aria-label='Match score'
+                    value={submission.matchScore ?? 0}
                     sx={(theme) => {
                       const { bgColor } = progressBarColorBasedOnScore(
                         submission.matchScore!,
@@ -190,10 +190,18 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
                   </Typography>
                 </Stack>
               </TableCell>
-              <TableCell align='center'>${submission.expectedSalary}</TableCell>
+              <TableCell align='center'>
+                {submission.expectedSalary != null ? (
+                  `$${submission.expectedSalary}`
+                ) : (
+                  <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                    Not specified
+                  </Typography>
+                )}
+              </TableCell>
 
               <TableCell align='center'>
-                {submission.resumeAiScore ? (
+                {submission.resumeAiScore != null ? (
                   <Chip
                     icon={<CircleIcon />}
                     label={`${submission.resumeAiScore}% AI`}
@@ -237,7 +245,7 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
               </TableCell>
 
               <TableCell align='center'>
-                {submission.recruiterRating ? (
+                {submission.recruiterRating != null ? (
                   <Chip
                     label={`${submission.recruiterRating}/10`}
                     icon={<StarIcon />}
@@ -254,7 +262,7 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
                 )}
               </TableCell>
               <TableCell align='center'>
-                {submission.clusterId ? (
+                {submission.clusterId != null ? (
                   <Chip
                     label={`Cluster ${submission.clusterId}`}
                     variant='outlined'

@@ -59,6 +59,7 @@ const VacancyCard = ({
                   justifyContent: 'center',
                   gap: 1,
                 }}
+                onClick={(e) => e.stopPropagation()}
               >
                 <UpdateVacancyForm
                   vacancyId={vacancy.id}

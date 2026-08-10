@@ -57,7 +57,7 @@ export const VacancyTabs = ({ vacancy, submissions }: VacancyTabsProps) => {
           aria-label='basic tabs example'
         >
           <Tab
-            label={`Candidates (${vacancy.numberOfSubmissions})`}
+            label={`Candidates (${vacancy.numberOfSubmissions ?? 0} )`}
             {...a11yProps(0)}
           />
           <Tab label='Overview' {...a11yProps(1)} />
