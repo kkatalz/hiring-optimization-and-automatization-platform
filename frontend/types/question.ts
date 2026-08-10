@@ -7,3 +7,9 @@ export interface Question {
   type: QuestionType;
   answerOptions?: string[];
 }
+
+/** Question belongs to a specific submission */
+export interface QuestionAnswer {
+  questionId: string;
+  value?: string | string[];
+}

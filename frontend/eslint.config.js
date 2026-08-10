@@ -6,7 +6,8 @@ import tseslint from 'typescript-eslint';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // playground/ is scratch space for lesson exercises
+  globalIgnores(['dist', 'playground']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

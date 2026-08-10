@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import type { Action, ThunkAction } from '@reduxjs/toolkit';
 import authReducer from '../features/auth/authSlice';
-import { vacancyApi } from '../features/api/vacancyApi';
+import { vacancyApi } from '../features/api/api';
 import filtersReducer from '../features/filters/filterSlice';
 
 export const store = configureStore({

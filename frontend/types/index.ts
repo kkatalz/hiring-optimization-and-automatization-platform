@@ -9,6 +9,7 @@ export * from './scores.interface';
 export * from './pagination';
 export * from './salaryRange';
 export * from './matchingScore';
+export * from './notification';
 
 // Domain entities
 export * from './user';
@@ -17,6 +18,5 @@ export * from './candidateProfile';
 export * from './vacancy';
 export * from './vacancyQuestion';
 export * from './question';
-export * from './submissionAnswers';
 export * from './vacancySubmission';
 export * from './interview';

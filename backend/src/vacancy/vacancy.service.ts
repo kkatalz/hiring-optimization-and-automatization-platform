@@ -257,10 +257,12 @@ export class VacancyService {
   }
 
   private async fetchVacancyById(vacancyId: string): Promise<Vacancy> {
-    const vacancy = await this.vacancyRepository.findOne({
-      where: { id: vacancyId },
-      relations: ['vacancyQuestions'],
-    });
+    const vacancy = await this.vacancyRepository
+      .createQueryBuilder('vacancy')
+      .leftJoinAndSelect('vacancy.vacancyQuestions', 'vq')
+      .loadRelationCountAndMap('vacancy.submissionCount', 'vacancy.submissions')
+      .where('vacancy.id = :vacancyId', { vacancyId })
+      .getOne();
 
     if (!vacancy) {
       throw new HttpException('Vacancy is not found.', HttpStatus.NOT_FOUND);
