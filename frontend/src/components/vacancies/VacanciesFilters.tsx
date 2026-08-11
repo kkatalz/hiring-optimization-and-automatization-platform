@@ -4,7 +4,12 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import { useState } from 'react';
-import { ALL_TIME_COMMITMENTS, initialState } from '../../../types';
+import {
+  ALL_TIME_COMMITMENTS,
+  initialState,
+  VACANCY_SORT_FIELDS,
+  type VacancySortColumn,
+} from '../../../types';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import {
   useGetAllVacanciesLanguagesCodesQuery,
@@ -39,7 +44,7 @@ export const VacanciesFilters = () => {
   };
 
   return (
-    <Paper elevation={3} sx={{ padding: '20px', maxWidth: '600px' }}>
+    <Paper elevation={3} sx={{ padding: '20px', maxWidth: '650px' }}>
       <Stack
         component='form'
         onSubmit={handleSubmit}
@@ -145,6 +150,13 @@ export const VacanciesFilters = () => {
                 color: 'primary.main',
               },
             }}
+            slotProps={{
+              paper: {
+                sx: {
+                  width: 'fit-content',
+                },
+              },
+            }}
           />
         </Stack>
 
@@ -190,7 +202,24 @@ export const VacanciesFilters = () => {
           languageCodes={languageCodes ?? []}
         />
 
-        <SortOrderLimitFilters entity='vacancies' />
+        <SortOrderLimitFilters
+          sortFields={VACANCY_SORT_FIELDS}
+          sortBy={appliedFilters.sortBy}
+          order={appliedFilters.order}
+          onSortByChange={(sortBy) => {
+            dispatch(setSortBy(sortBy as VacancySortColumn));
+            setDraft({
+              ...draft,
+              sortBy: sortBy as VacancySortColumn,
+            });
+          }}
+          onOrderChange={(order) => {
+            dispatch(setOrder(order));
+            setDraft({ ...draft, order });
+          }}
+          limit={appliedFilters.limit}
+          onLimitChange={(limit) => setDraft({ ...draft, limit })}
+        />
 
         {/* Apply & Reset */}
         <Stack direction='row' spacing={2}>

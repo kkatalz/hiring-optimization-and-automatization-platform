@@ -1,27 +1,26 @@
 import { MenuItem, Stack, TextField } from '@mui/material';
-import { useState } from 'react';
-import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import { setOrder, setSortBy } from '../../features/filters/filterSlice';
-import {
-  SUBMISSION_SORT_FIELDS,
-  VACANCY_SORT_FIELDS,
-  type SubmissionSortColumn,
-  type VacancySortColumn,
-} from '../../../types';
 import { ORDER_FIELDS, type SortOrder } from '../../../types/common/Order';
 import { formatSortField } from '../../utils/formatText';
 
-interface Props {
-  entity: 'vacancies' | 'submissions';
-  showLimit?: boolean;
+interface Props<T extends string> {
+  sortFields: readonly T[];
+  sortBy?: T;
+  order?: SortOrder;
+  onSortByChange?: (sortBy: T | undefined) => void;
+  onOrderChange?: (order: SortOrder | undefined) => void;
+  limit?: number;
+  onLimitChange?: (limit: number | undefined) => void;
 }
 
-const SortOrderLimitFilters = ({ entity, showLimit = true }: Props) => {
-  const dispatch = useAppDispatch();
-
-  const appliedFilters = useAppSelector((state) => state.filters);
-  const [draft, setDraft] = useState(appliedFilters);
-
+const SortOrderLimitFilters = ({
+  sortFields,
+  sortBy,
+  order,
+  onSortByChange,
+  onOrderChange,
+  limit,
+  onLimitChange,
+}: Props<string>) => {
   return (
     <Stack direction='row' spacing={2}>
       {/* Sorting */}
@@ -29,30 +28,16 @@ const SortOrderLimitFilters = ({ entity, showLimit = true }: Props) => {
         id='sortby-select'
         select
         label='Sort by'
-        value={appliedFilters.sortBy ?? ''}
-        onChange={(e) =>
-          dispatch(
-            setSortBy(
-              e.target.value as VacancySortColumn | SubmissionSortColumn,
-            ),
-          )
-        }
+        value={sortBy ?? ''}
+        onChange={(e) => onSortByChange && onSortByChange(e.target.value)}
         defaultValue='Created at'
         sx={{ minWidth: 150 }}
       >
-        {entity === 'vacancies'
-          ? VACANCY_SORT_FIELDS.map((option, index) => (
-              <MenuItem key={index} value={option}>
-                {formatSortField(option)}
-              </MenuItem>
-            ))
-          : entity === 'submissions'
-            ? SUBMISSION_SORT_FIELDS.map((option, index) => (
-                <MenuItem key={index} value={option}>
-                  {formatSortField(option)}
-                </MenuItem>
-              ))
-            : null}
+        {sortFields.map((option, index) => (
+          <MenuItem key={index} value={option}>
+            {formatSortField(option)}
+          </MenuItem>
+        ))}
       </TextField>
 
       {/* Order */}
@@ -60,9 +45,11 @@ const SortOrderLimitFilters = ({ entity, showLimit = true }: Props) => {
         id='order-select'
         select
         label='Order'
-        value={appliedFilters.order ?? ''}
-        disabled={!appliedFilters.sortBy}
-        onChange={(e) => dispatch(setOrder(e.target.value as SortOrder))}
+        value={order ?? ''}
+        disabled={!sortBy}
+        onChange={(e) =>
+          onOrderChange && onOrderChange(e.target.value as SortOrder)
+        }
         defaultValue='Ascending'
         sx={{ minWidth: 150 }}
       >
@@ -74,12 +61,13 @@ const SortOrderLimitFilters = ({ entity, showLimit = true }: Props) => {
       </TextField>
 
       {/* Limit */}
-      {showLimit && (
+
+      {limit !== undefined && (
         <TextField
           label='Limit'
-          value={draft.limit}
+          value={limit ?? ''}
           onChange={(e) =>
-            setDraft({ ...draft, limit: Number(e.target.value) })
+            onLimitChange && onLimitChange(Number(e.target.value))
           }
           sx={{ maxWidth: 100 }}
         />
