@@ -290,6 +290,35 @@ export class VacancySubmissionService {
     );
   }
 
+  async getAllSubmissionsCitiesByVacancyId(
+    vacancyId: string,
+  ): Promise<string[]> {
+    return this.getDistinctCandidateFieldByVacancyId(vacancyId, 'city');
+  }
+
+  async getAllSubmissionsCountriesByVacancyId(
+    vacancyId: string,
+  ): Promise<string[]> {
+    return this.getDistinctCandidateFieldByVacancyId(vacancyId, 'country');
+  }
+
+  private async getDistinctCandidateFieldByVacancyId(
+    vacancyId: string,
+    field: 'city' | 'country',
+  ): Promise<string[]> {
+    const rows = await this.vacancySubmissionRepository
+      .createQueryBuilder('submission')
+      .innerJoin('submission.candidateProfile', 'candidateProfile')
+      .select(`DISTINCT candidateProfile.${field}`, 'value')
+      .where('submission.vacancy_id = :vacancyId', { vacancyId })
+      .getRawMany<{ value: string | null }>();
+
+    return rows
+      .map((row) => row.value)
+      .filter((value): value is string => !!value) // remove empty or invalid values from a list and update its type
+      .sort((a, b) => a.localeCompare(b)); // Sort alphabetically
+  }
+
   async findAllSubmissionsWithinTenantWithFilters(
     tenantId: string,
     filterSubmissionsDto?: VacancySubmissionFilterDto,

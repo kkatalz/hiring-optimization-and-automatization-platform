@@ -48,6 +48,7 @@ describe('VacancySubmissionService', () => {
   let service: VacancySubmissionService;
   let vacancyRepository: Repository<Vacancy>;
   let submissionRepository: Repository<VacancySubmission>;
+  let candidateProfileRepository: Repository<CandidateProfile>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -88,6 +89,9 @@ describe('VacancySubmissionService', () => {
     );
     submissionRepository = module.get<Repository<VacancySubmission>>(
       getRepositoryToken(VacancySubmission),
+    );
+    candidateProfileRepository = module.get<Repository<CandidateProfile>>(
+      getRepositoryToken(CandidateProfile),
     );
 
     await loadDatabase({
@@ -2087,6 +2091,122 @@ describe('VacancySubmissionService', () => {
         expect(e.status).to.equal(404);
         expect(e.response).to.equal('Vacancy Submission not found.');
       }
+    });
+  });
+
+  describe('candidate locations by vacancy', () => {
+    const vacancyId = testVacancies[1].id;
+    const vacancyWithNoSubmissions = testVacancies[0].id;
+
+    // The fixture submission belongs to the Kyiv / Ukraine candidate.
+    // testUsers[5] is the New York / USA candidate, who has not applied yet.
+    const applyAsNewYorkCandidate = async () =>
+      await service.create(
+        {
+          comment: 'Applying from another city',
+          answers: [
+            { questionId: testQuestions[0].id, value: 'true' },
+            { questionId: testQuestions[2].id, value: ['Bachelor'] },
+          ],
+        },
+        vacancyId,
+        testUsers[5].id,
+      );
+
+    describe('getAllSubmissionsCitiesByVacancyId', () => {
+      it('should return the cities of the candidates who applied to the vacancy', async () => {
+        const result =
+          await service.getAllSubmissionsCitiesByVacancyId(vacancyId);
+
+        expect(result).to.deep.equal([testCandidatesProfiles[1].city]);
+      });
+
+      it('should return an empty array for a vacancy with no submissions', async () => {
+        const result = await service.getAllSubmissionsCitiesByVacancyId(
+          vacancyWithNoSubmissions,
+        );
+
+        expect(result).to.deep.equal([]);
+      });
+
+      it('should return a shared city only once', async () => {
+        await candidateProfileRepository.update(testCandidatesProfiles[0].id, {
+          city: testCandidatesProfiles[1].city,
+        });
+        await applyAsNewYorkCandidate();
+
+        const result =
+          await service.getAllSubmissionsCitiesByVacancyId(vacancyId);
+
+        expect(result).to.deep.equal([testCandidatesProfiles[1].city]);
+      });
+
+      it('should return the cities sorted alphabetically', async () => {
+        await applyAsNewYorkCandidate();
+
+        const result =
+          await service.getAllSubmissionsCitiesByVacancyId(vacancyId);
+
+        expect(result).to.deep.equal(['Kyiv', 'New York']);
+      });
+
+      it('should not include cities from submissions of another vacancy', async () => {
+        await applyAsNewYorkCandidate();
+
+        const result = await service.getAllSubmissionsCitiesByVacancyId(
+          vacancyWithNoSubmissions,
+        );
+
+        expect(result).to.deep.equal([]);
+      });
+    });
+
+    describe('getAllSubmissionsCountriesByVacancyId', () => {
+      it('should return the countries of the candidates who applied to the vacancy', async () => {
+        const result =
+          await service.getAllSubmissionsCountriesByVacancyId(vacancyId);
+
+        expect(result).to.deep.equal([testCandidatesProfiles[1].country]);
+      });
+
+      it('should return an empty array for a vacancy with no submissions', async () => {
+        const result = await service.getAllSubmissionsCountriesByVacancyId(
+          vacancyWithNoSubmissions,
+        );
+
+        expect(result).to.deep.equal([]);
+      });
+
+      it('should return a shared country only once', async () => {
+        await candidateProfileRepository.update(testCandidatesProfiles[0].id, {
+          country: testCandidatesProfiles[1].country,
+        });
+        await applyAsNewYorkCandidate();
+
+        const result =
+          await service.getAllSubmissionsCountriesByVacancyId(vacancyId);
+
+        expect(result).to.deep.equal([testCandidatesProfiles[1].country]);
+      });
+
+      it('should return the countries sorted alphabetically', async () => {
+        await applyAsNewYorkCandidate();
+
+        const result =
+          await service.getAllSubmissionsCountriesByVacancyId(vacancyId);
+
+        expect(result).to.deep.equal(['Ukraine', 'USA']);
+      });
+
+      it('should not include countries from submissions of another vacancy', async () => {
+        await applyAsNewYorkCandidate();
+
+        const result = await service.getAllSubmissionsCountriesByVacancyId(
+          vacancyWithNoSubmissions,
+        );
+
+        expect(result).to.deep.equal([]);
+      });
     });
   });
 });
