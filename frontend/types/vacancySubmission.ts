@@ -35,7 +35,7 @@ export const SUBMISSION_SORT_FIELDS = [
   'matchScore',
   'commentAiScore',
   'resumeAiScore',
-];
+] as const;
 export type SubmissionSortColumn = (typeof SUBMISSION_SORT_FIELDS)[number];
 
 export interface SubmissionSortQuery {
@@ -43,7 +43,7 @@ export interface SubmissionSortQuery {
   order?: SortOrder;
 }
 
-export interface SubmissionFilter {
+export interface SubmissionFilters {
   minYearsOfExperience?: number;
   maxYearsOfExperience?: number;
   countries?: string[];
@@ -56,3 +56,19 @@ export interface SubmissionFilter {
   maxCommentAiScore?: number;
   maxResumeAiScore?: number;
 }
+
+export const submissionInitialState: SubmissionFilters & SubmissionSortQuery = {
+  minYearsOfExperience: undefined,
+  maxYearsOfExperience: undefined,
+  countries: [],
+  cities: [],
+  languages: [],
+  answers: [],
+  minMatchScore: undefined,
+  minSalaryExpectation: undefined,
+  maxSalaryExpectation: undefined,
+  maxCommentAiScore: undefined,
+  maxResumeAiScore: undefined,
+  sortBy: undefined,
+  order: undefined,
+};

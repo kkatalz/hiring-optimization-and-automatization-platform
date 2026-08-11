@@ -7,7 +7,7 @@ import {
   type VacanciesFilters,
   type VacancyQuestionDetailed,
   type VacancySubmission,
-  type SubmissionFilter,
+  type SubmissionFilters,
   type SubmissionSortQuery,
 } from '../../../types';
 import type { RootState } from '../../app/store';
@@ -144,7 +144,7 @@ export const vacancyApi = createApi({
       {
         vacancyId: string;
         sortQuery?: SubmissionSortQuery;
-        filterSubmissionsDto?: SubmissionFilter;
+        filterSubmissionsDto?: SubmissionFilters;
       }
     >({
       query: ({ vacancyId, sortQuery, filterSubmissionsDto }) => ({
