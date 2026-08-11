@@ -7,7 +7,7 @@ import filtersReducer from '../features/filters/filterSlice';
 export const store = configureStore({
   reducer: {
     auth: authReducer,
-    filters: filtersReducer,
+    vacancyFilters: vacancyFiltersSlice.reducer,
     [vacancyApi.reducerPath]: vacancyApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>

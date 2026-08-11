@@ -12,7 +12,7 @@ import CreateVacancy from './CreateVacancy';
 import { Stack } from '@mui/material';
 
 const MainVacanciesPage = () => {
-  const appliedFilters = useAppSelector((state) => state.filters);
+  const appliedFilters = useAppSelector((state) => state.vacancyFilters);
   const { data } = useSearchVacanciesQuery({ filters: appliedFilters });
 
   const numberOfAvailableVacancies = data?.total ?? 0;

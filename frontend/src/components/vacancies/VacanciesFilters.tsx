@@ -10,14 +10,19 @@ import {
   useGetAllVacanciesLanguagesCodesQuery,
   useGetAllVacanciesTagsQuery,
 } from '../../features/api/api';
-import { applyFilters, resetFilters } from '../../features/filters/filterSlice';
+import {
+  applyFilters,
+  resetFilters,
+  setOrder,
+  setSortBy,
+} from '../../features/filters/vacancyFiltersSlice';
 import SortOrderLimitFilters from '../common/SortOrderLimitFilters';
 import { LanguageRequirementsFilter } from './LanguageRequirementsFilter';
 
 export const VacanciesFilters = () => {
   const dispatch = useAppDispatch();
 
-  const appliedFilters = useAppSelector((state) => state.filters);
+  const appliedFilters = useAppSelector((state) => state.vacancyFilters);
   const [draft, setDraft] = useState(appliedFilters);
 
   const { data: allTags } = useGetAllVacanciesTagsQuery();

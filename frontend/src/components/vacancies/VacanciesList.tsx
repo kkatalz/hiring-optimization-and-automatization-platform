@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { getErrorMessage } from '../../utils/errorMessage';
 import { useSearchVacanciesQuery } from '../../features/api/api';
-import { setPage } from '../../features/filters/filterSlice';
+import { setPage } from '../../features/filters/vacancyFiltersSlice';
 import VacancyCard from './VacancyCard';
 import { useNavigate } from 'react-router-dom';
 import type { Notification } from '../../../types';
@@ -14,7 +14,7 @@ export const VacanciesList = () => {
 
   const [notification, setNotification] = useState<Notification | null>(null);
 
-  const appliedFilters = useAppSelector((state) => state.filters);
+  const appliedFilters = useAppSelector((state) => state.vacancyFilters);
 
   const currentPage = appliedFilters.page;
 
