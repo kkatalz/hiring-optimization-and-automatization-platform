@@ -88,7 +88,10 @@ const normalizeExpectedValue = (
   };
 };
 
-const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
+const AddScreeningQuestions = ({
+  value,
+  onChange,
+}: ScreeningQuestionsProps) => {
   const [error, setError] = useState<string | null>(null);
 
   const [currentQuestion, setCurrentQuestion] =
@@ -437,4 +440,4 @@ const ScreeningQuestions = ({ value, onChange }: ScreeningQuestionsProps) => {
   );
 };
 
-export default ScreeningQuestions;
+export default AddScreeningQuestions;

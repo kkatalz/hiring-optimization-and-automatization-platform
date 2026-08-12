@@ -14,7 +14,7 @@ import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import { LanguageRequirementsFilter } from '../common/filters/LanguageRequirementsFilter';
-import ScreeningQuestions from './ScreeningQuestions';
+import ScreeningQuestions from './AddScreeningQuestions';
 
 interface VacancyProps {
   value: CreateVacancyInput | UpdateVacancyInput;
