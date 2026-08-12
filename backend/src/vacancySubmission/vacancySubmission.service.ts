@@ -302,9 +302,29 @@ export class VacancySubmissionService {
     return this.getDistinctCandidateFieldByVacancyId(vacancyId, 'country');
   }
 
+  async getAllExistingLanguagesCodes(vacancyId: string): Promise<string[]> {
+    const candidateProfilesLanguages = await this.vacancySubmissionRepository
+      .createQueryBuilder('submission')
+      .innerJoin('submission.candidateProfile', 'candidateProfile')
+      .where('submission.vacancy_id = :vacancyId', { vacancyId })
+      .select('candidateProfile.languages', 'languages')
+      .getRawMany<{ languages: LanguageProficiency[] | null }>();
+
+    const languagesCodes = new Set<string>();
+    candidateProfilesLanguages.forEach((candidateProfile) => {
+      if (candidateProfile.languages) {
+        candidateProfile.languages.forEach((language) => {
+          if (language.code) languagesCodes.add(language.code);
+        });
+      }
+    });
+
+    return Array.from(languagesCodes);
+  }
+
   private async getDistinctCandidateFieldByVacancyId(
     vacancyId: string,
-    field: 'city' | 'country',
+    field: 'city' | 'country' | 'languages',
   ): Promise<string[]> {
     const rows = await this.vacancySubmissionRepository
       .createQueryBuilder('submission')

@@ -2209,4 +2209,34 @@ describe('VacancySubmissionService', () => {
       });
     });
   });
+  describe.only('findAllExistingLanguagesCodes', () => {
+    it('should return the languages codes of the candidates who applied to the vacancy', async () => {
+      const vacancyId = testVacancies[1].id;
+
+      // Apply as a candidate with languages: ukr/NATIVE, fr/C1, chinese/B2
+      await candidateProfileRepository.update(testCandidatesProfiles[0].id, {
+        languages: [
+          { code: 'ukr', level: LanguageLevel.NATIVE },
+          { code: 'fr', level: LanguageLevel.C1 },
+          { code: 'chinese', level: LanguageLevel.B2 },
+        ],
+      });
+
+      await service.create(
+        {
+          comment: 'Applying with multiple languages',
+          answers: [
+            { questionId: testQuestions[0].id, value: 'true' },
+            { questionId: testQuestions[2].id, value: ['Bachelor'] },
+          ],
+        },
+        vacancyId,
+        testUsers[5].id,
+      );
+
+      const result = await service.getAllExistingLanguagesCodes(vacancyId);
+
+      expect(result).to.deep.equal(['ukr', 'en', 'de', 'fr', 'chinese']);
+    });
+  });
 });
