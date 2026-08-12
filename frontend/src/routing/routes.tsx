@@ -4,7 +4,7 @@ import { LoginForm } from '../components/auth/LoginForm';
 import { ProtectedLayout } from './ProtectedLayout';
 import MainVacanciesPage from '../components/vacancies/MainVacanciesPage';
 import VacancyDetailsPage from '../components/vacancies/VacancyDetailsPage';
-import VacancySubmissionsList from '../components/vacancySubmissions/VacancySubmissionsList';
+import MainVacancySubmissionsPage from '../components/vacancySubmissions/MainVacancySubmissionsPage';
 import VacancyOverview from '../components/vacancies/VacancyOverview';
 import ScreeningQuestionsView from '../components/vacancies/ScreeningQuestionsView';
 import AppLayout from './AppLayout';
@@ -32,7 +32,7 @@ const routes = createBrowserRouter([
                     index: true,
                     element: <Navigate to='candidates' replace />,
                   },
-                  { path: 'candidates', Component: VacancySubmissionsList },
+                  { path: 'candidates', Component: MainVacancySubmissionsPage },
                   { path: 'overview', Component: VacancyOverview },
                   {
                     path: 'screening-questions',
