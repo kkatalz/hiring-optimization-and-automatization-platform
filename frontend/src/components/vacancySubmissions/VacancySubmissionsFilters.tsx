@@ -24,6 +24,15 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { LanguageRequirementsFilter } from '../common/filters/LanguageRequirementsFilter';
 import ScreeningQuestionsFilter from '../common/filters/ScreeningQuestionsFilter';
 
+/** If field is empty or not a valid number, return undefined (cleans the filter) */
+const toNumberFilter = (raw: string): number | undefined => {
+  if (raw.trim() === '') return undefined;
+
+  const parsed = Number(raw);
+
+  return Number.isNaN(parsed) ? undefined : parsed;
+};
+
 const VacancySubmissionsFilters = () => {
   const dispatch = useAppDispatch();
 
@@ -94,7 +103,10 @@ const VacancySubmissionsFilters = () => {
             }}
             value={draft.minMatchScore ?? ''}
             onChange={(e) =>
-              setDraft({ ...draft, minMatchScore: Number(e.target.value) })
+              setDraft({
+                ...draft,
+                minMatchScore: toNumberFilter(e.target.value),
+              })
             }
           />
           <TextField
@@ -107,7 +119,7 @@ const VacancySubmissionsFilters = () => {
             onChange={(e) =>
               setDraft({
                 ...draft,
-                minYearsOfExperience: Number(e.target.value),
+                minYearsOfExperience: toNumberFilter(e.target.value),
               })
             }
           />
@@ -121,7 +133,7 @@ const VacancySubmissionsFilters = () => {
             onChange={(e) =>
               setDraft({
                 ...draft,
-                maxYearsOfExperience: Number(e.target.value),
+                maxYearsOfExperience: toNumberFilter(e.target.value),
               })
             }
           />
@@ -135,7 +147,7 @@ const VacancySubmissionsFilters = () => {
             onChange={(e) =>
               setDraft({
                 ...draft,
-                minSalaryExpectation: Number(e.target.value),
+                minSalaryExpectation: toNumberFilter(e.target.value),
               })
             }
           />
@@ -149,7 +161,7 @@ const VacancySubmissionsFilters = () => {
             onChange={(e) =>
               setDraft({
                 ...draft,
-                maxSalaryExpectation: Number(e.target.value),
+                maxSalaryExpectation: toNumberFilter(e.target.value),
               })
             }
           />
@@ -237,7 +249,10 @@ const VacancySubmissionsFilters = () => {
             }}
             value={draft.maxResumeAiScore ?? ''}
             onChange={(e) =>
-              setDraft({ ...draft, maxResumeAiScore: Number(e.target.value) })
+              setDraft({
+                ...draft,
+                maxResumeAiScore: toNumberFilter(e.target.value),
+              })
             }
             sx={{
               width: 150,
@@ -251,7 +266,10 @@ const VacancySubmissionsFilters = () => {
             }}
             value={draft.maxCommentAiScore ?? ''}
             onChange={(e) =>
-              setDraft({ ...draft, maxCommentAiScore: Number(e.target.value) })
+              setDraft({
+                ...draft,
+                maxCommentAiScore: toNumberFilter(e.target.value),
+              })
             }
             sx={{
               width: 150,
