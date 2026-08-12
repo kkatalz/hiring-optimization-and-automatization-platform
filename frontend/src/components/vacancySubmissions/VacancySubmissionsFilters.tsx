@@ -22,6 +22,7 @@ import {
 import { useParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { LanguageRequirementsFilter } from '../common/filters/LanguageRequirementsFilter';
+import ScreeningQuestionsFilter from '../common/filters/ScreeningQuestionsFilter';
 
 const VacancySubmissionsFilters = () => {
   const dispatch = useAppDispatch();
@@ -263,6 +264,13 @@ const VacancySubmissionsFilters = () => {
           value={draft.languages ?? []}
           onChange={(next) => setDraft({ ...draft, languages: next })}
           languageCodes={languageCodes ?? []}
+        />
+
+        {/* Screening questions */}
+        <ScreeningQuestionsFilter
+          vacancyId={vacancyId}
+          value={draft.answers ?? []}
+          onChange={(next) => setDraft({ ...draft, answers: next })}
         />
 
         {/* Apply & Reset */}
