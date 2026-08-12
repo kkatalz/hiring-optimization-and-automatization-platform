@@ -13,7 +13,7 @@ import {
   ALL_LANGUAGE_LEVELS,
   type LanguageLevel,
   type LanguageProficiency,
-} from '../../../types';
+} from '../../../../types';
 import Divider from '@mui/material/Divider';
 
 interface LanguageRequirementsFilterProps {
@@ -88,12 +88,19 @@ export const LanguageRequirementsFilter = ({
             <TextField
               {...params}
               label='Language'
-              placeholder='EN'
+              placeholder='e.g. en'
               onKeyDown={(event) => {
                 // Enter commits the typed code inside the Autocomplete, but it
                 // would also submit the surrounding CreateVacancy form. Block
                 // the implicit submit so the code is added instead.
                 if (event.key === 'Enter') event.preventDefault();
+              }}
+              slotProps={{
+                ...params.slotProps,
+                inputLabel: {
+                  ...params.slotProps?.inputLabel,
+                  shrink: true,
+                },
               }}
             />
           )}

@@ -167,6 +167,38 @@ export const vacancyApi = createApi({
             ]
           : [{ type: 'Submission', id: `VACANCY_${vacancyId}` }],
     }),
+    getAllSubmissionsCitiesByVacancyId: builder.query<string[], string>({
+      query: (vacancyId) => ({
+        url: `/vacanciesSubmissions/${vacancyId}/existing-cities`,
+        method: 'GET',
+      }),
+      providesTags: (_result, _error, vacancyId) => [
+        { type: 'Submission', id: `VACANCY_${vacancyId}` },
+      ],
+    }),
+
+    getAllSubmissionsCountriesByVacancyId: builder.query<string[], string>({
+      query: (vacancyId) => ({
+        url: `/vacanciesSubmissions/${vacancyId}/existing-countries`,
+        method: 'GET',
+      }),
+      providesTags: (_result, _error, vacancyId) => [
+        { type: 'Submission', id: `VACANCY_${vacancyId}` },
+      ],
+    }),
+
+    getAllSubmissionsLanguagesCodesByVacancyId: builder.query<string[], string>(
+      {
+        query: (vacancyId) => ({
+          url: `/vacanciesSubmissions/${vacancyId}/existing-languages-codes`,
+          method: 'GET',
+        }),
+        providesTags: (_result, _error, vacancyId) => [
+          { type: 'Submission', id: `VACANCY_${vacancyId}` },
+        ],
+      },
+    ),
+
     // SUBMISSION MUTATIONS
     approveSubmission: builder.mutation<VacancySubmission, string>({
       query: (submissionId) => ({
@@ -213,6 +245,9 @@ export const {
   useDeleteVacancyMutation,
   // SUBMISSIONS
   useGetSubmissionsByVacancyIdQuery,
+  useGetAllSubmissionsCitiesByVacancyIdQuery,
+  useGetAllSubmissionsCountriesByVacancyIdQuery,
+  useGetAllSubmissionsLanguagesCodesByVacancyIdQuery,
   useApproveSubmissionMutation,
   useRejectSubmissionMutation,
   // CLUSTERING

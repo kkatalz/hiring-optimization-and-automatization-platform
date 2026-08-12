@@ -22,7 +22,7 @@ import {
   setSortBy,
 } from '../../features/filters/vacancyFiltersSlice';
 import SortOrderLimitFilters from '../common/SortOrderLimitFilters';
-import { LanguageRequirementsFilter } from './LanguageRequirementsFilter';
+import { LanguageRequirementsFilter } from '../common/filters/LanguageRequirementsFilter';
 
 export const VacanciesFilters = () => {
   const dispatch = useAppDispatch();
