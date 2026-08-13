@@ -101,7 +101,7 @@ const ScreeningQuestionsFilter = ({
         <TextField
           select
           label='Question'
-          sx={{ flex: 1 }}
+          sx={{ flex: 1, maxWidth: 500 }}
           value={questionId}
           onChange={(e) => {
             setQuestionId(e.target.value);
@@ -119,7 +119,7 @@ const ScreeningQuestionsFilter = ({
 
         <Autocomplete
           multiple
-          sx={{ flex: 1 }}
+          sx={{ flex: 1, maxWidth: 500 }}
           options={answerOptions}
           value={answers}
           disabled={!selectedQuestion || isText}

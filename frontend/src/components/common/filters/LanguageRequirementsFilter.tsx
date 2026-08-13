@@ -79,7 +79,7 @@ export const LanguageRequirementsFilter = ({
 
       <Stack direction='row' spacing={2}>
         <Autocomplete
-          sx={{ flex: 1 }}
+          sx={{ flex: 1, maxWidth: 500 }}
           options={availableCodes}
           value={code}
           onChange={(_event, newCode) => setCode(newCode)}
