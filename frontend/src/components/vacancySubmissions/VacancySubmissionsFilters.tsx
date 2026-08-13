@@ -80,6 +80,8 @@ const VacancySubmissionsFilters = () => {
           id='submission-filters-header'
         >
           <Box
+            onClick={(e) => e.stopPropagation()}
+            onFocus={(e) => e.stopPropagation()}
             sx={{
               display: 'flex',
               flexWrap: 'wrap',
