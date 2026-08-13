@@ -1,41 +1,42 @@
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
-import { useState } from 'react';
 import { VacancySubmissionStatus } from '../../../types';
 
-const SubmissionStatusToggleButtons = () => {
-  const [alignment, setAlignment] = useState<string | null>('left');
+const ALL = 'all';
 
-  const handleAlignment = (
+type Props = {
+  value?: VacancySubmissionStatus;
+  onChange: (status?: VacancySubmissionStatus) => void;
+};
+
+const SubmissionStatusToggleButtons = ({ value, onChange }: Props) => {
+  const handleChange = (
     _event: React.MouseEvent<HTMLElement>,
-    newAlignment: string | null,
+    newValue: string | null,
   ) => {
-    setAlignment(newAlignment);
+    onChange(
+      newValue && newValue !== ALL
+        ? (newValue as VacancySubmissionStatus)
+        : undefined,
+    );
   };
 
   return (
     <ToggleButtonGroup
-      value={alignment}
+      value={value ?? ALL}
       exclusive
-      onChange={handleAlignment}
-      aria-label='text alignment'
+      onChange={handleChange}
+      aria-label='submission status'
       color='primary'
       sx={{ '& .Mui-selected': { fontWeight: 'bold' } }}
     >
-      <ToggleButton value='all' aria-label='left aligned'>
+      <ToggleButton value={ALL} aria-label='left aligned'>
         ALL
       </ToggleButton>
-      <ToggleButton value='pending' aria-label='centered'>
-        {VacancySubmissionStatus.pending.toUpperCase()}
-      </ToggleButton>
-      <ToggleButton value='interviewing' aria-label='right aligned'>
-        {VacancySubmissionStatus.interviewing.toUpperCase()}
-      </ToggleButton>
-      <ToggleButton value='approved' aria-label='justified'>
-        {VacancySubmissionStatus.approved.toUpperCase()}
-      </ToggleButton>
-      <ToggleButton value='rejected' aria-label='justified'>
-        {VacancySubmissionStatus.rejected.toUpperCase()}
-      </ToggleButton>
+      {Object.values(VacancySubmissionStatus).map((status) => (
+        <ToggleButton key={status} value={status} aria-label={status}>
+          {status}
+        </ToggleButton>
+      ))}
     </ToggleButtonGroup>
   );
 };

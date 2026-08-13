@@ -447,6 +447,12 @@ export class VacancySubmissionService {
       });
     }
 
+    if (filterDto.status) {
+      query.andWhere('submission.status = :status', {
+        status: filterDto.status,
+      });
+    }
+
     this.applySorting(query, sortBy, order);
 
     let submissions = await query.getMany();

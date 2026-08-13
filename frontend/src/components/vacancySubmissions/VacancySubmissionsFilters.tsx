@@ -13,6 +13,7 @@ import {
   resetFilters,
   setOrder,
   setSortBy,
+  setStatus,
 } from '../../features/filters/submissionFiltersSlice';
 import {
   useGetAllSubmissionsCitiesByVacancyIdQuery,
@@ -91,7 +92,13 @@ const VacancySubmissionsFilters = () => {
               setDraft({ ...draft, order });
             }}
           />
-          <SubmissionStatusToggleButtons />
+          <SubmissionStatusToggleButtons
+            value={appliedFilters.status}
+            onChange={(status) => {
+              dispatch(setStatus(status));
+              setDraft({ ...draft, status });
+            }}
+          />
         </Box>
 
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>

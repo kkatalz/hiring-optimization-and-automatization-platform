@@ -55,6 +55,7 @@ export interface SubmissionFilters {
   maxSalaryExpectation?: number;
   maxCommentAiScore?: number;
   maxResumeAiScore?: number;
+  status?: VacancySubmissionStatus;
 }
 
 export const submissionInitialState: SubmissionFilters & SubmissionSortQuery = {
@@ -69,6 +70,7 @@ export const submissionInitialState: SubmissionFilters & SubmissionSortQuery = {
   maxSalaryExpectation: undefined,
   maxCommentAiScore: undefined,
   maxResumeAiScore: undefined,
+  status: undefined,
   sortBy: undefined,
   order: undefined,
 };

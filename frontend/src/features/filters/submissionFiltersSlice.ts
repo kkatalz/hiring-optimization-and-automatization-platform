@@ -1,5 +1,9 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { SubmissionFilters, SubmissionSortColumn } from '../../../types';
+import type {
+  SubmissionFilters,
+  SubmissionSortColumn,
+  VacancySubmissionStatus,
+} from '../../../types';
 import { submissionInitialState } from '../../../types';
 import type { SortOrder } from '../../../types/common/Order';
 
@@ -20,6 +24,7 @@ export const submissionFiltersSlice = createSlice({
       state.maxSalaryExpectation = undefined;
       state.maxCommentAiScore = undefined;
       state.maxResumeAiScore = undefined;
+      state.status = undefined;
     },
     applyFilters: (state, action: PayloadAction<SubmissionFilters>) => ({
       ...action.payload,
@@ -40,10 +45,17 @@ export const submissionFiltersSlice = createSlice({
     setOrder: (state, action: PayloadAction<SortOrder | undefined>) => {
       state.order = action.payload;
     },
+
+    setStatus: (
+      state,
+      action: PayloadAction<VacancySubmissionStatus | undefined>,
+    ) => {
+      state.status = action.payload;
+    },
   },
 });
 
-export const { resetFilters, applyFilters, setSortBy, setOrder } =
+export const { resetFilters, applyFilters, setSortBy, setOrder, setStatus } =
   submissionFiltersSlice.actions;
 
 export default submissionFiltersSlice.reducer;
