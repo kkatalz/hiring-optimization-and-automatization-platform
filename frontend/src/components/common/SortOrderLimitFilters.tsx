@@ -29,12 +29,14 @@ const SortOrderLimitFilters = ({
         select
         label='Sort by'
         value={sortBy ?? ''}
-        onChange={(e) => onSortByChange && onSortByChange(e.target.value)}
-        defaultValue='Created at'
+        onChange={(e) => {
+          const next = e.target.value;
+          onSortByChange?.(next === '' ? undefined : next);
+        }}
         sx={{ minWidth: 150 }}
       >
-        {sortFields.map((option, index) => (
-          <MenuItem key={index} value={option}>
+        {sortFields.map((option) => (
+          <MenuItem key={option} value={option}>
             {formatSortField(option)}
           </MenuItem>
         ))}
@@ -47,10 +49,10 @@ const SortOrderLimitFilters = ({
         label='Order'
         value={order ?? ''}
         disabled={!sortBy}
-        onChange={(e) =>
-          onOrderChange && onOrderChange(e.target.value as SortOrder)
-        }
-        defaultValue='Ascending'
+        onChange={(e) => {
+          const next = e.target.value;
+          onOrderChange?.(next === '' ? undefined : (next as SortOrder));
+        }}
         sx={{ minWidth: 150 }}
       >
         {ORDER_FIELDS.map((option, index) => (
@@ -61,14 +63,14 @@ const SortOrderLimitFilters = ({
       </TextField>
 
       {/* Limit */}
-
-      {limit !== undefined && (
+      {onLimitChange && (
         <TextField
           label='Limit'
           value={limit ?? ''}
-          onChange={(e) =>
-            onLimitChange && onLimitChange(Number(e.target.value))
-          }
+          onChange={(e) => {
+            const next = e.target.value;
+            onLimitChange?.(next === '' ? undefined : Number(next));
+          }}
           sx={{ maxWidth: 100 }}
         />
       )}

@@ -29,7 +29,7 @@ const SubmissionStatusToggleButtons = ({ value, onChange }: Props) => {
       color='primary'
       sx={{ '& .Mui-selected': { fontWeight: 'bold' } }}
     >
-      <ToggleButton value={ALL} aria-label='left aligned'>
+      <ToggleButton value={ALL} aria-label='All statuses'>
         ALL
       </ToggleButton>
       {Object.values(VacancySubmissionStatus).map((status) => (

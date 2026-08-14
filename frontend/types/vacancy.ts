@@ -57,8 +57,8 @@ export const initialState: VacanciesFilters = {
   maxRequiredExperience: undefined,
   sortBy: undefined,
   order: undefined,
-  page: 1,
-  limit: 10,
+  page: undefined,
+  limit: undefined,
 };
 
 export interface CreateVacancyInput {

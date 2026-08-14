@@ -217,7 +217,7 @@ export const VacanciesFilters = () => {
             dispatch(setOrder(order));
             setDraft({ ...draft, order });
           }}
-          limit={appliedFilters.limit}
+          limit={draft.limit}
           onLimitChange={(limit) => setDraft({ ...draft, limit })}
         />
 

@@ -21,8 +21,8 @@ export const vacancyFiltersSlice = createSlice({
       state.tags = [];
       state.minRequiredExperience = undefined;
       state.maxRequiredExperience = undefined;
-      state.page = 1;
-      state.limit = 10;
+      state.page = undefined;
+      state.limit = undefined;
     },
     applyFilters: (state, action: PayloadAction<VacanciesFilters>) => ({
       ...action.payload,

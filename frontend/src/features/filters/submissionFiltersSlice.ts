@@ -25,6 +25,8 @@ export const submissionFiltersSlice = createSlice({
       state.maxCommentAiScore = undefined;
       state.maxResumeAiScore = undefined;
       state.status = undefined;
+      state.sortBy = undefined;
+      state.order = undefined;
     },
     applyFilters: (state, action: PayloadAction<SubmissionFilters>) => ({
       ...action.payload,

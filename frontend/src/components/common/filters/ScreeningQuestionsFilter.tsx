@@ -61,7 +61,7 @@ const ScreeningQuestionsFilter = ({
       ...value,
       {
         questionId,
-        // Value can be udefined on purpose, meaning "any answer is acceptable", just answer the question.
+        // Value can be undefined on purpose, meaning "any answer is acceptable", just answer the question.
         value: answers.length ? (isDropdown ? answers : answers[0]) : undefined,
       },
     ]);
