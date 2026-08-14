@@ -2,12 +2,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import type { Action, ThunkAction } from '@reduxjs/toolkit';
 import authReducer from '../features/auth/authSlice';
 import { vacancyApi } from '../features/api/api';
-import filtersReducer from '../features/filters/filterSlice';
+import { vacancyFiltersSlice } from '../features/filters/vacancyFiltersSlice';
+import { submissionFiltersSlice } from '../features/filters/submissionFiltersSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
-    filters: filtersReducer,
+    vacancyFilters: vacancyFiltersSlice.reducer,
+    submissionFilters: submissionFiltersSlice.reducer,
     [vacancyApi.reducerPath]: vacancyApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>

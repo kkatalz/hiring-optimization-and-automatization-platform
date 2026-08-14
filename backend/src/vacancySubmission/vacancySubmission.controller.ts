@@ -121,6 +121,57 @@ export class VacancySubmissionController {
     );
   }
 
+  /** Returns cities of all candidates who submitted to this vacancy */
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
+  @Get(':vacancyId/existing-cities')
+  async getAllSubmissionsCitiesByVacancyId(
+    @AuthUser() viewer: UserDto,
+    @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
+  ): Promise<string[]> {
+    const vacancyTenantId =
+      await this.vacancyService.getTenantIdByVacancyId(vacancyId);
+
+    validateTenantAccess(viewer, vacancyTenantId);
+
+    return await this.vacancySubmissionService.getAllSubmissionsCitiesByVacancyId(
+      vacancyId,
+    );
+  }
+
+  /** Returns countries of all candidates who submitted to this vacancy */
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
+  @Get(':vacancyId/existing-countries')
+  async getAllSubmissionsCountriesByVacancyId(
+    @AuthUser() viewer: UserDto,
+    @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
+  ): Promise<string[]> {
+    const vacancyTenantId =
+      await this.vacancyService.getTenantIdByVacancyId(vacancyId);
+
+    validateTenantAccess(viewer, vacancyTenantId);
+
+    return await this.vacancySubmissionService.getAllSubmissionsCountriesByVacancyId(
+      vacancyId,
+    );
+  }
+
+  // Returns all existing languages' codes across all submissions within vacancy
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
+  @Get(':vacancyId/existing-languages-codes')
+  async findAllExistingLanguagesCodes(
+    @AuthUser() requester: UserDto,
+    @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
+  ): Promise<string[]> {
+    const vacancyTenantId =
+      await this.vacancyService.getTenantIdByVacancyId(vacancyId);
+
+    validateTenantAccess(requester, vacancyTenantId);
+
+    return await this.vacancySubmissionService.getAllExistingLanguagesCodes(
+      vacancyId,
+    );
+  }
+
   @Roles(UserRole.recruiter)
   @Post('add-recruiter-rating/:submissionId')
   async addRecruiterRatingToSubmission(

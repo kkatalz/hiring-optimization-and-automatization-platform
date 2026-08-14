@@ -3,6 +3,7 @@ import type { VacancySubmissionStatus } from './statuses.enum';
 import type { CandidateProfile } from './candidateProfile';
 import type { LanguageProficiency } from './hiring.enum';
 import type { QuestionAnswer } from './question';
+import type { SortOrder } from './common/Order';
 
 export interface VacancySubmission {
   id: string;
@@ -27,21 +28,22 @@ export interface VacancySubmission {
   answers?: QuestionAnswer[];
 }
 
-type SubmissionSortFields =
-  | 'createdAt'
-  | 'expectedSalary'
-  | 'recruiterRating'
-  | 'matchScore'
-  | 'commentAiScore'
-  | 'resumeAiScore';
-type SubmissionSortOrder = 'ASC' | 'DESC';
+export const SUBMISSION_SORT_FIELDS = [
+  'createdAt',
+  'expectedSalary',
+  'recruiterRating',
+  'matchScore',
+  'commentAiScore',
+  'resumeAiScore',
+] as const;
+export type SubmissionSortColumn = (typeof SUBMISSION_SORT_FIELDS)[number];
 
 export interface SubmissionSortQuery {
-  sortBy?: SubmissionSortFields;
-  order?: SubmissionSortOrder;
+  sortBy?: SubmissionSortColumn;
+  order?: SortOrder;
 }
 
-export interface SubmissionFilter {
+export interface SubmissionFilters {
   minYearsOfExperience?: number;
   maxYearsOfExperience?: number;
   countries?: string[];
@@ -53,4 +55,22 @@ export interface SubmissionFilter {
   maxSalaryExpectation?: number;
   maxCommentAiScore?: number;
   maxResumeAiScore?: number;
+  status?: VacancySubmissionStatus;
 }
+
+export const submissionInitialState: SubmissionFilters & SubmissionSortQuery = {
+  minYearsOfExperience: undefined,
+  maxYearsOfExperience: undefined,
+  countries: [],
+  cities: [],
+  languages: [],
+  answers: [],
+  minMatchScore: undefined,
+  minSalaryExpectation: undefined,
+  maxSalaryExpectation: undefined,
+  maxCommentAiScore: undefined,
+  maxResumeAiScore: undefined,
+  status: undefined,
+  sortBy: undefined,
+  order: undefined,
+};

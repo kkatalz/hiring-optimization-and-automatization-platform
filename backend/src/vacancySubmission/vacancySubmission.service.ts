@@ -290,6 +290,55 @@ export class VacancySubmissionService {
     );
   }
 
+  async getAllSubmissionsCitiesByVacancyId(
+    vacancyId: string,
+  ): Promise<string[]> {
+    return this.getDistinctCandidateFieldByVacancyId(vacancyId, 'city');
+  }
+
+  async getAllSubmissionsCountriesByVacancyId(
+    vacancyId: string,
+  ): Promise<string[]> {
+    return this.getDistinctCandidateFieldByVacancyId(vacancyId, 'country');
+  }
+
+  async getAllExistingLanguagesCodes(vacancyId: string): Promise<string[]> {
+    const candidateProfilesLanguages = await this.vacancySubmissionRepository
+      .createQueryBuilder('submission')
+      .innerJoin('submission.candidateProfile', 'candidateProfile')
+      .where('submission.vacancy_id = :vacancyId', { vacancyId })
+      .select('candidateProfile.languages', 'languages')
+      .getRawMany<{ languages: LanguageProficiency[] | null }>();
+
+    const languagesCodes = new Set<string>();
+    candidateProfilesLanguages.forEach((candidateProfile) => {
+      if (candidateProfile.languages) {
+        candidateProfile.languages.forEach((language) => {
+          if (language.code) languagesCodes.add(language.code);
+        });
+      }
+    });
+
+    return Array.from(languagesCodes).sort((a, b) => a.localeCompare(b));
+  }
+
+  private async getDistinctCandidateFieldByVacancyId(
+    vacancyId: string,
+    field: 'city' | 'country' | 'languages',
+  ): Promise<string[]> {
+    const rows = await this.vacancySubmissionRepository
+      .createQueryBuilder('submission')
+      .innerJoin('submission.candidateProfile', 'candidateProfile')
+      .select(`DISTINCT candidateProfile.${field}`, 'value')
+      .where('submission.vacancy_id = :vacancyId', { vacancyId })
+      .getRawMany<{ value: string | null }>();
+
+    return rows
+      .map((row) => row.value)
+      .filter((value): value is string => !!value) // remove empty or invalid values from a list and update its type
+      .sort((a, b) => a.localeCompare(b)); // Sort alphabetically
+  }
+
   async findAllSubmissionsWithinTenantWithFilters(
     tenantId: string,
     filterSubmissionsDto?: VacancySubmissionFilterDto,
@@ -395,6 +444,12 @@ export class VacancySubmissionService {
     if (filterDto.maxResumeAiScore != null) {
       query.andWhere('submission.resume_ai_score <= :maxResumeAiScore', {
         maxResumeAiScore: filterDto.maxResumeAiScore,
+      });
+    }
+
+    if (filterDto.status) {
+      query.andWhere('submission.status = :status', {
+        status: filterDto.status,
       });
     }
 

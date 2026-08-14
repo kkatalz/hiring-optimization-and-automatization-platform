@@ -13,8 +13,8 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
-import { LanguageRequirementsFilter } from './LanguageRequirementsFilter';
-import ScreeningQuestions from './ScreeningQuestions';
+import { LanguageRequirementsFilter } from '../common/filters/LanguageRequirementsFilter';
+import ScreeningQuestions from './AddScreeningQuestions';
 
 interface VacancyProps {
   value: CreateVacancyInput | UpdateVacancyInput;

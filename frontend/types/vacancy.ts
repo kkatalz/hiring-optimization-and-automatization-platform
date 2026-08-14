@@ -1,3 +1,4 @@
+import type { SortOrder } from './common/Order';
 import type { LanguageProficiency, TimeCommitment } from './hiring.enum';
 import type { CustomWeights } from './matchingScore';
 import type { VacancyQuestion, VacancyQuestionInput } from './vacancyQuestion';
@@ -21,13 +22,14 @@ export interface Vacancy {
 }
 
 /* Frontend-specific vacancy DTOs, filters and helpers */
-export type SortColumn =
-  | 'createdAt'
-  | 'requiredYearsOfExperience'
-  | 'minSalary'
-  | 'maxSalary';
 
-export type SortOrder = 'ASC' | 'DESC';
+export const VACANCY_SORT_FIELDS = [
+  'createdAt',
+  'requiredYearsOfExperience',
+  'minSalary',
+  'maxSalary',
+] as const;
+export type VacancySortColumn = (typeof VACANCY_SORT_FIELDS)[number];
 
 export interface VacanciesFilters {
   name?: string;
@@ -38,7 +40,7 @@ export interface VacanciesFilters {
   tags?: string[];
   minRequiredExperience?: number;
   maxRequiredExperience?: number;
-  sortBy?: SortColumn;
+  sortBy?: VacancySortColumn;
   order?: SortOrder;
   page?: number;
   limit?: number;
@@ -55,8 +57,8 @@ export const initialState: VacanciesFilters = {
   maxRequiredExperience: undefined,
   sortBy: undefined,
   order: undefined,
-  page: 1,
-  limit: 10,
+  page: undefined,
+  limit: undefined,
 };
 
 export interface CreateVacancyInput {

@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -11,6 +12,7 @@ import {
 } from 'class-validator';
 import { LanguageProficiency } from '../../entities/hiring.enum';
 import { Type } from 'class-transformer';
+import { VacancySubmissionStatus } from '../../entities/statuses.enum';
 
 export class QuestionAnswerFilterEntry {
   @IsNotEmpty()
@@ -80,4 +82,8 @@ export class VacancySubmissionFilterDto {
   @Min(0)
   @Max(100)
   maxResumeAiScore?: number;
+
+  @IsOptional()
+  @IsEnum(VacancySubmissionStatus)
+  status?: VacancySubmissionStatus;
 }

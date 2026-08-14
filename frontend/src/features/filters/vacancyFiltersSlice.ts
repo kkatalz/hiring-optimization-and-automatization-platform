@@ -1,9 +1,10 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { SortColumn, SortOrder, VacanciesFilters } from '../../../types';
+import type { VacanciesFilters, VacancySortColumn } from '../../../types';
 import { initialState } from '../../../types';
+import type { SortOrder } from '../../../types/common/Order';
 
-export const filtersSlice = createSlice({
-  name: 'filters',
+export const vacancyFiltersSlice = createSlice({
+  name: 'vacancyFilters',
   initialState,
   reducers: {
     // Pagination, Limit and Filtering
@@ -20,8 +21,8 @@ export const filtersSlice = createSlice({
       state.tags = [];
       state.minRequiredExperience = undefined;
       state.maxRequiredExperience = undefined;
-      state.page = 1;
-      state.limit = 10;
+      state.page = undefined;
+      state.limit = undefined;
     },
     applyFilters: (state, action: PayloadAction<VacanciesFilters>) => ({
       ...action.payload,
@@ -31,7 +32,10 @@ export const filtersSlice = createSlice({
     }),
 
     // Sorting and Ordering
-    setSortBy: (state, action: PayloadAction<SortColumn | undefined>) => {
+    setSortBy: (
+      state,
+      action: PayloadAction<VacancySortColumn | undefined>,
+    ) => {
       state.sortBy = action.payload;
       if (!action.payload) state.order = undefined;
       else if (!state.order) state.order = 'DESC';
@@ -46,6 +50,6 @@ export const filtersSlice = createSlice({
 });
 
 export const { setPage, resetFilters, applyFilters, setSortBy, setOrder } =
-  filtersSlice.actions;
+  vacancyFiltersSlice.actions;
 
-export default filtersSlice.reducer;
+export default vacancyFiltersSlice.reducer;
