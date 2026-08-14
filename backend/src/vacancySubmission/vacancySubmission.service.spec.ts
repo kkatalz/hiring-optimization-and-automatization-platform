@@ -2209,7 +2209,7 @@ describe('VacancySubmissionService', () => {
       });
     });
   });
-  describe.only('findAllExistingLanguagesCodes', () => {
+  describe('findAllExistingLanguagesCodes', () => {
     it('should return the languages codes of the candidates who applied to the vacancy', async () => {
       const vacancyId = testVacancies[1].id;
 
@@ -2236,7 +2236,7 @@ describe('VacancySubmissionService', () => {
 
       const result = await service.getAllExistingLanguagesCodes(vacancyId);
 
-      expect(result).to.deep.equal(['ukr', 'en', 'de', 'fr', 'chinese']);
+      expect(result).to.deep.equal(['chinese', 'de', 'en', 'fr', 'ukr']);
     });
   });
 });

@@ -319,7 +319,7 @@ export class VacancySubmissionService {
       }
     });
 
-    return Array.from(languagesCodes);
+    return Array.from(languagesCodes).sort((a, b) => a.localeCompare(b));
   }
 
   private async getDistinctCandidateFieldByVacancyId(
