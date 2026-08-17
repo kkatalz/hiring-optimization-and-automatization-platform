@@ -11,7 +11,9 @@ import PermanentDrawer from '../layout/PermanentDrawer';
 import { VacanciesFilters } from './VacanciesFilters';
 import { VacanciesList } from './VacanciesList';
 import CreateVacancy from './CreateVacancy';
-import { Stack } from '../../utils/vacancyMappers';
+import UpdateVacancyForm from './UpdateVacancy';
+import DeleteVacancyButton from './DeleteVacancyButton';
+import { toUpdateVacancyInput } from '../../utils/vacancyMappers';
 import type { Notification } from '../../../types';
 
 const MainVacanciesPage = () => {
@@ -61,6 +63,28 @@ const MainVacanciesPage = () => {
           <CreateVacancy />
         </Stack>
         <VacanciesFilters />
+        <VacanciesList
+          data={data}
+          isLoading={isLoading}
+          isError={isError}
+          error={error}
+          showVacancyDetailed={(vacancy) => `/vacancies/${vacancy.id}`}
+          renderActions={(vacancy) => (
+            <>
+              <UpdateVacancyForm
+                vacancyId={vacancy.id}
+                initialData={toUpdateVacancyInput(vacancy)}
+              />
+              <DeleteVacancyButton
+                vacancyId={vacancy.id}
+                onNotify={(message, severity) =>
+                  setNotification({ message, severity })
+                }
+              />
+            </>
+          )}
+        />
+
         <Snackbar
           open={notification !== null}
           onClose={() => setNotification(null)}

@@ -55,7 +55,7 @@ const BrowseVacancies = () => {
           isLoading={isLoading}
           isError={isError}
           error={error}
-          getDetailsPath={(vacancy) => `/browse/${vacancy.id}`}
+          showVacancyDetailed={(vacancy) => `/browse/${vacancy.id}`}
         />
       </Box>
     </Box>

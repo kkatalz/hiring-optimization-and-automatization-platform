@@ -1,36 +1,43 @@
-import { Alert, List, Pagination, Snackbar } from '@mui/material';
-import { useState } from 'react';
-import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import { getErrorMessage } from '../../utils/errorMessage';
-import { useSearchVacanciesQuery } from '../../features/api/api';
-import { setPage } from '../../features/filters/vacancyFiltersSlice';
-import VacancyCard from './VacancyCard';
+import { List, Pagination } from '@mui/material';
+import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Notification } from '../../../types';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
+import { setPage } from '../../features/filters/vacancyFiltersSlice';
+import { getErrorMessage } from '../../utils/errorMessage';
+import VacancyCard from './VacancyCard';
+import type { PaginatedResponse, VacancySummary } from '../../../types';
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import type { SerializedError } from '@reduxjs/toolkit';
 
-export const VacanciesList = () => {
+interface Props<VacancyExtended extends VacancySummary> {
+  data?: PaginatedResponse<VacancyExtended>;
+  isLoading: boolean;
+  isError: boolean;
+  error?: FetchBaseQueryError | SerializedError;
+  showVacancyDetailed: (vacancy: VacancyExtended) => string;
+  renderActions?: (vacancy: VacancyExtended) => ReactNode;
+}
+
+/** Used for both Vacancy and the public GeneralVacancy) */
+export const VacanciesList = <VacancyExtended extends VacancySummary>({
+  data,
+  isLoading,
+  isError,
+  error,
+  showVacancyDetailed,
+  renderActions,
+}: Props<VacancyExtended>) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const [notification, setNotification] = useState<Notification | null>(null);
-
   const appliedFilters = useAppSelector((state) => state.vacancyFilters);
 
-  const currentPage = appliedFilters.page;
+  const currentPage = appliedFilters.page ?? 1;
 
-  const {
-    data: filteredData,
-    isLoading: isFilteredLoading,
-    isError: isFilteredError,
-    error: filteredError,
-  } = useSearchVacanciesQuery({ filters: appliedFilters });
+  if (isLoading) return <div>Loading...</div>;
 
-  if (isFilteredLoading) return <div>Loading...</div>;
-
-  if (isFilteredError)
-    return (
-      <div>Could not load vacancies - {getErrorMessage(filteredError)}</div>
-    );
+  if (isError)
+    return <div>Could not load vacancies - {getErrorMessage(error)}</div>;
 
   return (
     <List
@@ -42,20 +49,18 @@ export const VacanciesList = () => {
         gap: 1,
       }}
     >
-      {filteredData?.data.map((vacancy, index) => (
+      {data?.data.map((vacancy, index) => (
         <VacancyCard
           key={vacancy.id}
           vacancy={vacancy}
           index={index}
-          setNotification={(message, severity) =>
-            setNotification({ message, severity })
-          }
-          onClick={() => navigate(`/vacancies/${vacancy.id}`)}
+          actions={renderActions?.(vacancy)}
+          onClick={() => navigate(showVacancyDetailed(vacancy))}
         />
       ))}
 
       <Pagination
-        count={filteredData?.totalPages ?? 0}
+        count={data?.totalPages ?? 0}
         shape='rounded'
         color='primary'
         size='large'
@@ -65,23 +70,6 @@ export const VacanciesList = () => {
         }}
         page={currentPage}
       />
-
-      <Snackbar
-        open={notification !== null}
-        onClose={() => setNotification(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        {notification ? (
-          <Alert
-            severity={notification.severity}
-            variant='filled'
-            onClose={() => setNotification(null)}
-            sx={{ width: '100%' }}
-          >
-            {notification.message}
-          </Alert>
-        ) : undefined}
-      </Snackbar>
     </List>
   );
 };
