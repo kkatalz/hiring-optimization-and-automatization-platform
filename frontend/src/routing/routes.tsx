@@ -15,28 +15,39 @@ const routes = createBrowserRouter([
     children: [
       {
         path: '/',
+      {
+        path: '/login',
         Component: LoginForm,
       },
       {
         Component: ProtectedLayout,
         children: [
           {
-            Component: AppLayout,
+            // Only for admin, superAdmin and recruiter
+            Component: RequireRole,
             children: [
-              { path: '/vacancies', Component: MainVacanciesPage },
               {
-                path: '/vacancies/:vacancyId',
-                Component: VacancyDetailsPage,
+                Component: AppLayout,
                 children: [
+                  { path: '/vacancies', Component: MainVacanciesPage },
                   {
-                    index: true,
-                    element: <Navigate to='candidates' replace />,
-                  },
-                  { path: 'candidates', Component: MainVacancySubmissionsPage },
-                  { path: 'overview', Component: VacancyOverview },
-                  {
-                    path: 'screening-questions',
-                    Component: ScreeningQuestionsView,
+                    path: '/vacancies/:vacancyId',
+                    Component: VacancyDetailsPage,
+                    children: [
+                      {
+                        index: true,
+                        element: <Navigate to='candidates' replace />,
+                      },
+                      {
+                        path: 'candidates',
+                        Component: MainVacancySubmissionsPage,
+                      },
+                      { path: 'overview', Component: VacancyOverview },
+                      {
+                        path: 'screening-questions',
+                        Component: ScreeningQuestionsView,
+                      },
+                    ],
                   },
                 ],
               },
