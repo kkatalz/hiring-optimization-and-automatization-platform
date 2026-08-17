@@ -6,19 +6,10 @@ import {
 import api from '../../app/api';
 import { jwtDecode } from 'jwt-decode';
 import { getAxiosErrorMessage } from '../../utils/errorMessage';
-
-interface UserDto {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  tenantId?: string;
-  token?: string;
-}
+import type { User } from '../../../types';
 
 interface AuthState {
-  user: UserDto | null;
+  user: User | null;
   status: 'authenticated' | 'unauthenticated' | 'loading' | 'checking';
   error: string | null;
 }
@@ -75,24 +66,24 @@ const authSlice = createSlice({
 });
 
 export const login = createAsyncThunk<
-  UserDto,
+  User,
   { email: string; password: string },
   { rejectValue: string }
 >('auth/login', async (credentials, { rejectWithValue }) => {
   try {
-    const response = await api.post<UserDto>('/auth/login', credentials);
+    const response = await api.post<User>('/auth/login', credentials);
     return response.data;
   } catch (err) {
     return rejectWithValue(getAxiosErrorMessage(err, 'Login failed'));
   }
 });
 
-export const refreshSession = createAsyncThunk<UserDto>(
+export const refreshSession = createAsyncThunk<User>(
   'auth/refresh',
   async () => {
     const { data } = await api.post<{ accessToken: string }>('/auth/refresh');
     const { id } = jwtDecode<{ id: string }>(data.accessToken);
-    const user = await api.get<UserDto>(`/users/${id}`, {
+    const user = await api.get<User>(`/users/${id}`, {
       headers: {
         Authorization: `Bearer ${data.accessToken}`,
       },
