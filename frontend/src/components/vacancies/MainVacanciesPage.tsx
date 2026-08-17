@@ -2,6 +2,8 @@ import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
+import { Alert, Snackbar, Stack } from '@mui/material';
+import { useState } from 'react';
 import { useAppSelector } from '../../app/hooks';
 import { useSearchVacanciesQuery } from '../../features/api/api';
 import AppTopBar from '../layout/AppTopBar';
@@ -9,11 +11,16 @@ import PermanentDrawer from '../layout/PermanentDrawer';
 import { VacanciesFilters } from './VacanciesFilters';
 import { VacanciesList } from './VacanciesList';
 import CreateVacancy from './CreateVacancy';
-import { Stack } from '@mui/material';
+import { Stack } from '../../utils/vacancyMappers';
+import type { Notification } from '../../../types';
 
 const MainVacanciesPage = () => {
   const appliedFilters = useAppSelector((state) => state.vacancyFilters);
-  const { data } = useSearchVacanciesQuery({ filters: appliedFilters });
+  const { data, isLoading, isError, error } = useSearchVacanciesQuery({
+    filters: appliedFilters,
+  });
+
+  const [notification, setNotification] = useState<Notification | null>(null);
 
   const numberOfAvailableVacancies = data?.total ?? 0;
 
@@ -54,7 +61,22 @@ const MainVacanciesPage = () => {
           <CreateVacancy />
         </Stack>
         <VacanciesFilters />
-        <VacanciesList />
+        <Snackbar
+          open={notification !== null}
+          onClose={() => setNotification(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          {notification ? (
+            <Alert
+              severity={notification.severity}
+              variant='filled'
+              onClose={() => setNotification(null)}
+              sx={{ width: '100%' }}
+            >
+              {notification.message}
+            </Alert>
+          ) : undefined}
+        </Snackbar>
       </Box>
     </Box>
   );

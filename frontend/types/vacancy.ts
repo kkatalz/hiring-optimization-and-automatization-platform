@@ -35,6 +35,19 @@ export interface GeneralVacancy {
   createdAt?: string;
 }
 
+export type VacancySummary = Pick<
+  GeneralVacancy,
+  | 'id'
+  | 'name'
+  | 'description'
+  | 'minSalary'
+  | 'maxSalary'
+  | 'numberOfSubmissions'
+  | 'timeCommitment'
+  | 'languageRequirements'
+  | 'requiredYearsOfExperience'
+  | 'tags'
+>;
 
 /* Frontend-specific vacancy DTOs, filters and helpers */
 
