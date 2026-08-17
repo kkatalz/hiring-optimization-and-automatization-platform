@@ -9,6 +9,7 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
+import { UserRole } from '../../../types';
 
 interface LoginFields {
   email: string;
@@ -103,9 +104,13 @@ export const LoginForm = () => {
             {status === 'loading' ? 'Logging in...' : 'SIGN IN'}
           </Button>
         </Stack>
-        {status === 'authenticated' && user && (
-          <Navigate to='/vacancies' replace />
-        )}
+        {status === 'authenticated' &&
+          user &&
+          (user.role === UserRole.candidate ? (
+            <Navigate to='/' replace />
+          ) : (
+            <Navigate to='/vacancies' replace />
+          ))}
       </Paper>
     </Container>
   );

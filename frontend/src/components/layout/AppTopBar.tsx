@@ -14,8 +14,11 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import { useNavigate } from 'react-router-dom';
-import { useAppDispatch } from '../../app/hooks';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { logoutSession } from '../../features/auth/authSlice';
+import { useState } from 'react';
+import type { Notification } from '../../../types';
+import { Alert, Snackbar } from '@mui/material';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -62,6 +65,9 @@ export default function AppTopBar() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
+  const { status } = useAppSelector((state) => state.auth);
+  const [notification, setNotification] = useState<Notification | null>(null);
+
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const isMenuOpen = Boolean(anchorEl);
@@ -75,7 +81,12 @@ export default function AppTopBar() {
   };
 
   const handleLogin = () => {
-    navigate('/login');
+    if (status !== 'authenticated') navigate('/login');
+
+    setNotification({
+      message: 'You are already logged in!',
+      severity: 'success',
+    });
   };
 
   const handleLogout = async () => {
@@ -150,6 +161,23 @@ export default function AppTopBar() {
         </Toolbar>
       </AppBar>
       {renderMenu}
+
+      <Snackbar
+        open={notification !== null}
+        onClose={() => setNotification(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        {notification ? (
+          <Alert
+            severity={notification.severity}
+            variant='filled'
+            onClose={() => setNotification(null)}
+            sx={{ width: '100%' }}
+          >
+            {notification.message}
+          </Alert>
+        ) : undefined}
+      </Snackbar>
     </Box>
   );
 }
