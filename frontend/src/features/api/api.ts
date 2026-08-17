@@ -9,18 +9,22 @@ import {
   type VacancySubmission,
   type SubmissionFilters,
   type SubmissionSortQuery,
+  type GeneralVacancy,
 } from '../../../types';
 import type { RootState } from '../../app/store';
+
+const PUBLIC_ENDPOINTS = new Set(['browseVacancyById', 'browseVacancies']);
 
 export const vacancyApi = createApi({
   reducerPath: 'vacancyApi',
   baseQuery: fetchBaseQuery({
     baseUrl: 'http://localhost:3000',
     credentials: 'include',
-    prepareHeaders: (headers, { getState }) => {
+    prepareHeaders: (headers, { getState, endpoint }) => {
+      if (PUBLIC_ENDPOINTS.has(endpoint)) return headers;
+
       const token = (getState() as RootState).auth.user?.token;
       if (token) headers.set('Authorization', `Bearer ${token}`);
-
       return headers;
     },
   }),
@@ -51,6 +55,23 @@ export const vacancyApi = createApi({
               { type: 'Vacancy', id: 'LIST' },
             ]
           : [{ type: 'Vacancy', id: 'LIST' }],
+    }),
+
+    // Public search
+    browseVacancyById: builder.query<GeneralVacancy, string>({
+      query: (id) => `/vacancies/browse/${id}`,
+    }),
+
+    // Public search
+    browseVacancies: builder.query<
+      PaginatedResponse<GeneralVacancy>,
+      { filters: VacanciesFilters }
+    >({
+      query: ({ filters }) => ({
+        url: '/vacancies/public/search',
+        method: 'POST',
+        body: filters,
+      }),
     }),
 
     getAllVacanciesTags: builder.query<string[], void>({
@@ -237,6 +258,8 @@ export const {
   // VACANCIES
   useGetVacancyByIdQuery,
   useSearchVacanciesQuery,
+  useBrowseVacancyByIdQuery,
+  useBrowseVacanciesQuery,
   useGetAllVacanciesTagsQuery,
   useGetAllVacanciesLanguagesCodesQuery,
   useGetAllVacancyQuestionsQuery,

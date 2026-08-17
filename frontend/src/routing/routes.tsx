@@ -8,6 +8,9 @@ import MainVacancySubmissionsPage from '../components/vacancySubmissions/MainVac
 import VacancyOverview from '../components/vacancies/VacancyOverview';
 import ScreeningQuestionsView from '../components/vacancies/ScreeningQuestionsView';
 import AppLayout from './AppLayout';
+import { RequireRole } from './RequireRole';
+import BrowseVacancies from '../components/vacancies/public/BrowseVacancies';
+import PublicVacancy from '../components/vacancies/public/PublicVacancy';
 
 const routes = createBrowserRouter([
   {
@@ -15,6 +18,13 @@ const routes = createBrowserRouter([
     children: [
       {
         path: '/',
+        Component: BrowseVacancies, // public endpoint
+      },
+      {
+        path: '/browse/:vacancyId',
+        Component: PublicVacancy, // public endpoint
+      },
+
       {
         path: '/login',
         Component: LoginForm,

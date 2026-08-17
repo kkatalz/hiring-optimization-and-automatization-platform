@@ -21,6 +21,21 @@ export interface Vacancy {
   createdAt?: string;
 }
 
+export interface GeneralVacancy {
+  id: string;
+  name: string;
+  description: string;
+  minSalary?: number | null;
+  maxSalary?: number | null;
+  numberOfSubmissions?: number;
+  timeCommitment?: TimeCommitment;
+  languageRequirements?: LanguageProficiency[];
+  requiredYearsOfExperience?: number;
+  tags?: string[];
+  createdAt?: string;
+}
+
+
 /* Frontend-specific vacancy DTOs, filters and helpers */
 
 export const VACANCY_SORT_FIELDS = [
