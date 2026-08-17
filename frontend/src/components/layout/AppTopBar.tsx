@@ -13,6 +13,9 @@ import SearchIcon from '@mui/icons-material/Search';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
+import { useNavigate } from 'react-router-dom';
+import { useAppDispatch } from '../../app/hooks';
+import { logoutSession } from '../../features/auth/authSlice';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -56,6 +59,9 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 // TODO: Implement the functionality. Now it is just a visual component.
 export default function AppTopBar() {
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const isMenuOpen = Boolean(anchorEl);
@@ -68,6 +74,15 @@ export default function AppTopBar() {
     setAnchorEl(null);
   };
 
+  const handleLogin = () => {
+    navigate('/login');
+  };
+
+  const handleLogout = async () => {
+    await dispatch(logoutSession());
+    navigate('/login');
+  };
+
   const menuId = 'primary-search-account-menu';
   const renderMenu = (
     <Menu
@@ -78,6 +93,8 @@ export default function AppTopBar() {
       onClose={handleMenuClose}
     >
       <MenuItem onClick={handleMenuClose}>My account</MenuItem>
+      <MenuItem onClick={handleLogin}>Login</MenuItem>
+      <MenuItem onClick={handleLogout}>Logout</MenuItem>
     </Menu>
   );
 

@@ -7,6 +7,7 @@ import api from '../../app/api';
 import { jwtDecode } from 'jwt-decode';
 import { getAxiosErrorMessage } from '../../utils/errorMessage';
 import type { User } from '../../../types';
+import { vacancyApi } from '../api/api';
 
 interface AuthState {
   user: User | null;
@@ -20,16 +21,16 @@ const initialState: AuthState = {
   error: null,
 };
 
+const clearSession = (state: AuthState) => {
+  state.user = null;
+  state.status = 'unauthenticated';
+  state.error = null;
+};
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
-  reducers: {
-    logout: (state) => {
-      state.user = null;
-      state.status = 'unauthenticated';
-      state.error = null;
-    },
-  },
+  reducers: { sessionCleared: clearSession },
 
   extraReducers: (builder) => {
     // LOGIN
@@ -65,6 +66,8 @@ const authSlice = createSlice({
   },
 });
 
+const { sessionCleared } = authSlice.actions;
+
 export const login = createAsyncThunk<
   User,
   { email: string; password: string },
@@ -77,6 +80,18 @@ export const login = createAsyncThunk<
     return rejectWithValue(getAxiosErrorMessage(err, 'Login failed'));
   }
 });
+
+export const logoutSession = createAsyncThunk<void, void>(
+  'auth/logout',
+  async (_, { dispatch }) => {
+    try {
+      await api.post('/auth/logout');
+    } finally {
+      dispatch(sessionCleared());
+      dispatch(vacancyApi.util.resetApiState());
+    }
+  },
+);
 
 export const refreshSession = createAsyncThunk<User>(
   'auth/refresh',
@@ -91,7 +106,5 @@ export const refreshSession = createAsyncThunk<User>(
     return { ...user.data, token: data.accessToken };
   },
 );
-
-export const { logout } = authSlice.actions;
 
 export default authSlice.reducer;

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { login } from '../../features/auth/authSlice';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -104,9 +104,7 @@ export const LoginForm = () => {
           </Button>
         </Stack>
         {status === 'authenticated' && user && (
-          <Typography variant='body2' sx={{ mt: 2 }}>
-            Logged in as {user.email}
-          </Typography>
+          <Navigate to='/vacancies' replace />
         )}
       </Paper>
     </Container>
