@@ -42,16 +42,20 @@ const VacancyCard = ({
               showDescription={true}
             />
 
-            <Stack direction='column' spacing={1} sx={{ alignItems: 'center' }}>
-              <Typography
-                variant='subtitle2'
-                color='primary.light'
-                sx={{ whiteSpace: 'nowrap' }}
+            {actions && (
+              <Stack
+                direction='column'
+                spacing={1}
+                sx={{ alignItems: 'center' }}
               >
-                {vacancy?.numberOfSubmissions ?? 0} submissions
-              </Typography>
+                <Typography
+                  variant='subtitle2'
+                  color='primary.light'
+                  sx={{ whiteSpace: 'nowrap' }}
+                >
+                  {vacancy?.numberOfSubmissions ?? 0} submissions
+                </Typography>
 
-              {actions && (
                 <Stack
                   direction='row'
                   spacing={1}
@@ -64,8 +68,8 @@ const VacancyCard = ({
                 >
                   {actions}
                 </Stack>
-              )}
-            </Stack>
+              </Stack>
+            )}
           </Stack>
         </CardContent>
       </Card>
