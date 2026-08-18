@@ -5,7 +5,7 @@ export type Permission =
   | 'vacancy:create'
   | 'vacancy:update'
   | 'vacancy:delete'
-  | 'vacancySubmissions:getByvacancyId'
+  | 'vacancySubmissions:getByVacancyId'
   | 'vacancySubmissions:approve'
   | 'vacancySubmissions:reject'
   | 'clustering:runByVacancyId';
@@ -18,7 +18,7 @@ export const PERMISSIONS: Record<Permission, readonly UserRole[]> = {
   'vacancy:create': [UserRole.admin, UserRole.recruiter],
   'vacancy:update': [UserRole.admin, UserRole.recruiter],
   'vacancy:delete': [UserRole.admin, UserRole.recruiter],
-  'vacancySubmissions:getByvacancyId': [
+  'vacancySubmissions:getByVacancyId': [
     UserRole.superAdmin,
     UserRole.admin,
     UserRole.recruiter,

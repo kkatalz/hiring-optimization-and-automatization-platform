@@ -6,6 +6,7 @@ import PermanentDrawer from '../../layout/PermanentDrawer';
 import { VacanciesFilters } from '../VacanciesFilters';
 import { VacanciesList } from '../VacanciesList';
 import { Navigate } from 'react-router-dom';
+import { UserRole } from '../../../../types';
 
 const BrowseVacancies = () => {
   const { status, user } = useAppSelector((state) => state.auth);
@@ -19,9 +20,11 @@ const BrowseVacancies = () => {
 
   return (
     <>
-      {status === 'authenticated' && user && user.role !== 'candidate' && (
-        <Navigate to='/vacancies' replace />
-      )}
+      {status === 'authenticated' &&
+        user &&
+        user.role !== UserRole.candidate && (
+          <Navigate to='/vacancies' replace />
+        )}
 
       <Box sx={{ display: 'flex' }}>
         <CssBaseline />

@@ -18,7 +18,7 @@ interface Props<VacancyExtended extends VacancySummary> {
   renderActions?: (vacancy: VacancyExtended) => ReactNode;
 }
 
-/** Used for both Vacancy and the public GeneralVacancy) */
+/** Used for both Vacancy and the public GeneralVacancy */
 export const VacanciesList = <VacancyExtended extends VacancySummary>({
   data,
   isLoading,
