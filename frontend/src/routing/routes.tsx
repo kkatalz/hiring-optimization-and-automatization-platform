@@ -8,6 +8,9 @@ import MainVacancySubmissionsPage from '../components/vacancySubmissions/MainVac
 import VacancyOverview from '../components/vacancies/VacancyOverview';
 import ScreeningQuestionsView from '../components/vacancies/ScreeningQuestionsView';
 import AppLayout from './AppLayout';
+import { RequireRole } from './RequireRole';
+import BrowseVacancies from '../components/vacancies/public/BrowseVacancies';
+import PublicVacancy from '../components/vacancies/public/PublicVacancy';
 
 const routes = createBrowserRouter([
   {
@@ -15,28 +18,46 @@ const routes = createBrowserRouter([
     children: [
       {
         path: '/',
+        Component: BrowseVacancies, // public endpoint
+      },
+      {
+        path: '/browse/:vacancyId',
+        Component: PublicVacancy, // public endpoint
+      },
+
+      {
+        path: '/login',
         Component: LoginForm,
       },
       {
         Component: ProtectedLayout,
         children: [
           {
-            Component: AppLayout,
+            // Only for admin, superAdmin and recruiter
+            Component: RequireRole,
             children: [
-              { path: '/vacancies', Component: MainVacanciesPage },
               {
-                path: '/vacancies/:vacancyId',
-                Component: VacancyDetailsPage,
+                Component: AppLayout,
                 children: [
+                  { path: '/vacancies', Component: MainVacanciesPage },
                   {
-                    index: true,
-                    element: <Navigate to='candidates' replace />,
-                  },
-                  { path: 'candidates', Component: MainVacancySubmissionsPage },
-                  { path: 'overview', Component: VacancyOverview },
-                  {
-                    path: 'screening-questions',
-                    Component: ScreeningQuestionsView,
+                    path: '/vacancies/:vacancyId',
+                    Component: VacancyDetailsPage,
+                    children: [
+                      {
+                        index: true,
+                        element: <Navigate to='candidates' replace />,
+                      },
+                      {
+                        path: 'candidates',
+                        Component: MainVacancySubmissionsPage,
+                      },
+                      { path: 'overview', Component: VacancyOverview },
+                      {
+                        path: 'screening-questions',
+                        Component: ScreeningQuestionsView,
+                      },
+                    ],
                   },
                 ],
               },

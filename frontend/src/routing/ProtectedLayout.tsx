@@ -7,7 +7,7 @@ export const ProtectedLayout = () => {
   if (authStatus === 'checking' || authStatus === 'loading')
     return <div>Loading...</div>;
 
-  if (authStatus !== 'authenticated') return <Navigate to='/' replace />;
+  if (authStatus !== 'authenticated') return <Navigate to='/login' replace />;
 
   return <Outlet />;
 };

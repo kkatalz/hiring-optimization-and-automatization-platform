@@ -6,10 +6,10 @@ export * from './hiring.enum';
 
 // Shared / common
 export * from './scores.interface';
-export * from './pagination';
+export * from './common/pagination';
 export * from './salaryRange';
 export * from './matchingScore';
-export * from './notification';
+export * from './common/notification';
 
 // Domain entities
 export * from './user';

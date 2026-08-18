@@ -9,6 +9,7 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
+import { UserRole } from '../../../types';
 
 interface LoginFields {
   email: string;
@@ -35,7 +36,12 @@ export const LoginForm = () => {
       await dispatch(
         login({ email: loginFields.email, password: loginFields.password }),
       ).unwrap();
-      navigate('/vacancies');
+      if (status === 'authenticated' && user) {
+        if (user.role === UserRole.candidate) navigate('/');
+        else {
+          navigate('/vacancies');
+        }
+      }
     } catch (err) {
       console.error('Login failed:', err);
     }
@@ -103,11 +109,6 @@ export const LoginForm = () => {
             {status === 'loading' ? 'Logging in...' : 'SIGN IN'}
           </Button>
         </Stack>
-        {status === 'authenticated' && user && (
-          <Typography variant='body2' sx={{ mt: 2 }}>
-            Logged in as {user.email}
-          </Typography>
-        )}
       </Paper>
     </Container>
   );

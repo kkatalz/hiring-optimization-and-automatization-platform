@@ -2,10 +2,10 @@ import { Chip, Stack, Typography } from '@mui/material';
 import BagOfMoney from '../../assets/BagOfMoney.svg';
 import Statistics from '../../assets/Statistics.svg';
 import TalkingPerson from '../../assets/TalkingPerson.svg';
-import type { Vacancy } from '../../../types';
+import type { VacancySummary } from '../../../types';
 import { capitalizeName } from '../../utils/formatText';
 
-const getSalaryLabel = (vacancy: Vacancy) => {
+const getSalaryLabel = (vacancy: VacancySummary) => {
   const { minSalary, maxSalary } = vacancy;
 
   if (minSalary && maxSalary) return `$${minSalary} - $${maxSalary}`;
@@ -16,7 +16,7 @@ const getSalaryLabel = (vacancy: Vacancy) => {
 };
 
 interface ShortVacancyInfoProps {
-  vacancy: Vacancy;
+  vacancy: VacancySummary;
   index: number;
   showDescription: boolean;
 }
