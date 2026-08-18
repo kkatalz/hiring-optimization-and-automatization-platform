@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { login } from '../../features/auth/authSlice';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -36,7 +36,12 @@ export const LoginForm = () => {
       await dispatch(
         login({ email: loginFields.email, password: loginFields.password }),
       ).unwrap();
-      navigate('/vacancies');
+      if (status === 'authenticated' && user) {
+        if (user.role === UserRole.candidate) navigate('/');
+        else {
+          navigate('/vacancies');
+        }
+      }
     } catch (err) {
       console.error('Login failed:', err);
     }
@@ -104,13 +109,6 @@ export const LoginForm = () => {
             {status === 'loading' ? 'Logging in...' : 'SIGN IN'}
           </Button>
         </Stack>
-        {status === 'authenticated' &&
-          user &&
-          (user.role === UserRole.candidate ? (
-            <Navigate to='/' replace />
-          ) : (
-            <Navigate to='/vacancies' replace />
-          ))}
       </Paper>
     </Container>
   );

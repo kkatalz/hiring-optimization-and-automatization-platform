@@ -81,7 +81,10 @@ export default function AppTopBar() {
   };
 
   const handleLogin = () => {
-    if (status !== 'authenticated') navigate('/login');
+    if (status !== 'authenticated') {
+      navigate('/login');
+      return;
+    }
 
     setNotification({
       message: 'You are already logged in!',
