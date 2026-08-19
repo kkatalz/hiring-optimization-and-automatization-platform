@@ -47,6 +47,7 @@ export type VacancySummary = Pick<
   | 'languageRequirements'
   | 'requiredYearsOfExperience'
   | 'tags'
+  | 'createdAt'
 >;
 
 /* Frontend-specific vacancy DTOs, filters and helpers */

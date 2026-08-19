@@ -32,9 +32,7 @@ const ShortVacancyInfo = ({
   return (
     <Stack spacing={1}>
       <Stack direction='row' spacing={1}>
-        <Typography variant='h6'>
-          {capitalizeName(vacancy.name)}
-        </Typography>
+        <Typography variant='h6'>{capitalizeName(vacancy.name)}</Typography>
         {vacancy.timeCommitment && (
           <Chip
             label={vacancy.timeCommitment.replace('_', ' ')}
@@ -107,6 +105,13 @@ const ShortVacancyInfo = ({
               sx={{ px: 0.5, justifyContent: 'space-between' }}
             />
           ))}
+
+        {vacancy.createdAt && (
+          <Chip
+            label={`Posted: ${new Date(vacancy.createdAt).toLocaleDateString()}`}
+            sx={{ px: 0.5, justifyContent: 'space-between' }}
+          />
+        )}
       </Stack>
     </Stack>
   );
