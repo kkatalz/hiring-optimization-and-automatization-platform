@@ -1,9 +1,7 @@
-import { Stack, Typography } from '@mui/material';
-import { useOutletContext } from 'react-router-dom';
-import type { VacancySummary } from '../../../types';
+import { useVacancyOutletContext } from './vacancyOutletContext';
 
 const VacancyOverview = () => {
-  const vacancy = useOutletContext<VacancySummary>();
+  const { vacancy, customWeights } = useVacancyOutletContext();
 
   return (
     <Stack direction='row' spacing={2} sx={{ width: '100%' }}>

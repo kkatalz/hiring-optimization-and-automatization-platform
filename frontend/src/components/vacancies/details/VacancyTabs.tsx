@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import { Card } from '@mui/material';
 import { Link, Outlet, useMatch } from 'react-router-dom';
 import type { Vacancy } from '../../../../types';
+import type { VacancyOutletContext } from '../vacancyOutletContext';
 
 interface VacancyTabsProps {
   vacancy: Vacancy;
@@ -39,9 +40,15 @@ export const VacancyTabs = ({ vacancy }: VacancyTabsProps) => {
           />
         </Tabs>
       </Box>
-
       <Box sx={{ p: 3 }}>
-        <Outlet context={vacancy} />
+        <Outlet
+          context={
+            {
+              vacancy,
+              customWeights: vacancy.customWeights,
+            } satisfies VacancyOutletContext
+          }
+        />
       </Box>
     </Card>
   );

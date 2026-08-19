@@ -30,7 +30,7 @@ const PublicVacancy = () => {
 
       <VacancyDetailsHeader vacancy={vacancy} />
 
-      <Outlet context={vacancy} />
+      <Outlet context={{ vacancy } satisfies VacancyOutletContext} />
     </>
   );
 };
