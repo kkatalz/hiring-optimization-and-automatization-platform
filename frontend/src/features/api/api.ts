@@ -36,6 +36,11 @@ export const vacancyApi = createApi({
       providesTags: (_result, _error, id) => [{ type: 'Vacancy', id }],
     }),
 
+    // Public
+    browseVacancyById: builder.query<GeneralVacancy, string>({
+      query: (id) => `/vacancies/browse/${id}`,
+    }),
+
     searchVacancies: builder.query<
       PaginatedResponse<Vacancy>,
       { filters: VacanciesFilters }
@@ -55,11 +60,6 @@ export const vacancyApi = createApi({
               { type: 'Vacancy', id: 'LIST' },
             ]
           : [{ type: 'Vacancy', id: 'LIST' }],
-    }),
-
-    // Public search
-    browseVacancyById: builder.query<GeneralVacancy, string>({
-      query: (id) => `/vacancies/browse/${id}`,
     }),
 
     // Public search
@@ -257,8 +257,8 @@ export const vacancyApi = createApi({
 export const {
   // VACANCIES
   useGetVacancyByIdQuery,
-  useSearchVacanciesQuery,
   useBrowseVacancyByIdQuery,
+  useSearchVacanciesQuery,
   useBrowseVacanciesQuery,
   useGetAllVacanciesTagsQuery,
   useGetAllVacanciesLanguagesCodesQuery,
