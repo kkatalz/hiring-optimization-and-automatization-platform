@@ -41,7 +41,7 @@ export const VacancyTabs = ({ vacancy }: VacancyTabsProps) => {
       </Box>
 
       <Box sx={{ p: 3 }}>
-        <Outlet />
+        <Outlet context={vacancy} />
       </Box>
     </Card>
   );
