@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { Alert, CircularProgress } from '@mui/material';
+import {
+  Alert,
+  CircularProgress,
+  Paper,
+  Toolbar,
+  Typography,
+} from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 import type { Notification } from '../../../types';
@@ -14,6 +20,8 @@ import VacancyDetailsHeader from './details/VacancyDetailsHeader';
 import VacancySubmissionsStats from './details/VacancySubmissionsStats';
 import { VacancyTabs } from './details/VacancyTabs';
 import VacancyStaffActions from './details/VacancyStaffActions';
+import DeleteVacancyButton from './DeleteVacancyButton';
+import AppTopBar from '../layout/AppTopBar';
 
 const VacancyDetailsPage = () => {
   const { vacancyId } = useParams();
@@ -40,6 +48,9 @@ const VacancyDetailsPage = () => {
 
   return (
     <>
+      <AppTopBar />
+      <Toolbar />
+
       <VacancyDetailsBreadcrumbs vacancyName={vacancy.name} />
 
       <VacancyDetailsHeader
@@ -66,6 +77,32 @@ const VacancyDetailsPage = () => {
       />
 
       <VacancyTabs vacancy={vacancy} />
+
+      <Paper
+        sx={{
+          p: 2,
+          width: '50%',
+          mt: 4,
+          border: '1px solid #D32F2F',
+          marginX: 'auto',
+          textAlign: 'center',
+        }}
+      >
+        <Typography variant='h6' color='secondary'>
+          ! Danger zone !
+        </Typography>
+        <Typography variant='body1' color='textSecondary' sx={{ mt: 1, mb: 1 }}>
+          Deleting removes the vacancy and cascades to its screening-question
+          links and submissions.
+        </Typography>
+
+        <DeleteVacancyButton
+          vacancyId={vacancy.id}
+          onNotify={(message, severity) =>
+            setNotification({ message, severity })
+          }
+        />
+      </Paper>
     </>
   );
 };
