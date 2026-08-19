@@ -13,6 +13,7 @@ import VacancyDetailsBreadcrumbs from './details/VacancyDetailsBreadcrumbs';
 import VacancyDetailsHeader from './details/VacancyDetailsHeader';
 import VacancySubmissionsStats from './details/VacancySubmissionsStats';
 import { VacancyTabs } from './details/VacancyTabs';
+import VacancyStaffActions from './details/VacancyStaffActions';
 
 const VacancyDetailsPage = () => {
   const { vacancyId } = useParams();
@@ -43,7 +44,14 @@ const VacancyDetailsPage = () => {
 
       <VacancyDetailsHeader
         vacancy={vacancy}
-        onNotify={(message, severity) => setNotification({ message, severity })}
+        actions={
+          <VacancyStaffActions
+            vacancy={vacancy}
+            onNotify={(message, severity) =>
+              setNotification({ message, severity })
+            }
+          />
+        }
       />
 
       <NotificationAlert

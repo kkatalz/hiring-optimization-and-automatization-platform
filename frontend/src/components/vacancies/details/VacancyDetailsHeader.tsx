@@ -1,18 +1,16 @@
 import { Stack } from '@mui/material';
-import type { NotifyHandler, Vacancy } from '../../../../types';
-import { toUpdateVacancyInput } from '../../../utils/vacancyMappers';
+import type { ReactNode } from 'react';
+import type { VacancySummary } from '../../../../types';
 import ShortVacancyInfo from '../ShortVacancyInfo';
-import UpdateVacancyForm from '../UpdateVacancy';
-import ReclusterVacancyButton from './ReclusterVacancyButton';
 
 interface VacancyDetailsHeaderProps {
-  vacancy: Vacancy;
-  onNotify: NotifyHandler;
+  vacancy: VacancySummary;
+  actions?: ReactNode;
 }
 
 const VacancyDetailsHeader = ({
   vacancy,
-  onNotify,
+  actions,
 }: VacancyDetailsHeaderProps) => {
   return (
     <Stack
@@ -27,21 +25,19 @@ const VacancyDetailsHeader = ({
     >
       <ShortVacancyInfo vacancy={vacancy} index={0} showDescription={false} />
 
-      <Stack
-        direction='row'
-        spacing={1}
-        sx={{
-          justifyContent: 'center',
-          alignItems: 'flex-end',
-          gap: 1,
-        }}
-      >
-        <UpdateVacancyForm
-          vacancyId={vacancy.id}
-          initialData={toUpdateVacancyInput(vacancy)}
-        />
-        <ReclusterVacancyButton vacancyId={vacancy.id} onNotify={onNotify} />
-      </Stack>
+      {actions && (
+        <Stack
+          direction='row'
+          spacing={1}
+          sx={{
+            justifyContent: 'center',
+            alignItems: 'flex-end',
+            gap: 1,
+          }}
+        >
+          {actions}
+        </Stack>
+      )}
     </Stack>
   );
 };
