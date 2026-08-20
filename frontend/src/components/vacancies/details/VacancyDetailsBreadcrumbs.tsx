@@ -5,10 +5,14 @@ import { capitalizeName } from '../../../utils/formatText';
 
 interface VacancyDetailsBreadcrumbsProps {
   vacancyName: string;
+  rootTo?: string;
+  rootLabel?: string;
 }
 
 const VacancyDetailsBreadcrumbs = ({
   vacancyName,
+  rootTo = '/vacancies',
+  rootLabel = 'Vacancies',
 }: VacancyDetailsBreadcrumbsProps) => {
   return (
     <Breadcrumbs
@@ -18,11 +22,11 @@ const VacancyDetailsBreadcrumbs = ({
     >
       <Link
         component={RouterLink}
-        to='/vacancies'
+        to={rootTo}
         color='text.secondary'
         underline='hover'
       >
-        Vacancies
+        {rootLabel}
       </Link>
 
       <Typography sx={{ color: 'text.primary' }}>

@@ -17,27 +17,37 @@ const routes = createBrowserRouter([
     Component: RootLayout,
     children: [
       {
-        path: '/',
-        Component: BrowseVacancies, // public endpoint
-      },
-      {
-        path: '/browse/:vacancyId',
-        Component: PublicVacancy, // public endpoint
-      },
-
-      {
-        path: '/login',
-        Component: LoginForm,
-      },
-      {
-        Component: ProtectedLayout,
+        Component: AppLayout,
         children: [
           {
-            // Only for admin, superAdmin and recruiter
-            Component: RequireRole,
+            path: '/',
+            Component: BrowseVacancies, // public endpoint
+          },
+          {
+            path: '/browse/:vacancyId',
+            Component: PublicVacancy, // public endpoint
             children: [
               {
-                Component: AppLayout,
+                index: true,
+                element: <Navigate to='overview' replace />,
+              },
+              {
+                path: 'overview',
+                Component: VacancyOverview,
+              },
+            ],
+          },
+
+          {
+            path: '/login',
+            Component: LoginForm,
+          },
+          {
+            Component: ProtectedLayout,
+            children: [
+              {
+                // Only for admin, superAdmin and recruiter
+                Component: RequireRole,
                 children: [
                   { path: '/vacancies', Component: MainVacanciesPage },
                   {

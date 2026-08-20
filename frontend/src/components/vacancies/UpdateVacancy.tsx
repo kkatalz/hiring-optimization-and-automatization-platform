@@ -19,13 +19,12 @@ import {
   DialogTitle,
 } from '@mui/material';
 
-const UpdateVacancyForm = ({
-  vacancyId,
-  initialData,
-}: {
+interface Props {
   vacancyId: string;
   initialData: UpdateVacancyInput;
-}) => {
+}
+
+const UpdateVacancyForm = ({ vacancyId, initialData }: Props) => {
   const [open, setOpen] = useState(false);
 
   const {
