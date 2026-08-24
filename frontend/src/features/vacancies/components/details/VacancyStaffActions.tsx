@@ -1,5 +1,5 @@
 import type { NotifyHandler, Vacancy } from '@/types';
-import { useHasPermission } from '@/features/auth/useHasPermission';
+import { useHasPermission } from '@/features/auth/model/useHasPermission';
 import { toUpdateVacancyInput } from '@/features/vacancies/model/vacancyMappers';
 import UpdateVacancyForm from '../dialogs/UpdateVacancy';
 import ReclusterVacancyButton from './ReclusterVacancyButton';

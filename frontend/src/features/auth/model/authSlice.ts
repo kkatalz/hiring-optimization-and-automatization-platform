@@ -6,7 +6,7 @@ import {
 import { jwtDecode } from 'jwt-decode';
 import { getAxiosErrorMessage } from '@/utils/errorMessage';
 import type { User } from '@/types';
-import { vacancyApi } from '../api/api';
+import { vacancyApi } from '../../api/api';
 import api from '@/app/api/httpClient';
 
 interface AuthState {

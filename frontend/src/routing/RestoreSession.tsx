@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { refreshSession } from '../features/auth/authSlice';
+import { refreshSession } from '../features/auth/model/authSlice';
 import { Outlet } from 'react-router-dom';
 
 export const RestoreSession = () => {

@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { RestoreSession } from './RestoreSession';
-import { LoginForm } from '../components/auth/LoginForm';
+import { LoginForm } from '../features/auth/components/LoginForm';
 import { RequireAuth } from './RequireAuth';
 import MainVacanciesPage from '../features/vacancies/pages/MainVacanciesPage';
 import VacancyDetailsPage from '../features/vacancies/pages/VacancyDetailsPage';

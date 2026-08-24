@@ -15,7 +15,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
-import { logoutSession } from '@/features/auth/authSlice';
+import { logoutSession } from '@/features/auth/model/authSlice';
 import { useState } from 'react';
 import type { Notification } from '@/types';
 import { Alert, Snackbar } from '@mui/material';
