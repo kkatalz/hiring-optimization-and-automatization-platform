@@ -6,7 +6,7 @@ import { getErrorMessage } from '@/utils/errorMessage';
 import VacancyDetailsBreadcrumbs from '../details/VacancyDetailsBreadcrumbs';
 import VacancyDetailsHeader from '../details/VacancyDetailsHeader';
 import type { VacancyOutletContext } from '../useVacancyOutletContext';
-import AppTopBar from '@/components/layout/AppTopBar';
+import AppTopBar from '@/layout/AppTopBar';
 
 const PublicVacancy = () => {
   const { vacancyId } = useParams();

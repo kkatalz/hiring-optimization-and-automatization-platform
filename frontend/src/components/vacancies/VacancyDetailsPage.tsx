@@ -21,7 +21,7 @@ import VacancySubmissionsStats from './details/VacancySubmissionsStats';
 import { VacancyTabs } from './details/VacancyTabs';
 import VacancyStaffActions from './details/VacancyStaffActions';
 import DeleteVacancyButton from './DeleteVacancyButton';
-import AppTopBar from '../layout/AppTopBar';
+import AppTopBar from '@/layout/AppTopBar';
 
 const VacancyDetailsPage = () => {
   const { vacancyId } = useParams();

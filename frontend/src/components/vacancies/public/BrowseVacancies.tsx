@@ -1,8 +1,8 @@
 import { Box, CssBaseline, Stack, Toolbar, Typography } from '@mui/material';
 import { useAppSelector } from '@/app/hooks';
 import { useBrowseVacanciesQuery } from '@/features/api/api';
-import AppTopBar from '@/components/layout/AppTopBar';
-import PermanentDrawer from '@/components/layout/PermanentDrawer';
+import AppTopBar from '@/layout/AppTopBar';
+import PermanentDrawer from '@/layout/PermanentDrawer';
 import { VacanciesFilters } from '../VacanciesFilters';
 import { VacanciesList } from '../VacanciesList';
 import { Navigate } from 'react-router-dom';

@@ -7,7 +7,7 @@ import VacancyDetailsPage from '../components/vacancies/VacancyDetailsPage';
 import MainVacancySubmissionsPage from '../components/vacancySubmissions/MainVacancySubmissionsPage';
 import VacancyOverview from '../components/vacancies/VacancyOverview';
 import ScreeningQuestionsView from '../components/vacancies/ScreeningQuestionsView';
-import AppLayout from './AppLayout';
+import AppLayout from '../layout/AppLayout';
 import { RequireRole } from './RequireRole';
 import BrowseVacancies from '../components/vacancies/public/BrowseVacancies';
 import PublicVacancy from '../components/vacancies/public/PublicVacancy';
