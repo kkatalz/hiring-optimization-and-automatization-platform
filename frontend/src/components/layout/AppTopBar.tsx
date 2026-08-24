@@ -14,10 +14,10 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import { useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import { logoutSession } from '../../features/auth/authSlice';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { logoutSession } from '@/features/auth/authSlice';
 import { useState } from 'react';
-import type { Notification } from '../../../types';
+import type { Notification } from '@/types';
 import { Alert, Snackbar } from '@mui/material';
 
 const Search = styled('div')(({ theme }) => ({
@@ -93,6 +93,14 @@ export default function AppTopBar() {
   };
 
   const handleLogout = async () => {
+    if (status !== 'authenticated') {
+      setNotification({
+        message: 'You are not logged in!',
+        severity: 'error',
+      });
+      return;
+    }
+
     await dispatch(logoutSession());
     navigate('/login');
   };
@@ -106,7 +114,9 @@ export default function AppTopBar() {
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
-      <MenuItem onClick={handleMenuClose}>My account</MenuItem>
+      {status === 'authenticated' && (
+        <MenuItem onClick={handleMenuClose}>My account</MenuItem>
+      )}
       <MenuItem onClick={handleLogin}>Login</MenuItem>
       <MenuItem onClick={handleLogout}>Logout</MenuItem>
     </Menu>
