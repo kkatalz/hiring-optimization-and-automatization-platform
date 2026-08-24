@@ -123,14 +123,8 @@ export default function AppTopBar() {
   );
 
   return (
-    <Box
-      sx={{
-        flexGrow: 1,
-        zIndex: (theme) => theme.zIndex.drawer + 1,
-        gap: 12,
-      }}
-    >
-      <AppBar position='fixed'>
+    <>
+      <AppBar sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar>
           <IconButton size='large' color='inherit'>
             <TravelExploreIcon />
@@ -191,6 +185,6 @@ export default function AppTopBar() {
           </Alert>
         ) : undefined}
       </Snackbar>
-    </Box>
+    </>
   );
 }
