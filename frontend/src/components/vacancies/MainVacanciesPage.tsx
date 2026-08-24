@@ -13,8 +13,8 @@ import { VacanciesList } from './VacanciesList';
 import CreateVacancy from './CreateVacancy';
 import UpdateVacancyForm from './UpdateVacancy';
 import DeleteVacancyButton from './DeleteVacancyButton';
-import { toUpdateVacancyInput } from '../../utils/vacancyMappers';
-import type { Notification } from '../../../types';
+import { toUpdateVacancyInput } from '../../features/vacancies/model/vacancyMappers';
+import type { Notification } from '../../types';
 
 const MainVacanciesPage = () => {
   const appliedFilters = useAppSelector((state) => state.vacancyFilters);

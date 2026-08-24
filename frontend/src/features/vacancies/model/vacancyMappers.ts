@@ -1,4 +1,4 @@
-import type { UpdateVacancyInput, Vacancy } from '../../types';
+import type { UpdateVacancyInput, Vacancy } from '@/types';
 
 /**
  * Picks the fields the update form can edit. Screening questions are left out

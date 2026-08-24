@@ -1,6 +1,6 @@
-import type { NotifyHandler, Vacancy } from '../../../../types';
-import { useHasPermission } from '../../../features/auth/useHasPermission';
-import { toUpdateVacancyInput } from '../../../utils/vacancyMappers';
+import type { NotifyHandler, Vacancy } from '@/types';
+import { useHasPermission } from '@/features/auth/useHasPermission';
+import { toUpdateVacancyInput } from '@/features/vacancies/model/vacancyMappers';
 import UpdateVacancyForm from '../UpdateVacancy';
 import ReclusterVacancyButton from './ReclusterVacancyButton';
 
