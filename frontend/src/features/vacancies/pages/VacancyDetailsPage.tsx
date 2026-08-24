@@ -8,13 +8,13 @@ import {
   useGetVacancyByIdQuery,
 } from '@/features/api/api';
 import { getErrorMessage } from '@/utils/errorMessage';
-import NotificationAlert from '../common/NotificationAlert';
-import VacancyDetailsBreadcrumbs from './details/VacancyDetailsBreadcrumbs';
-import VacancyDetailsHeader from './details/VacancyDetailsHeader';
-import VacancySubmissionsStats from './details/VacancySubmissionsStats';
-import { VacancyTabs } from './details/VacancyTabs';
-import VacancyStaffActions from './details/VacancyStaffActions';
-import DeleteVacancyButton from './DeleteVacancyButton';
+import NotificationAlert from '../../../components/common/NotificationAlert';
+import VacancyDetailsBreadcrumbs from '../components/details/VacancyDetailsBreadcrumbs';
+import VacancyDetailsHeader from '../components/details/VacancyDetailsHeader';
+import VacancySubmissionsStats from '../components/details/VacancySubmissionsStats';
+import { VacancyTabs } from '../components/tabs/VacancyTabs';
+import VacancyStaffActions from '../components/details/VacancyStaffActions';
+import DeleteVacancyButton from '../components/dialogs/DeleteVacancyButton';
 
 const VacancyDetailsPage = () => {
   const { vacancyId } = useParams();

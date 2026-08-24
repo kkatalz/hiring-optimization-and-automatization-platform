@@ -2,7 +2,7 @@ import { List, Pagination } from '@mui/material';
 import { useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
-import { setPage } from '@/features/filters/vacancyFiltersSlice';
+import { setPage } from '@/features/vacancies/model/vacancyFiltersSlice';
 import { getErrorMessage } from '@/utils/errorMessage';
 import VacancyCard from './VacancyCard';
 import type { Notification, PaginatedResponse, VacancySummary } from '@/types';

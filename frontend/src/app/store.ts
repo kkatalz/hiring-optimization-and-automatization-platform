@@ -2,7 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import type { Action, ThunkAction } from '@reduxjs/toolkit';
 import authReducer from '../features/auth/authSlice';
 import { vacancyApi } from '../features/api/api';
-import { vacancyFiltersSlice } from '../features/filters/vacancyFiltersSlice';
+import { vacancyFiltersSlice } from '../features/vacancies/model/vacancyFiltersSlice';
 import { submissionFiltersSlice } from '../features/filters/submissionFiltersSlice';
 
 export const store = configureStore({

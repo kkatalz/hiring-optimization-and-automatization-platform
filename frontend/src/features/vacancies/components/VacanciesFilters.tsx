@@ -20,9 +20,9 @@ import {
   resetFilters,
   setOrder,
   setSortBy,
-} from '@/features/filters/vacancyFiltersSlice';
-import SortOrderLimitFilters from '../common/SortOrderLimitFilters';
-import { LanguageRequirementsFilter } from '../common/filters/LanguageRequirementsFilter';
+} from '@/features/vacancies/model/vacancyFiltersSlice';
+import SortOrderLimitFilters from '../../../components/common/SortOrderLimitFilters';
+import { LanguageRequirementsFilter } from '../../../components/common/filters/LanguageRequirementsFilter';
 
 export const VacanciesFilters = () => {
   const dispatch = useAppDispatch();

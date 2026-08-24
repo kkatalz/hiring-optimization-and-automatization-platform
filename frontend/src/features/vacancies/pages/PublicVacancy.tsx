@@ -3,9 +3,9 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { Alert, CircularProgress } from '@mui/material';
 import { useBrowseVacancyByIdQuery } from '@/features/api/api';
 import { getErrorMessage } from '@/utils/errorMessage';
-import VacancyDetailsBreadcrumbs from '../details/VacancyDetailsBreadcrumbs';
-import VacancyDetailsHeader from '../details/VacancyDetailsHeader';
-import type { VacancyOutletContext } from '../useVacancyOutletContext';
+import VacancyDetailsBreadcrumbs from '../components/details/VacancyDetailsBreadcrumbs';
+import VacancyDetailsHeader from '../components/details/VacancyDetailsHeader';
+import type { VacancyOutletContext } from '../model/useVacancyOutletContext';
 
 const PublicVacancy = () => {
   const { vacancyId } = useParams();

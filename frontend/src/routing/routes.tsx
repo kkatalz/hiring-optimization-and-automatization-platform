@@ -2,15 +2,15 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { RestoreSession } from './RestoreSession';
 import { LoginForm } from '../components/auth/LoginForm';
 import { RequireAuth } from './RequireAuth';
-import MainVacanciesPage from '../components/vacancies/MainVacanciesPage';
-import VacancyDetailsPage from '../components/vacancies/VacancyDetailsPage';
+import MainVacanciesPage from '../features/vacancies/pages/MainVacanciesPage';
+import VacancyDetailsPage from '../features/vacancies/pages/VacancyDetailsPage';
 import MainVacancySubmissionsPage from '../components/vacancySubmissions/MainVacancySubmissionsPage';
-import VacancyOverview from '../components/vacancies/VacancyOverview';
-import ScreeningQuestionsView from '../components/vacancies/ScreeningQuestionsView';
+import VacancyOverview from '../features/vacancies/components/tabs/VacancyOverview';
+import ScreeningQuestionsView from '../features/vacancies/components/tabs/ScreeningQuestionsView';
 import AppLayout from '../layout/AppLayout';
 import { RequireRole } from './RequireRole';
-import BrowseVacancies from '../components/vacancies/public/BrowseVacancies';
-import PublicVacancy from '../components/vacancies/public/PublicVacancy';
+import BrowseVacancies from '../features/vacancies/pages/BrowseVacancies';
+import PublicVacancy from '../features/vacancies/pages/PublicVacancy';
 
 const routes = createBrowserRouter([
   {

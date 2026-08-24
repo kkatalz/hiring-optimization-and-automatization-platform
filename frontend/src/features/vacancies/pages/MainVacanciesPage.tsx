@@ -3,11 +3,11 @@ import { Alert, Snackbar, Stack } from '@mui/material';
 import { useState } from 'react';
 import { useAppSelector } from '@/app/hooks';
 import { useSearchVacanciesQuery } from '@/features/api/api';
-import { VacanciesFilters } from './VacanciesFilters';
-import { VacanciesList } from './VacanciesList';
-import CreateVacancy from './CreateVacancy';
-import UpdateVacancyForm from './UpdateVacancy';
-import DeleteVacancyButton from './DeleteVacancyButton';
+import { VacanciesFilters } from '../components/VacanciesFilters';
+import { VacanciesList } from '../components/VacanciesList';
+import CreateVacancy from '../components/dialogs/CreateVacancy';
+import UpdateVacancyForm from '../components/dialogs/UpdateVacancy';
+import DeleteVacancyButton from '../components/dialogs/DeleteVacancyButton';
 import { toUpdateVacancyInput } from '@/features/vacancies/model/vacancyMappers';
 import type { Notification } from '@/types';
 
