@@ -3,11 +3,11 @@ import {
   createSlice,
   type PayloadAction,
 } from '@reduxjs/toolkit';
-import api from '../../app/api';
 import { jwtDecode } from 'jwt-decode';
 import { getAxiosErrorMessage } from '../../utils/errorMessage';
-import type { User } from '../../../types';
+import type { User } from '../../types';
 import { vacancyApi } from '../api/api';
+import api from '@/app/api/httpClient';
 
 interface AuthState {
   user: User | null;
