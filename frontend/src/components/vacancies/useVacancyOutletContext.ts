@@ -1,5 +1,5 @@
 import { useOutletContext } from 'react-router-dom';
-import type { CustomWeights, VacancySummary } from '../../../types';
+import type { CustomWeights, VacancySummary } from '../../types';
 
 export interface VacancyOutletContext {
   vacancy: VacancySummary;
