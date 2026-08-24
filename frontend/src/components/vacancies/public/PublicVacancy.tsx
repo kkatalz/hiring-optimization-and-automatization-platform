@@ -5,7 +5,7 @@ import { useBrowseVacancyByIdQuery } from '../../../features/api/api';
 import { getErrorMessage } from '../../../utils/errorMessage';
 import VacancyDetailsBreadcrumbs from '../details/VacancyDetailsBreadcrumbs';
 import VacancyDetailsHeader from '../details/VacancyDetailsHeader';
-import type { VacancyOutletContext } from '../vacancyOutletContext';
+import type { VacancyOutletContext } from '../useVacancyOutletContext';
 import AppTopBar from '../../layout/AppTopBar';
 
 const PublicVacancy = () => {
