@@ -7,8 +7,8 @@ import {
   useGetSubmissionsByVacancyIdQuery,
   useGetVacancyByIdQuery,
 } from '@/features/api/api';
-import { getErrorMessage } from '@/utils/errorMessage';
-import NotificationAlert from '../../../components/common/NotificationAlert';
+import { getErrorMessage } from '@/shared/lib/errorMessage';
+import NotificationAlert from '../../../shared/ui/NotificationAlert';
 import VacancyDetailsBreadcrumbs from '../components/details/VacancyDetailsBreadcrumbs';
 import VacancyDetailsHeader from '../components/details/VacancyDetailsHeader';
 import VacancySubmissionsStats from '../components/details/VacancySubmissionsStats';

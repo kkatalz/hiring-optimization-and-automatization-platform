@@ -1,7 +1,7 @@
 import { CircularProgress, Stack } from '@mui/material';
 import type { VacancySubmission } from '@/types';
 import { getSubmissionStats } from '@/features/vacancySubmissions/model/submissionStats';
-import StatCard from '@/components/common/StatCard';
+import StatCard from '@/shared/ui/StatCard';
 
 interface VacancySubmissionsStatsProps {
   /** Comes from the vacancy itself, so it stays correct even under filtering. */

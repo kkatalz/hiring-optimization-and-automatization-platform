@@ -13,7 +13,7 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
-import { LanguageRequirementsFilter } from '@/components/common/filters/LanguageRequirementsFilter';
+import { LanguageRequirementsFilter } from '@/shared/ui/filters/LanguageRequirementsFilter';
 import AddScreeningQuestions from '@/features/vacancies/components/form/AddScreeningQuestions';
 
 interface VacancyProps {

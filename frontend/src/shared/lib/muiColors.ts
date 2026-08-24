@@ -1,6 +1,6 @@
 import { useTheme } from '@mui/material/styles';
 import type { ChipProps, Palette } from '@mui/material';
-import { VacancySubmissionStatus } from '../types';
+import { VacancySubmissionStatus } from '../../types';
 
 export const useChipColors = (): NonNullable<ChipProps['color']>[] => {
   const theme = useTheme();

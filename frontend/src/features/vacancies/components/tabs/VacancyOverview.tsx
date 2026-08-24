@@ -1,6 +1,6 @@
 import { LinearProgress, Paper, Stack, Typography } from '@mui/material';
 import { useAppSelector } from '@/app/hooks';
-import { progressBarColorBasedOnScore } from '@/utils/muiColors';
+import { progressBarColorBasedOnScore } from '@/shared/lib/muiColors';
 import { useVacancyOutletContext } from '../../model/useVacancyOutletContext';
 
 const VacancyOverview = () => {

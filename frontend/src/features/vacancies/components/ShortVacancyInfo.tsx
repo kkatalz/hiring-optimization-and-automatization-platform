@@ -3,7 +3,7 @@ import BagOfMoney from '@/assets/BagOfMoney.svg';
 import Statistics from '@/assets/Statistics.svg';
 import TalkingPerson from '@/assets/TalkingPerson.svg';
 import type { VacancySummary } from '@/types';
-import { capitalizeName } from '@/utils/formatText';
+import { capitalizeName } from '@/shared/lib/formatText';
 
 const getSalaryLabel = (vacancy: VacancySummary) => {
   const { minSalary, maxSalary } = vacancy;

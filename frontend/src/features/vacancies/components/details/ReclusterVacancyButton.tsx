@@ -2,7 +2,7 @@ import { Button } from '@mui/material';
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import type { SerializedError } from '@reduxjs/toolkit';
 import { useRunClusteringMutation } from '@/features/api/api';
-import { getErrorMessage } from '@/utils/errorMessage';
+import { getErrorMessage } from '@/shared/lib/errorMessage';
 import type { NotifyHandler } from '@/types';
 
 interface ReclusterVacancyButtonProps {

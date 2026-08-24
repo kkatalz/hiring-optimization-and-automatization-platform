@@ -21,8 +21,8 @@ import {
   setOrder,
   setSortBy,
 } from '@/features/vacancies/model/vacancyFiltersSlice';
-import SortOrderLimitFilters from '../../../components/common/SortOrderLimitFilters';
-import { LanguageRequirementsFilter } from '../../../components/common/filters/LanguageRequirementsFilter';
+import SortOrderLimitFilters from '../../../shared/ui/SortOrderLimitFilters';
+import { LanguageRequirementsFilter } from '../../../shared/ui/filters/LanguageRequirementsFilter';
 
 export const VacanciesFilters = () => {
   const dispatch = useAppDispatch();

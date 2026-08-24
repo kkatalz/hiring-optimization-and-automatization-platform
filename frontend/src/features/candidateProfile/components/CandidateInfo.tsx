@@ -1,7 +1,7 @@
 import { Chip, Stack, Typography, type ChipProps } from '@mui/material';
 import type { CandidateProfile } from '@/types';
-import { capitalizeName } from '@/utils/formatText';
-import { useChipColors } from '@/utils/muiColors';
+import { capitalizeName } from '@/shared/lib/formatText';
+import { useChipColors } from '@/shared/lib/muiColors';
 
 const random = Math.random();
 

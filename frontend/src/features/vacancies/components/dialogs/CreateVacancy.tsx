@@ -4,7 +4,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import { useState, type SubmitEvent } from 'react';
-import { getErrorMessage } from '@/utils/errorMessage';
+import { getErrorMessage } from '@/shared/lib/errorMessage';
 import { useCreateVacancyMutation } from '@/features/api/api';
 import { type CreateVacancyInput } from '@/types';
 import VacancyForm from '../form/VacancyForm';

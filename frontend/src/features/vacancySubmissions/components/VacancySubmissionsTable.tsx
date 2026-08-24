@@ -21,15 +21,15 @@ import {
   useApproveSubmissionMutation,
   useRejectSubmissionMutation,
 } from '@/features/api/api';
-import { formatDate } from '@/utils/formatDate';
-import { capitalizeName } from '@/utils/formatText';
+import { formatDate } from '@/shared/lib/formatDate';
+import { capitalizeName } from '@/shared/lib/formatText';
 import {
   chipColorBasedOnStatus,
   progressBarColorBasedOnScore,
   themeColorsBasedOnScore,
-} from '@/utils/muiColors';
+} from '@/shared/lib/muiColors';
 import CandidateInfo from '@/features/candidateProfile/components/CandidateInfo';
-import NotificationAlert from '@/components/common/NotificationAlert';
+import NotificationAlert from '@/shared/ui/NotificationAlert';
 import { CustomTablePagination } from './SubmissionTablePagination';
 
 interface Props {

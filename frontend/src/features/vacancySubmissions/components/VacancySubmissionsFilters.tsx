@@ -8,7 +8,7 @@ import {
   Stack,
   TextField,
 } from '@mui/material';
-import SortOrderLimitFilters from '@/components/common/SortOrderLimitFilters';
+import SortOrderLimitFilters from '@/shared/ui/SortOrderLimitFilters';
 import SubmissionStatusToggleButtons from './SubmissionStatusToggleButtons';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { useState } from 'react';
@@ -31,8 +31,8 @@ import {
 } from '@/features/api/api';
 import { useParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { LanguageRequirementsFilter } from '@/components/common/filters/LanguageRequirementsFilter';
-import ScreeningQuestionsFilter from '@/components/common/filters/ScreeningQuestionsFilter';
+import { LanguageRequirementsFilter } from '@/shared/ui/filters/LanguageRequirementsFilter';
+import ScreeningQuestionsFilter from '@/shared/ui/filters/ScreeningQuestionsFilter';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 /** If field is empty or not a valid number, return undefined (cleans the filter) */
