@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAppSelector } from '../app/hooks';
 
-export const ProtectedLayout = () => {
+export const RequireAuth = () => {
   const authStatus = useAppSelector((s) => s.auth.status);
 
   if (authStatus === 'checking' || authStatus === 'loading')

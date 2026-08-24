@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { refreshSession } from '../features/auth/authSlice';
 import { Outlet } from 'react-router-dom';
 
-export const RootLayout = () => {
+export const RestoreSession = () => {
   const dispatch = useAppDispatch();
   const authStatus = useAppSelector((s) => s.auth.status);
   const dispatchWasCalled = useRef(false);

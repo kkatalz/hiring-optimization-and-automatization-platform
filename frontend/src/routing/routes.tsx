@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { RootLayout } from './RootLayout';
+import { RestoreSession } from './RestoreSession';
 import { LoginForm } from '../components/auth/LoginForm';
-import { ProtectedLayout } from './ProtectedLayout';
+import { RequireAuth } from './RequireAuth';
 import MainVacanciesPage from '../components/vacancies/MainVacanciesPage';
 import VacancyDetailsPage from '../components/vacancies/VacancyDetailsPage';
 import MainVacancySubmissionsPage from '../components/vacancySubmissions/MainVacancySubmissionsPage';
@@ -14,7 +14,7 @@ import PublicVacancy from '../components/vacancies/public/PublicVacancy';
 
 const routes = createBrowserRouter([
   {
-    Component: RootLayout,
+    Component: RestoreSession,
     children: [
       {
         Component: AppLayout,
@@ -43,7 +43,7 @@ const routes = createBrowserRouter([
             Component: LoginForm,
           },
           {
-            Component: ProtectedLayout,
+            Component: RequireAuth,
             children: [
               {
                 // Only for admin, superAdmin and recruiter
