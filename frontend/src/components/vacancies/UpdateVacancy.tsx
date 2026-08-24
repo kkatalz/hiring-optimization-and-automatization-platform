@@ -2,7 +2,7 @@ import { useState, type SubmitEvent } from 'react';
 import {
   VacancyQuestionDetailedToQuestionInput,
   type UpdateVacancyInput,
-} from '../../../types';
+} from '../../types';
 import {
   useGetAllVacancyQuestionsQuery,
   useUpdateVacancyMutation,

@@ -9,7 +9,7 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
-import { UserRole } from '../../../types';
+import { UserRole } from '@/types';
 
 interface LoginFields {
   email: string;

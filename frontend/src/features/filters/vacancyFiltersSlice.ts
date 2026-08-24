@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { VacanciesFilters, VacancySortColumn } from '../../../types';
-import { initialState } from '../../../types';
-import type { SortOrder } from '../../../types/common/Order';
+import type { VacanciesFilters, VacancySortColumn } from '@/types';
+import { initialState } from '@/types';
+import type { SortOrder } from '@/types/common/Order';
 
 export const vacancyFiltersSlice = createSlice({
   name: 'vacancyFilters',

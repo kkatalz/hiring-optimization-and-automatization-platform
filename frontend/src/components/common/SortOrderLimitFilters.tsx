@@ -1,6 +1,6 @@
 import { MenuItem, Stack, TextField } from '@mui/material';
-import { ORDER_FIELDS, type SortOrder } from '../../../types/common/Order';
-import { formatSortField } from '../../utils/formatText';
+import { ORDER_FIELDS, type SortOrder } from '@/types/common/Order';
+import { formatSortField } from '@/utils/formatText';
 
 interface Props<T extends string> {
   sortFields: readonly T[];

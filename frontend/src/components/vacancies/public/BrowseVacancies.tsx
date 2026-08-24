@@ -6,7 +6,7 @@ import PermanentDrawer from '../../layout/PermanentDrawer';
 import { VacanciesFilters } from '../VacanciesFilters';
 import { VacanciesList } from '../VacanciesList';
 import { Navigate } from 'react-router-dom';
-import { UserRole } from '../../../../types';
+import { UserRole } from '../../../types';
 
 const BrowseVacancies = () => {
   const { status, user } = useAppSelector((state) => state.auth);

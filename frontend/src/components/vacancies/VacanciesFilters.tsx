@@ -9,7 +9,7 @@ import {
   initialState,
   VACANCY_SORT_FIELDS,
   type VacancySortColumn,
-} from '../../../types';
+} from '../../types';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import {
   useGetAllVacanciesLanguagesCodesQuery,

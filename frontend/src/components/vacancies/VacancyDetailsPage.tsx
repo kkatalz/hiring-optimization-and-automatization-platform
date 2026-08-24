@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
-import type { Notification } from '../../../types';
+import type { Notification } from '../../types';
 import {
   useGetSubmissionsByVacancyIdQuery,
   useGetVacancyByIdQuery,

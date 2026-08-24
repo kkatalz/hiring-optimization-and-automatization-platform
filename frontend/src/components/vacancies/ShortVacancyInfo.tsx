@@ -2,7 +2,7 @@ import { Chip, Stack, Typography } from '@mui/material';
 import BagOfMoney from '../../assets/BagOfMoney.svg';
 import Statistics from '../../assets/Statistics.svg';
 import TalkingPerson from '../../assets/TalkingPerson.svg';
-import type { VacancySummary } from '../../../types';
+import type { VacancySummary } from '../../types';
 import { capitalizeName } from '../../utils/formatText';
 
 const getSalaryLabel = (vacancy: VacancySummary) => {

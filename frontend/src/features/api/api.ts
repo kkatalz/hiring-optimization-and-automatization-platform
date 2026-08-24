@@ -10,8 +10,8 @@ import {
   type SubmissionFilters,
   type SubmissionSortQuery,
   type GeneralVacancy,
-} from '../../../types';
-import type { RootState } from '../../app/store';
+} from '@/types';
+import type { RootState } from '@/app/store';
 
 const PUBLIC_ENDPOINTS = new Set(['browseVacancyById', 'browseVacancies']);
 

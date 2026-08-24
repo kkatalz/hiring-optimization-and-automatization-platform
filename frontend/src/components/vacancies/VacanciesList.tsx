@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { setPage } from '../../features/filters/vacancyFiltersSlice';
 import { getErrorMessage } from '../../utils/errorMessage';
 import VacancyCard from './VacancyCard';
-import type { PaginatedResponse, VacancySummary } from '../../../types';
+import type { PaginatedResponse, VacancySummary } from '../../types';
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import type { SerializedError } from '@reduxjs/toolkit';
 

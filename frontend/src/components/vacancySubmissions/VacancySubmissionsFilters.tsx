@@ -16,7 +16,7 @@ import {
   SUBMISSION_SORT_FIELDS,
   submissionInitialState,
   type SubmissionSortColumn,
-} from '../../../types';
+} from '../../types';
 import {
   applyFilters,
   resetFilters,

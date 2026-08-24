@@ -16,7 +16,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { useState } from 'react';
-import type { Notification, VacancySubmission } from '../../../types';
+import type { Notification, VacancySubmission } from '../../types';
 import {
   useApproveSubmissionMutation,
   useRejectSubmissionMutation,

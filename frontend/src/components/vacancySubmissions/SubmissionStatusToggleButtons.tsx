@@ -1,5 +1,5 @@
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
-import { VacancySubmissionStatus } from '../../../types';
+import { VacancySubmissionStatus } from '../../types';
 
 const ALL = 'all';
 

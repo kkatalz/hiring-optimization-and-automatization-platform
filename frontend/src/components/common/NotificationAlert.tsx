@@ -1,5 +1,5 @@
 import { Alert } from '@mui/material';
-import type { Notification } from '../../../types';
+import type { Notification } from '@/types';
 
 interface NotificationAlertProps {
   notification: Notification | null;

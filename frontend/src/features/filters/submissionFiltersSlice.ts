@@ -3,9 +3,9 @@ import type {
   SubmissionFilters,
   SubmissionSortColumn,
   VacancySubmissionStatus,
-} from '../../../types';
-import { submissionInitialState } from '../../../types';
-import type { SortOrder } from '../../../types/common/Order';
+} from '@/types';
+import { submissionInitialState } from '@/types';
+import type { SortOrder } from '@/types/common/Order';
 
 export const submissionFiltersSlice = createSlice({
   name: 'submissionFilters',
