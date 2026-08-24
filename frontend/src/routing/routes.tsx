@@ -17,12 +17,36 @@ const routes = createBrowserRouter([
     Component: RestoreSession,
     children: [
       {
-        Component: AppLayout,
+        path: '/login',
+        Component: LoginForm,
+      },
+
+      {
+        element: <AppLayout withDrawer />,
         children: [
           {
             path: '/',
             Component: BrowseVacancies, // public endpoint
           },
+          {
+            Component: RequireAuth,
+            children: [
+              {
+                // Only for admin, superAdmin and recruiter
+                Component: RequireRole,
+                children: [
+                  { path: '/vacancies', Component: MainVacanciesPage },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+
+      // Detail screens - no drawer
+      {
+        element: <AppLayout withDrawer={false} />,
+        children: [
           {
             path: '/browse/:vacancyId',
             Component: PublicVacancy, // public endpoint
@@ -37,11 +61,6 @@ const routes = createBrowserRouter([
               },
             ],
           },
-
-          {
-            path: '/login',
-            Component: LoginForm,
-          },
           {
             Component: RequireAuth,
             children: [
@@ -49,7 +68,6 @@ const routes = createBrowserRouter([
                 // Only for admin, superAdmin and recruiter
                 Component: RequireRole,
                 children: [
-                  { path: '/vacancies', Component: MainVacanciesPage },
                   {
                     path: '/vacancies/:vacancyId',
                     Component: VacancyDetailsPage,

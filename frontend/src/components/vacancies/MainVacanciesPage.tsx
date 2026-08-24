@@ -1,13 +1,8 @@
-import Box from '@mui/material/Box';
-import CssBaseline from '@mui/material/CssBaseline';
-import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { Alert, Snackbar, Stack } from '@mui/material';
 import { useState } from 'react';
 import { useAppSelector } from '@/app/hooks';
 import { useSearchVacanciesQuery } from '@/features/api/api';
-import AppTopBar from '@/layout/AppTopBar';
-import PermanentDrawer from '@/layout/PermanentDrawer';
 import { VacanciesFilters } from './VacanciesFilters';
 import { VacanciesList } from './VacanciesList';
 import CreateVacancy from './CreateVacancy';
@@ -29,81 +24,64 @@ const MainVacanciesPage = () => {
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
-      <AppTopBar />
-      <PermanentDrawer />
-      <Box
-        component='main'
+    <>
+      <Stack
+        direction='row'
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-start',
-          alignItems: 'flex-start',
-          flexGrow: 5,
-          paddingY: 3,
-          paddingX: 10,
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          width: '100%',
         }}
       >
-        <Toolbar />
-        <Stack
-          direction='row'
-          sx={{
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            width: '100%',
-          }}
-        >
-          <Stack direction='column' spacing={1} sx={{ mb: 2 }}>
-            <Typography variant='h5' gutterBottom>
-              Vacancies
-            </Typography>
-            <Typography variant='subtitle1' gutterBottom color='textSecondary'>
-              {numberOfAvailableVacancies} open positions
-            </Typography>
-          </Stack>
-          <CreateVacancy />
+        <Stack direction='column' spacing={1} sx={{ mb: 2 }}>
+          <Typography variant='h5' gutterBottom>
+            Vacancies
+          </Typography>
+          <Typography variant='subtitle1' gutterBottom color='textSecondary'>
+            {numberOfAvailableVacancies} open positions
+          </Typography>
         </Stack>
-        <VacanciesFilters />
-        <VacanciesList
-          data={data}
+        <CreateVacancy />
+      </Stack>
+      <VacanciesFilters />
+      <VacanciesList
+        data={data}
         isError={isError}
-          error={error}
-          showVacancyDetailed={(vacancy) => `/vacancies/${vacancy.id}`}
-          renderActions={(vacancy) => (
-            <>
-              <UpdateVacancyForm
-                vacancyId={vacancy.id}
-                initialData={toUpdateVacancyInput(vacancy)}
-              />
-              <DeleteVacancyButton
-                vacancyId={vacancy.id}
-                onNotify={(message, severity) =>
-                  setNotification({ message, severity })
-                }
-              />
-            </>
-          )}
-        />
+        error={error}
+        showVacancyDetailed={(vacancy) => `/vacancies/${vacancy.id}`}
+        renderActions={(vacancy) => (
+          <>
+            <UpdateVacancyForm
+              vacancyId={vacancy.id}
+              initialData={toUpdateVacancyInput(vacancy)}
+            />
+            <DeleteVacancyButton
+              vacancyId={vacancy.id}
+              onNotify={(message, severity) =>
+                setNotification({ message, severity })
+              }
+            />
+          </>
+        )}
+      />
 
-        <Snackbar
-          open={notification !== null}
-          onClose={() => setNotification(null)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          {notification ? (
-            <Alert
-              severity={notification.severity}
-              variant='filled'
-              onClose={() => setNotification(null)}
-              sx={{ width: '100%' }}
-            >
-              {notification.message}
-            </Alert>
-          ) : undefined}
-        </Snackbar>
-      </Box>
-    </Box>
+      <Snackbar
+        open={notification !== null}
+        onClose={() => setNotification(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        {notification ? (
+          <Alert
+            severity={notification.severity}
+            variant='filled'
+            onClose={() => setNotification(null)}
+            sx={{ width: '100%' }}
+          >
+            {notification.message}
+          </Alert>
+        ) : undefined}
+      </Snackbar>
+    </>
   );
 };
 

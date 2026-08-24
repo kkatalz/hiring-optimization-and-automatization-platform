@@ -1,10 +1,36 @@
-import { Box } from '@mui/material';
+import Box from '@mui/material/Box';
+import Toolbar from '@mui/material/Toolbar';
 import { Outlet } from 'react-router-dom';
+import AppTopBar from './AppTopBar';
+import PermanentDrawer from './PermanentDrawer';
 
-export const AppLayout = () => {
+interface AppLayoutProps {
+  withDrawer: boolean;
+}
+
+export const AppLayout = ({ withDrawer }: AppLayoutProps) => {
   return (
-    <Box component='main' sx={{ paddingX: 4, paddingY: 3 }}>
-      <Outlet />
+    <Box
+      sx={{
+        display: 'flex',
+      }}
+    >
+      <AppTopBar />
+      {withDrawer && <PermanentDrawer />}
+
+      <Box
+        component='main'
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          flexGrow: 1,
+          paddingY: 3,
+          paddingX: 10,
+        }}
+      >
+        <Toolbar />
+        <Outlet />
+      </Box>
     </Box>
   );
 };

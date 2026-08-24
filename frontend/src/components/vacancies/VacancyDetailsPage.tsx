@@ -1,11 +1,5 @@
 import { useState } from 'react';
-import {
-  Alert,
-  CircularProgress,
-  Paper,
-  Toolbar,
-  Typography,
-} from '@mui/material';
+import { Alert, CircularProgress, Paper, Typography } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 import type { Notification } from '@/types';
@@ -21,7 +15,6 @@ import VacancySubmissionsStats from './details/VacancySubmissionsStats';
 import { VacancyTabs } from './details/VacancyTabs';
 import VacancyStaffActions from './details/VacancyStaffActions';
 import DeleteVacancyButton from './DeleteVacancyButton';
-import AppTopBar from '@/layout/AppTopBar';
 
 const VacancyDetailsPage = () => {
   const { vacancyId } = useParams();
@@ -48,9 +41,6 @@ const VacancyDetailsPage = () => {
 
   return (
     <>
-      <AppTopBar />
-      <Toolbar />
-
       <VacancyDetailsBreadcrumbs vacancyName={vacancy.name} />
 
       <VacancyDetailsHeader
