@@ -4,7 +4,7 @@ import { LoginForm } from '../components/auth/LoginForm';
 import { RequireAuth } from './RequireAuth';
 import MainVacanciesPage from '../features/vacancies/pages/MainVacanciesPage';
 import VacancyDetailsPage from '../features/vacancies/pages/VacancyDetailsPage';
-import MainVacancySubmissionsPage from '../components/vacancySubmissions/MainVacancySubmissionsPage';
+import MainVacancySubmissionsPage from '../features/vacancySubmissions/pages/MainVacancySubmissionsPage';
 import VacancyOverview from '../features/vacancies/components/tabs/VacancyOverview';
 import ScreeningQuestionsView from '../features/vacancies/components/tabs/ScreeningQuestionsView';
 import AppLayout from '../layout/AppLayout';

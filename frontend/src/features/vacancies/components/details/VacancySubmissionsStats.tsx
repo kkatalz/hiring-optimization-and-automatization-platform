@@ -1,6 +1,6 @@
 import { CircularProgress, Stack } from '@mui/material';
 import type { VacancySubmission } from '@/types';
-import { getSubmissionStats } from '@/features/vacancySubmissions/submissionStats';
+import { getSubmissionStats } from '@/features/vacancySubmissions/model/submissionStats';
 import StatCard from '@/components/common/StatCard';
 
 interface VacancySubmissionsStatsProps {

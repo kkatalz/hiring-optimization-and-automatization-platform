@@ -28,8 +28,8 @@ import {
   progressBarColorBasedOnScore,
   themeColorsBasedOnScore,
 } from '@/utils/muiColors';
-import CandidateInfo from '../candidateProfile/CandidateInfo';
-import NotificationAlert from '../common/NotificationAlert';
+import CandidateInfo from '@/components/candidateProfile/CandidateInfo';
+import NotificationAlert from '@/components/common/NotificationAlert';
 import { CustomTablePagination } from './SubmissionTablePagination';
 
 interface Props {
