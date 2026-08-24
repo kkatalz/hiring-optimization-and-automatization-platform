@@ -9,18 +9,18 @@ import {
   initialState,
   VACANCY_SORT_FIELDS,
   type VacancySortColumn,
-} from '../../types';
-import { useAppDispatch, useAppSelector } from '../../app/hooks';
+} from '@/types';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import {
   useGetAllVacanciesLanguagesCodesQuery,
   useGetAllVacanciesTagsQuery,
-} from '../../features/api/api';
+} from '@/features/api/api';
 import {
   applyFilters,
   resetFilters,
   setOrder,
   setSortBy,
-} from '../../features/filters/vacancyFiltersSlice';
+} from '@/features/filters/vacancyFiltersSlice';
 import SortOrderLimitFilters from '../common/SortOrderLimitFilters';
 import { LanguageRequirementsFilter } from '../common/filters/LanguageRequirementsFilter';
 

@@ -8,12 +8,12 @@ import {
 } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
-import type { Notification } from '../../types';
+import type { Notification } from '@/types';
 import {
   useGetSubmissionsByVacancyIdQuery,
   useGetVacancyByIdQuery,
-} from '../../features/api/api';
-import { getErrorMessage } from '../../utils/errorMessage';
+} from '@/features/api/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 import NotificationAlert from '../common/NotificationAlert';
 import VacancyDetailsBreadcrumbs from './details/VacancyDetailsBreadcrumbs';
 import VacancyDetailsHeader from './details/VacancyDetailsHeader';

@@ -1,5 +1,5 @@
-import { useDeleteVacancyMutation } from '../../features/api/api';
-import { getErrorMessage } from '../../utils/errorMessage';
+import { useDeleteVacancyMutation } from '@/features/api/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 import {
   Button,
   Dialog,

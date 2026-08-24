@@ -16,18 +16,18 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { useState } from 'react';
-import type { Notification, VacancySubmission } from '../../types';
+import type { Notification, VacancySubmission } from '@/types';
 import {
   useApproveSubmissionMutation,
   useRejectSubmissionMutation,
-} from '../../features/api/api';
-import { formatDate } from '../../utils/formatDate';
-import { capitalizeName } from '../../utils/formatText';
+} from '@/features/api/api';
+import { formatDate } from '@/utils/formatDate';
+import { capitalizeName } from '@/utils/formatText';
 import {
   chipColorBasedOnStatus,
   progressBarColorBasedOnScore,
   themeColorsBasedOnScore,
-} from '../../utils/muiColors';
+} from '@/utils/muiColors';
 import CandidateInfo from '../candidateProfile/CandidateInfo';
 import NotificationAlert from '../common/NotificationAlert';
 import { CustomTablePagination } from './SubmissionTablePagination';

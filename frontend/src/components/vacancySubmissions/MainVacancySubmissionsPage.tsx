@@ -1,8 +1,8 @@
 import { useParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { CircularProgress } from '@mui/material';
-import { useGetSubmissionsByVacancyIdQuery } from '../../features/api/api';
-import { useAppSelector } from '../../app/hooks';
+import { useGetSubmissionsByVacancyIdQuery } from '@/features/api/api';
+import { useAppSelector } from '@/app/hooks';
 import { VacancySubmissionsTable } from './VacancySubmissionsTable';
 import VacancySubmissionsFilters from './VacancySubmissionsFilters';
 

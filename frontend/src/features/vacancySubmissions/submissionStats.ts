@@ -1,4 +1,4 @@
-import { VacancySubmissionStatus, type VacancySubmission } from '../../types';
+import { VacancySubmissionStatus, type VacancySubmission } from '@/types';
 
 export interface SubmissionStats {
   pending: number;

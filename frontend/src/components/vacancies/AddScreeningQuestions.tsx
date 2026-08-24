@@ -3,7 +3,7 @@ import {
   QUESTION_TYPES,
   type QuestionType,
   type VacancyQuestionInput,
-} from '../../types';
+} from '@/types';
 import Typography from '@mui/material/Typography';
 import {
   Alert,

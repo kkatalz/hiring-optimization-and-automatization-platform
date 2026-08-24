@@ -3,7 +3,7 @@ import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import { Card } from '@mui/material';
 import { Link, Outlet, useMatch } from 'react-router-dom';
-import type { Vacancy } from '../../../types';
+import type { Vacancy } from '@/types';
 import type { VacancyOutletContext } from '../useVacancyOutletContext';
 
 interface VacancyTabsProps {

@@ -2,12 +2,12 @@ import { useState, type SubmitEvent } from 'react';
 import {
   VacancyQuestionDetailedToQuestionInput,
   type UpdateVacancyInput,
-} from '../../types';
+} from '@/types';
 import {
   useGetAllVacancyQuestionsQuery,
   useUpdateVacancyMutation,
-} from '../../features/api/api';
-import { getErrorMessage } from '../../utils/errorMessage';
+} from '@/features/api/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 import VacancyForm from './VacancyForm';
 import {
   Alert,

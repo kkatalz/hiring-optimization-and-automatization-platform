@@ -1,11 +1,11 @@
 import { List, Pagination } from '@mui/material';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import { setPage } from '../../features/filters/vacancyFiltersSlice';
-import { getErrorMessage } from '../../utils/errorMessage';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { setPage } from '@/features/filters/vacancyFiltersSlice';
+import { getErrorMessage } from '@/utils/errorMessage';
 import VacancyCard from './VacancyCard';
-import type { PaginatedResponse, VacancySummary } from '../../types';
+import type { PaginatedResponse, VacancySummary } from '@/types';
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import type { SerializedError } from '@reduxjs/toolkit';
 

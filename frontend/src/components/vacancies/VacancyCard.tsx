@@ -1,6 +1,6 @@
 import { Card, CardContent, ListItem, Stack, Typography } from '@mui/material';
 import type { ReactNode } from 'react';
-import type { VacancySummary } from '../../types';
+import type { VacancySummary } from '@/types';
 import ShortVacancyInfo from './ShortVacancyInfo';
 
 interface VacancyCardProps {

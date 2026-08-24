@@ -4,8 +4,8 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { Alert, Snackbar, Stack } from '@mui/material';
 import { useState } from 'react';
-import { useAppSelector } from '../../app/hooks';
-import { useSearchVacanciesQuery } from '../../features/api/api';
+import { useAppSelector } from '@/app/hooks';
+import { useSearchVacanciesQuery } from '@/features/api/api';
 import AppTopBar from '../layout/AppTopBar';
 import PermanentDrawer from '../layout/PermanentDrawer';
 import { VacanciesFilters } from './VacanciesFilters';
@@ -13,8 +13,8 @@ import { VacanciesList } from './VacanciesList';
 import CreateVacancy from './CreateVacancy';
 import UpdateVacancyForm from './UpdateVacancy';
 import DeleteVacancyButton from './DeleteVacancyButton';
-import { toUpdateVacancyInput } from '../../features/vacancies/model/vacancyMappers';
-import type { Notification } from '../../types';
+import { toUpdateVacancyInput } from '@/features/vacancies/model/vacancyMappers';
+import type { Notification } from '@/types';
 
 const MainVacanciesPage = () => {
   const appliedFilters = useAppSelector((state) => state.vacancyFilters);

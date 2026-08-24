@@ -10,25 +10,25 @@ import {
 } from '@mui/material';
 import SortOrderLimitFilters from '../common/SortOrderLimitFilters';
 import SubmissionStatusToggleButtons from './SubmissionStatusToggleButtons';
-import { useAppDispatch, useAppSelector } from '../../app/hooks';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { useState } from 'react';
 import {
   SUBMISSION_SORT_FIELDS,
   submissionInitialState,
   type SubmissionSortColumn,
-} from '../../types';
+} from '@/types';
 import {
   applyFilters,
   resetFilters,
   setOrder,
   setSortBy,
   setStatus,
-} from '../../features/filters/submissionFiltersSlice';
+} from '@/features/filters/submissionFiltersSlice';
 import {
   useGetAllSubmissionsCitiesByVacancyIdQuery,
   useGetAllSubmissionsCountriesByVacancyIdQuery,
   useGetAllSubmissionsLanguagesCodesByVacancyIdQuery,
-} from '../../features/api/api';
+} from '@/features/api/api';
 import { useParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { LanguageRequirementsFilter } from '../common/filters/LanguageRequirementsFilter';
