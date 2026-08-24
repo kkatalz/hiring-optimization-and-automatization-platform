@@ -11,7 +11,6 @@ import type { SerializedError } from '@reduxjs/toolkit';
 
 interface Props<VacancyExtended extends VacancySummary> {
   data?: PaginatedResponse<VacancyExtended>;
-  isLoading: boolean;
   isError: boolean;
   error?: FetchBaseQueryError | SerializedError;
   showVacancyDetailed: (vacancy: VacancyExtended) => string;
@@ -21,7 +20,6 @@ interface Props<VacancyExtended extends VacancySummary> {
 /** Used for both Vacancy and the public GeneralVacancy */
 export const VacanciesList = <VacancyExtended extends VacancySummary>({
   data,
-  isLoading,
   isError,
   error,
   showVacancyDetailed,
@@ -33,8 +31,6 @@ export const VacanciesList = <VacancyExtended extends VacancySummary>({
   const appliedFilters = useAppSelector((state) => state.vacancyFilters);
 
   const currentPage = appliedFilters.page ?? 1;
-
-  if (isLoading) return <div>Loading...</div>;
 
   if (isError)
     return <div>Could not load vacancies - {getErrorMessage(error)}</div>;

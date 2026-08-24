@@ -26,6 +26,8 @@ const MainVacanciesPage = () => {
 
   const numberOfAvailableVacancies = data?.total ?? 0;
 
+  if (isLoading) return <div>Loading...</div>;
+
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
@@ -65,8 +67,7 @@ const MainVacanciesPage = () => {
         <VacanciesFilters />
         <VacanciesList
           data={data}
-          isLoading={isLoading}
-          isError={isError}
+        isError={isError}
           error={error}
           showVacancyDetailed={(vacancy) => `/vacancies/${vacancy.id}`}
           renderActions={(vacancy) => (

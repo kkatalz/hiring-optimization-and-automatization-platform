@@ -18,6 +18,8 @@ const BrowseVacancies = () => {
 
   const numberOfAvailableVacancies = data?.total ?? 0;
 
+  if (isLoading) return <div>Loading...</div>;
+
   return (
     <>
       {status === 'authenticated' &&
@@ -67,8 +69,7 @@ const BrowseVacancies = () => {
           <VacanciesFilters />
           <VacanciesList
             data={data}
-            isLoading={isLoading}
-            isError={isError}
+        isError={isError}
             error={error}
             showVacancyDetailed={(vacancy) => `/browse/${vacancy.id}`}
           />
