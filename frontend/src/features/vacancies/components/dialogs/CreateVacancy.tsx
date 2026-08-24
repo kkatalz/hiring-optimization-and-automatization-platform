@@ -7,7 +7,7 @@ import { useState, type SubmitEvent } from 'react';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { useCreateVacancyMutation } from '@/features/api/api';
 import { type CreateVacancyInput } from '@/types';
-import VacancyForm from './VacancyForm';
+import VacancyForm from '../form/VacancyForm';
 import { Alert } from '@mui/material';
 
 const EMPTY_VACANCY_FORM: CreateVacancyInput = {

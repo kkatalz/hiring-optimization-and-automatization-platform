@@ -13,8 +13,8 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
-import { LanguageRequirementsFilter } from '../common/filters/LanguageRequirementsFilter';
-import ScreeningQuestions from './AddScreeningQuestions';
+import { LanguageRequirementsFilter } from '@/components/common/filters/LanguageRequirementsFilter';
+import AddScreeningQuestions from '@/features/vacancies/components/form/AddScreeningQuestions';
 
 interface VacancyProps {
   value: CreateVacancyInput | UpdateVacancyInput;
@@ -319,7 +319,7 @@ const VacancyForm = ({ value, onChange }: VacancyProps) => {
 
       <Divider />
       {/* Screening questions */}
-      <ScreeningQuestions
+      <AddScreeningQuestions
         value={value.vacancyQuestions ?? []}
         onChange={(next) => onChange({ ...value, vacancyQuestions: next })}
       />

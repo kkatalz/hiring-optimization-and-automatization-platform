@@ -8,7 +8,7 @@ import {
   useUpdateVacancyMutation,
 } from '@/features/api/api';
 import { getErrorMessage } from '@/utils/errorMessage';
-import VacancyForm from './VacancyForm';
+import VacancyForm from '../form/VacancyForm';
 import {
   Alert,
   Button,

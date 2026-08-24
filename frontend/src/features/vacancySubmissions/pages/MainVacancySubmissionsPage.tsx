@@ -3,8 +3,8 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { CircularProgress } from '@mui/material';
 import { useGetSubmissionsByVacancyIdQuery } from '@/features/api/api';
 import { useAppSelector } from '@/app/hooks';
-import { VacancySubmissionsTable } from './VacancySubmissionsTable';
-import VacancySubmissionsFilters from './VacancySubmissionsFilters';
+import { VacancySubmissionsTable } from '../components/VacancySubmissionsTable';
+import VacancySubmissionsFilters from '../components/VacancySubmissionsFilters';
 
 const MainVacancySubmissionsPage = () => {
   const { vacancyId } = useParams();
