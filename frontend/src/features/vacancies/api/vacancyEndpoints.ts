@@ -1,4 +1,4 @@
-import { baseApi } from '@/app/api/baseApi';
+import { baseApi, PUBLIC_ENDPOINT } from '@/app/api/baseApi';
 import type {
   CreateVacancyInput,
   GeneralVacancy,
@@ -20,6 +20,7 @@ export const vacancyApi = baseApi.injectEndpoints({
     // Public
     browseVacancyById: builder.query<GeneralVacancy, string>({
       query: (id) => `/vacancies/browse/${id}`,
+      extraOptions: PUBLIC_ENDPOINT,
     }),
 
     searchVacancies: builder.query<
@@ -53,6 +54,7 @@ export const vacancyApi = baseApi.injectEndpoints({
         method: 'POST',
         body: filters,
       }),
+      extraOptions: PUBLIC_ENDPOINT,
     }),
 
     getAllVacanciesTags: builder.query<string[], void>({
