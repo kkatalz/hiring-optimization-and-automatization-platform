@@ -1,6 +1,6 @@
 import { baseURL } from '@/app/config';
 import type { RootState } from '@/app/store';
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 const PUBLIC_ENDPOINTS = new Set(['browseVacancyById', 'browseVacancies']);
 
