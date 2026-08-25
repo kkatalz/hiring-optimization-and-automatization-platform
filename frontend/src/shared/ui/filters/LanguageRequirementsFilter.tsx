@@ -1,0 +1,158 @@
+import { useState } from 'react';
+import Autocomplete from '@mui/material/Autocomplete';
+import TextField from '@mui/material/TextField';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import Chip from '@mui/material/Chip';
+import Typography from '@mui/material/Typography';
+import {
+  ALL_LANGUAGE_LEVELS,
+  type LanguageLevel,
+  type LanguageProficiency,
+} from '@/types';
+import Divider from '@mui/material/Divider';
+
+interface LanguageRequirementsFilterProps {
+  value: LanguageProficiency[];
+  onChange: (next: LanguageProficiency[]) => void;
+  languageCodes: string[];
+  makeFreeSolo?: boolean; // If true, the user can add a new language code
+}
+
+export const LanguageRequirementsFilter = ({
+  value,
+  onChange,
+  languageCodes,
+  makeFreeSolo = false,
+}: LanguageRequirementsFilterProps) => {
+  const [code, setCode] = useState<string | null>(null);
+  const [level, setLevel] = useState<LanguageLevel | null>(null);
+
+  // Hide languages that are already added, so one language can't be added twice.
+  const selectedCodes = value.map((pair) => pair.code);
+  const availableCodes = languageCodes.filter(
+    (c) => !selectedCodes.includes(c),
+  );
+
+  // At least one of code/level must be set, but not necessarily both.
+  const canAdd = code !== null || level !== null;
+
+  const handleAdd = () => {
+    if (!canAdd) return;
+
+    onChange([
+      ...value,
+      { code: code ?? undefined, level: level ?? undefined },
+    ]);
+
+    setCode(null);
+    setLevel(null);
+  };
+
+  const handleRemove = (indexToRemove: number) => {
+    onChange(value.filter((_pair, i) => i !== indexToRemove));
+  };
+
+  return (
+    <Stack spacing={1.5} sx={{ color: 'primary.main' }}>
+      <Divider />
+      <Typography sx={{ fontWeight: 'bold' }}>Language requirements</Typography>
+
+      {/* Already added pairs */}
+      {value.length > 0 && (
+        <Stack direction='row' spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+          {value.map((pair, index) => (
+            <Chip
+              key={`${pair.code ?? 'any'}-${pair.level ?? 'any'}-${index}`}
+              label={`${pair.code?.toUpperCase() ?? 'Any'} · ${pair.level ?? 'Any'}`}
+              onDelete={() => handleRemove(index)}
+              color='primary'
+              variant='outlined'
+            />
+          ))}
+        </Stack>
+      )}
+
+      <Stack direction='row' spacing={2}>
+        <Autocomplete
+          sx={{ flex: 1, maxWidth: 500 }}
+          options={availableCodes}
+          value={code}
+          onChange={(_event, newCode) => setCode(newCode)}
+          getOptionLabel={(code) => code.toUpperCase()}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label='Language'
+              placeholder='e.g. en'
+              onKeyDown={(event) => {
+                // Enter commits the typed code inside the Autocomplete, but it
+                // would also submit the surrounding CreateVacancy form. Block
+                // the implicit submit so the code is added instead.
+                if (event.key === 'Enter') event.preventDefault();
+              }}
+              slotProps={{
+                ...params.slotProps,
+                inputLabel: {
+                  ...params.slotProps?.inputLabel,
+                  shrink: true,
+                },
+              }}
+            />
+          )}
+          freeSolo={makeFreeSolo}
+        />
+
+        <FormControl sx={{ minWidth: 120 }}>
+          <InputLabel id='lang-level-label' shrink>
+            Level
+          </InputLabel>
+          <Select
+            labelId='lang-level-label'
+            label='Level'
+            value={level}
+            onChange={(e) => setLevel(e.target.value as LanguageLevel)}
+            displayEmpty
+            renderValue={(selected) => {
+              if (!selected || selected.length === 0)
+                return <span style={{ color: '#aaa' }}>B2</span>;
+
+              return selected;
+            }}
+          >
+            {ALL_LANGUAGE_LEVELS.map((lvl) => (
+              <MenuItem key={lvl} value={lvl}>
+                {lvl}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <Button
+          type='button'
+          variant='outlined'
+          onClick={handleAdd}
+          disabled={!canAdd}
+          sx={{
+            backgroundColor: 'primary.light',
+            '&.Mui-disabled': {
+              color: 'primary.main',
+            },
+          }}
+        >
+          + Add
+        </Button>
+      </Stack>
+      {makeFreeSolo && (
+        <Typography variant='subtitle2' sx={{ color: 'text.secondary' }}>
+          Pick an existing code or type a new one, choose a level, hit Add.
+        </Typography>
+      )}
+      <Divider />
+    </Stack>
+  );
+};

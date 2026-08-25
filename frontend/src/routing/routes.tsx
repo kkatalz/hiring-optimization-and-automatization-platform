@@ -1,28 +1,52 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { RootLayout } from './RootLayout';
-import { LoginForm } from '../components/auth/LoginForm';
-import { ProtectedLayout } from './ProtectedLayout';
-import MainVacanciesPage from '../components/vacancies/MainVacanciesPage';
-import VacancyDetailsPage from '../components/vacancies/VacancyDetailsPage';
-import MainVacancySubmissionsPage from '../components/vacancySubmissions/MainVacancySubmissionsPage';
-import VacancyOverview from '../components/vacancies/VacancyOverview';
-import ScreeningQuestionsView from '../components/vacancies/ScreeningQuestionsView';
-import AppLayout from './AppLayout';
+import { RestoreSession } from './RestoreSession';
+import { LoginForm } from '../features/auth/components/LoginForm';
+import { RequireAuth } from './RequireAuth';
+import MainVacanciesPage from '../features/vacancies/pages/MainVacanciesPage';
+import VacancyDetailsPage from '../features/vacancies/pages/VacancyDetailsPage';
+import MainVacancySubmissionsPage from '../features/vacancySubmissions/pages/MainVacancySubmissionsPage';
+import VacancyOverview from '../features/vacancies/components/tabs/VacancyOverview';
+import ScreeningQuestionsView from '../features/vacancies/components/tabs/ScreeningQuestionsView';
+import AppLayout from '../layout/AppLayout';
 import { RequireRole } from './RequireRole';
-import BrowseVacancies from '../components/vacancies/public/BrowseVacancies';
-import PublicVacancy from '../components/vacancies/public/PublicVacancy';
+import BrowseVacancies from '../features/vacancies/pages/BrowseVacancies';
+import PublicVacancy from '../features/vacancies/pages/PublicVacancy';
 
 const routes = createBrowserRouter([
   {
-    Component: RootLayout,
+    Component: RestoreSession,
     children: [
       {
-        Component: AppLayout,
+        path: '/login',
+        Component: LoginForm,
+      },
+
+      {
+        element: <AppLayout withDrawer />,
         children: [
           {
             path: '/',
             Component: BrowseVacancies, // public endpoint
           },
+          {
+            Component: RequireAuth,
+            children: [
+              {
+                // Only for admin, superAdmin and recruiter
+                Component: RequireRole,
+                children: [
+                  { path: '/vacancies', Component: MainVacanciesPage },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+
+      // Detail screens - no drawer
+      {
+        element: <AppLayout withDrawer={false} />,
+        children: [
           {
             path: '/browse/:vacancyId',
             Component: PublicVacancy, // public endpoint
@@ -37,19 +61,13 @@ const routes = createBrowserRouter([
               },
             ],
           },
-
           {
-            path: '/login',
-            Component: LoginForm,
-          },
-          {
-            Component: ProtectedLayout,
+            Component: RequireAuth,
             children: [
               {
                 // Only for admin, superAdmin and recruiter
                 Component: RequireRole,
                 children: [
-                  { path: '/vacancies', Component: MainVacanciesPage },
                   {
                     path: '/vacancies/:vacancyId',
                     Component: VacancyDetailsPage,

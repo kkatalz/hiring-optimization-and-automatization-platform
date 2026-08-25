@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import { UserRole } from '../../types';
+import { UserRole } from '../types';
 import { useAppSelector } from '../app/hooks';
 import { Typography } from '@mui/material';
 
