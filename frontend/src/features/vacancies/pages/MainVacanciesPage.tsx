@@ -2,7 +2,7 @@ import Typography from '@mui/material/Typography';
 import { Alert, Snackbar, Stack } from '@mui/material';
 import { useState } from 'react';
 import { useAppSelector } from '@/app/hooks';
-import { useSearchVacanciesQuery } from '@/features/api/api';
+import { useSearchVacanciesQuery } from '@/features/vacancies/api/vacancyEndpoints';
 import { VacanciesFilters } from '../components/VacanciesFilters';
 import { VacanciesList } from '../components/VacanciesList';
 import CreateVacancy from '../components/dialogs/CreateVacancy';

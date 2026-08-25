@@ -14,7 +14,7 @@ import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import {
   useGetAllVacanciesLanguagesCodesQuery,
   useGetAllVacanciesTagsQuery,
-} from '@/features/api/api';
+} from '@/features/vacancies/api/vacancyEndpoints';
 import {
   applyFilters,
   resetFilters,

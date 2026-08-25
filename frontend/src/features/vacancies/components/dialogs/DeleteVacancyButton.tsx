@@ -1,4 +1,4 @@
-import { useDeleteVacancyMutation } from '@/features/api/api';
+import { useDeleteVacancyMutation } from '@/features/vacancies/api/vacancyEndpoints';
 import { getErrorMessage } from '@/shared/lib/errorMessage';
 import {
   Button,

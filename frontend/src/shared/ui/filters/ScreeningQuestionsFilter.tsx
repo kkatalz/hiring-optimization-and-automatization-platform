@@ -8,7 +8,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useState } from 'react';
-import { useGetAllVacancyQuestionsQuery } from '@/features/api/api';
+import { useGetAllVacancyQuestionsQuery } from '@/features/vacancies/api/vacancyEndpoints';
 import type { QuestionAnswer } from '@/types';
 
 interface ScreeningQuestionsFilterProps {

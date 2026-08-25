@@ -1,7 +1,7 @@
 import { Outlet, useParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Alert, CircularProgress } from '@mui/material';
-import { useBrowseVacancyByIdQuery } from '@/features/api/api';
+import { useBrowseVacancyByIdQuery } from '@/features/vacancies/api/vacancyEndpoints';
 import { getErrorMessage } from '@/shared/lib/errorMessage';
 import VacancyDetailsBreadcrumbs from '../components/details/VacancyDetailsBreadcrumbs';
 import VacancyDetailsHeader from '../components/details/VacancyDetailsHeader';

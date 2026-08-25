@@ -1,6 +1,6 @@
 import { Stack, Typography } from '@mui/material';
 import { useAppSelector } from '@/app/hooks';
-import { useBrowseVacanciesQuery } from '@/features/api/api';
+import { useBrowseVacanciesQuery } from '@/features/vacancies/api/vacancyEndpoints';
 import { VacanciesFilters } from '../components/VacanciesFilters';
 import { VacanciesList } from '../components/VacanciesList';
 import { Navigate } from 'react-router-dom';

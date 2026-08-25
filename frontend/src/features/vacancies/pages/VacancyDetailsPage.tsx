@@ -3,10 +3,8 @@ import { Alert, CircularProgress, Paper, Typography } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 import type { Notification } from '@/types';
-import {
-  useGetSubmissionsByVacancyIdQuery,
-  useGetVacancyByIdQuery,
-} from '@/features/api/api';
+import { useGetVacancyByIdQuery } from '@/features/vacancies/api/vacancyEndpoints';
+import { useGetSubmissionsByVacancyIdQuery } from '@/features/vacancySubmissions/api/vacancySubmissionEndpoints';
 import { getErrorMessage } from '@/shared/lib/errorMessage';
 import NotificationAlert from '../../../shared/ui/NotificationAlert';
 import VacancyDetailsBreadcrumbs from '../components/details/VacancyDetailsBreadcrumbs';

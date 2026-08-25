@@ -28,7 +28,7 @@ import {
   useGetAllSubmissionsCitiesByVacancyIdQuery,
   useGetAllSubmissionsCountriesByVacancyIdQuery,
   useGetAllSubmissionsLanguagesCodesByVacancyIdQuery,
-} from '@/features/api/api';
+} from '@/features/vacancySubmissions/api/vacancySubmissionEndpoints';
 import { useParams } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { LanguageRequirementsFilter } from '@/shared/ui/filters/LanguageRequirementsFilter';

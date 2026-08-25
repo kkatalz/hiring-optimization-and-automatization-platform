@@ -6,7 +6,7 @@ import {
 import {
   useGetAllVacancyQuestionsQuery,
   useUpdateVacancyMutation,
-} from '@/features/api/api';
+} from '@/features/vacancies/api/vacancyEndpoints';
 import { getErrorMessage } from '@/shared/lib/errorMessage';
 import VacancyForm from '../form/VacancyForm';
 import {

@@ -20,7 +20,7 @@ import type { Notification, VacancySubmission } from '@/types';
 import {
   useApproveSubmissionMutation,
   useRejectSubmissionMutation,
-} from '@/features/api/api';
+} from '@/features/vacancySubmissions/api/vacancySubmissionEndpoints';
 import { formatDate } from '@/shared/lib/formatDate';
 import { capitalizeName } from '@/shared/lib/formatText';
 import {

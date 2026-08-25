@@ -1,7 +1,7 @@
 import { Button } from '@mui/material';
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import type { SerializedError } from '@reduxjs/toolkit';
-import { useRunClusteringMutation } from '@/features/api/api';
+import { useRunClusteringMutation } from '@/features/clustering/api/clusterEndpoints';
 import { getErrorMessage } from '@/shared/lib/errorMessage';
 import type { NotifyHandler } from '@/types';
 
