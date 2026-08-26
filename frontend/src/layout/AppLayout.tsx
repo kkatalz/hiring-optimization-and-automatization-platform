@@ -1,3 +1,4 @@
+import { useMediaQuery } from '@mui/material';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import { Outlet } from 'react-router-dom';
@@ -9,6 +10,8 @@ interface AppLayoutProps {
 }
 
 export const AppLayout = ({ withDrawer }: AppLayoutProps) => {
+  const isMobile = useMediaQuery((theme) => theme.breakpoints.down('md'));
+
   return (
     <Box
       sx={{
@@ -16,7 +19,9 @@ export const AppLayout = ({ withDrawer }: AppLayoutProps) => {
       }}
     >
       <AppTopBar />
-      {withDrawer && <PermanentDrawer />}
+      {withDrawer && (
+        <PermanentDrawer variant={isMobile ? 'temporary' : 'permanent'} />
+      )}
 
       <Box
         component='main'
@@ -24,8 +29,8 @@ export const AppLayout = ({ withDrawer }: AppLayoutProps) => {
           display: 'flex',
           flexDirection: 'column',
           flexGrow: 1,
-          paddingY: 3,
-          paddingX: 10,
+          py: 3,
+          px: { xs: 2, sm: 3, md: 10 },
         }}
       >
         <Toolbar />
