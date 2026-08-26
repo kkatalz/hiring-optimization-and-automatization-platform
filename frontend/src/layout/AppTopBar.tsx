@@ -113,6 +113,7 @@ export default function AppTopBar() {
       keepMounted
       open={isMenuOpen}
       onClose={handleMenuClose}
+      disableScrollLock
     >
       {status === 'authenticated' && (
         <MenuItem onClick={handleMenuClose}>My account</MenuItem>
@@ -137,7 +138,7 @@ export default function AppTopBar() {
           >
             Hiring Platform
           </Typography>
-          <Search>
+          <Search sx={{ width: { xs: '60%', sm: '40%' } }}>
             <SearchIconWrapper>
               <SearchIcon />
             </SearchIconWrapper>
@@ -147,7 +148,12 @@ export default function AppTopBar() {
             />
           </Search>
           <Box sx={{ flexGrow: 1 }} />
-          <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+            }}
+          >
             <IconButton size='large' color='inherit'>
               <Badge badgeContent={0} color='error'>
                 <NotificationsIcon />
