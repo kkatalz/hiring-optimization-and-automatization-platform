@@ -26,10 +26,10 @@ const MainVacanciesPage = () => {
   return (
     <>
       <Stack
-        direction='row'
+        direction={{ xs: 'column', sm: 'row' }}
         sx={{
           justifyContent: 'space-between',
-          alignItems: 'center',
+          alignItems: { xs: 'stretch', sm: 'center' },
           width: '100%',
         }}
       >
