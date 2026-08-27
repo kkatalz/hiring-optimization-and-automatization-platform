@@ -49,12 +49,21 @@ const renderNavList = (items: NavItem[]) => (
 
 interface PermanentDrawerProps {
   variant: 'permanent' | 'temporary';
+  open: boolean;
+  onClose: () => void;
 }
 // TODO: Implement navigation functionality for the drawer items.
-export default function PermanentDrawer({ variant }: PermanentDrawerProps) {
+export default function PermanentDrawer({
+  variant,
+  open,
+  onClose,
+}: PermanentDrawerProps) {
   return (
     <Drawer
       variant={variant}
+      open={open}
+      onClose={onClose}
+      disableScrollLock
       slotProps={{ root: { keepMounted: true } }}
       sx={{
         width: drawerWidth,

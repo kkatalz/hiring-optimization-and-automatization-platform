@@ -22,7 +22,7 @@ const routes = createBrowserRouter([
       },
 
       {
-        element: <AppLayout withDrawer />,
+        element: <AppLayout showDrawer />,
         children: [
           {
             path: '/',
@@ -45,7 +45,7 @@ const routes = createBrowserRouter([
 
       // Detail screens - no drawer
       {
-        element: <AppLayout withDrawer={false} />,
+        element: <AppLayout showDrawer={false} />,
         children: [
           {
             path: '/browse/:vacancyId',

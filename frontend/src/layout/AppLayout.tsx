@@ -1,16 +1,18 @@
 import { useMediaQuery } from '@mui/material';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
+import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import AppTopBar from './AppTopBar';
 import PermanentDrawer from './PermanentDrawer';
 
 interface AppLayoutProps {
-  withDrawer: boolean;
+  showDrawer: boolean;
 }
 
-export const AppLayout = ({ withDrawer }: AppLayoutProps) => {
-  const isMobile = useMediaQuery((theme) => theme.breakpoints.down('md'));
+export const AppLayout = ({ showDrawer }: AppLayoutProps) => {
+  const isScreenMobile = useMediaQuery((theme) => theme.breakpoints.down('md'));
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
     <Box
@@ -18,9 +20,17 @@ export const AppLayout = ({ withDrawer }: AppLayoutProps) => {
         display: 'flex',
       }}
     >
-      <AppTopBar />
-      {withDrawer && (
-        <PermanentDrawer variant={isMobile ? 'temporary' : 'permanent'} />
+      <AppTopBar
+        onMobileMenuClick={
+          showDrawer ? () => setDrawerOpen((prev) => !prev) : undefined
+        }
+      />
+      {showDrawer && (
+        <PermanentDrawer
+          variant={isScreenMobile ? 'temporary' : 'permanent'}
+          open={isScreenMobile ? drawerOpen : true}
+          onClose={() => setDrawerOpen(false)}
+        />
       )}
 
       <Box
