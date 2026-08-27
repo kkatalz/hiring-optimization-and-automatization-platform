@@ -11,6 +11,7 @@ import AppLayout from '../layout/AppLayout';
 import { RequireRole } from './RequireRole';
 import BrowseVacancies from '../features/vacancies/pages/BrowseVacancies';
 import PublicVacancy from '../features/vacancies/pages/PublicVacancy';
+import { RedirectStaff } from '@/routing/RedirectStaff';
 
 const routes = createBrowserRouter([
   {
@@ -25,9 +26,12 @@ const routes = createBrowserRouter([
         element: <AppLayout showDrawer />,
         children: [
           {
-            path: '/',
-            Component: BrowseVacancies, // public endpoint
+            Component: RedirectStaff,
+            children: [
+              { path: '/', Component: BrowseVacancies }, // public endpoint
+            ],
           },
+
           {
             Component: RequireAuth,
             children: [

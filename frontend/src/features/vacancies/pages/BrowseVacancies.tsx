@@ -1,14 +1,10 @@
-import { Stack, Typography } from '@mui/material';
 import { useAppSelector } from '@/app/hooks';
 import { useBrowseVacanciesQuery } from '@/features/vacancies/api/vacancyEndpoints';
+import { Stack, Typography } from '@mui/material';
 import { VacanciesFilters } from '../components/VacanciesFilters';
 import { VacanciesList } from '../components/VacanciesList';
-import { Navigate } from 'react-router-dom';
-import { UserRole } from '@/types';
 
 const BrowseVacancies = () => {
-  const { status, user } = useAppSelector((state) => state.auth);
-
   const appliedFilters = useAppSelector((state) => state.vacancyFilters);
   const { data, isLoading, isError, error } = useBrowseVacanciesQuery({
     filters: appliedFilters,
@@ -20,12 +16,6 @@ const BrowseVacancies = () => {
 
   return (
     <>
-      {status === 'authenticated' &&
-        user &&
-        user.role !== UserRole.candidate && (
-          <Navigate to='/vacancies' replace />
-        )}
-
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         sx={{
