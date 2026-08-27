@@ -104,7 +104,10 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
         onClose={() => setNotification(null)}
       />
 
-      <Table sx={{ minWidth: 650 }} aria-label='simple table'>
+      <Table
+        sx={{ minWidth: 650, whiteSpace: 'nowrap' }}
+        aria-label='Candidate submissions'
+      >
         <TableHead>
           <TableRow
             sx={{
@@ -307,7 +310,6 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
               </TableCell>
             </TableRow>
           ))}
-
           {emptyRows > 0 && (
             <tr style={{ height: 41 * emptyRows }}>
               <td colSpan={3} aria-hidden />
@@ -319,7 +321,6 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
           <TableRow>
             <CustomTablePagination
               rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
-              colSpan={3}
               count={submissions?.length || 0}
               rowsPerPage={rowsPerPage}
               page={page}
