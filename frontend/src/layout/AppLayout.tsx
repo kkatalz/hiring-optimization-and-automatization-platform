@@ -39,6 +39,7 @@ export const AppLayout = ({ showDrawer }: AppLayoutProps) => {
           display: 'flex',
           flexDirection: 'column',
           flexGrow: 1,
+          minWidth: 0,
           py: 3,
           px: { xs: 2, sm: 3, md: 10 },
         }}

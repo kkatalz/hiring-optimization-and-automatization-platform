@@ -19,7 +19,13 @@ export const VacancyTabs = ({ vacancy }: VacancyTabsProps) => {
   return (
     <Card sx={{ width: '100%', mt: 3 }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={currentTab} aria-label='Vacancy sections'>
+        <Tabs
+          value={currentTab}
+          aria-label='Vacancy sections'
+          variant='scrollable'
+          scrollButtons='auto'
+          allowScrollButtonsMobile
+        >
           <Tab
             value='candidates'
             label={`Candidates (${vacancy.numberOfSubmissions ?? 0})`}
@@ -40,7 +46,7 @@ export const VacancyTabs = ({ vacancy }: VacancyTabsProps) => {
           />
         </Tabs>
       </Box>
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ p: { xs: 1.5, md: 3 } }}>
         <Outlet
           context={
             {

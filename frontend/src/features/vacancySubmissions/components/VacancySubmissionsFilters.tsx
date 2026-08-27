@@ -275,9 +275,7 @@ const VacancySubmissionsFilters = () => {
                   maxResumeAiScore: toNumberFilter(e.target.value),
                 })
               }
-              sx={{
-                width: 150,
-              }}
+              sx={{ width: { xs: '100%', sm: 150 } }}
             />
             <TextField
               label='Max comment AI %'
@@ -292,9 +290,7 @@ const VacancySubmissionsFilters = () => {
                   maxCommentAiScore: toNumberFilter(e.target.value),
                 })
               }
-              sx={{
-                width: 150,
-              }}
+              sx={{ width: { xs: '100%', sm: 150 } }}
             />
           </Box>
           {/* Language requirements */}

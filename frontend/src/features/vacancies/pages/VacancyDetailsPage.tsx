@@ -69,7 +69,7 @@ const VacancyDetailsPage = () => {
       <Paper
         sx={{
           p: 2,
-          width: '50%',
+          width: { xs: '100%', md: '50%' },
           mt: 4,
           border: '1px solid #D32F2F',
           marginX: 'auto',
