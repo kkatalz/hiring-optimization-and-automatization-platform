@@ -77,7 +77,7 @@ export const LanguageRequirementsFilter = ({
         </Stack>
       )}
 
-      <Stack direction='row' spacing={2}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
         <Autocomplete
           sx={{ flex: 1, maxWidth: 500 }}
           options={availableCodes}
@@ -107,7 +107,7 @@ export const LanguageRequirementsFilter = ({
           freeSolo={makeFreeSolo}
         />
 
-        <FormControl sx={{ minWidth: 120 }}>
+        <FormControl sx={{ minWidth: { xs: 0, sm: 120 } }}>
           <InputLabel id='lang-level-label' shrink>
             Level
           </InputLabel>

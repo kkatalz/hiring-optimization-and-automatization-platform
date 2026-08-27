@@ -17,6 +17,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  useMediaQuery,
 } from '@mui/material';
 
 interface Props {
@@ -25,6 +26,8 @@ interface Props {
 }
 
 const UpdateVacancyForm = ({ vacancyId, initialData }: Props) => {
+  const isMobile = useMediaQuery((theme) => theme.breakpoints.down('md'));
+
   const [open, setOpen] = useState(false);
 
   const {
@@ -35,7 +38,13 @@ const UpdateVacancyForm = ({ vacancyId, initialData }: Props) => {
 
   return (
     <>
-      <Dialog open={open} onClose={() => setOpen(false)}>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        fullScreen={isMobile}
+        fullWidth
+        maxWidth='sm'
+      >
         {isError ? (
           <DialogContent>
             <Alert severity='error'>

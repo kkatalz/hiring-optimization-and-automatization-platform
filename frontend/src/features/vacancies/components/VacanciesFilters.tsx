@@ -45,7 +45,13 @@ export const VacanciesFilters = () => {
   };
 
   return (
-    <Paper elevation={3} sx={{ padding: '20px', maxWidth: '650px' }}>
+    <Paper
+      elevation={3}
+      sx={{
+        p: { xs: 2, md: '20px' },
+        maxWidth: '650px',
+      }}
+    >
       <Stack component='form' onSubmit={handleSubmit} spacing={2}>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 6 }}>
@@ -174,7 +180,7 @@ export const VacanciesFilters = () => {
           </Grid>
         </Grid>
 
-        <Stack direction='row' spacing={2}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           {/* Time Commitment */}
           <Autocomplete
             multiple
@@ -194,7 +200,7 @@ export const VacanciesFilters = () => {
             }}
             sx={{
               minWidth: 200,
-              maxWidth: 230,
+              maxWidth: { xs: '100%', md: 230 },
               '& .MuiAutocomplete-tag': {
                 backgroundColor: 'primary.light',
                 color: 'primary.main',

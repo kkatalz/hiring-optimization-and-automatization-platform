@@ -8,7 +8,7 @@ import { getErrorMessage } from '@/shared/lib/errorMessage';
 import { useCreateVacancyMutation } from '@/features/vacancies/api/vacancyEndpoints';
 import { type CreateVacancyInput } from '@/types';
 import VacancyForm from '../form/VacancyForm';
-import { Alert } from '@mui/material';
+import { Alert, useMediaQuery } from '@mui/material';
 
 const EMPTY_VACANCY_FORM: CreateVacancyInput = {
   name: '',
@@ -30,6 +30,8 @@ const EMPTY_VACANCY_FORM: CreateVacancyInput = {
 };
 
 export const CreateVacancy = () => {
+  const isMobile = useMediaQuery((theme) => theme.breakpoints.down('md'));
+
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
@@ -71,7 +73,13 @@ export const CreateVacancy = () => {
 
   return (
     <>
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        fullScreen={isMobile}
+        fullWidth
+        maxWidth='sm'
+      >
         <form onSubmit={handleCreate}>
           <DialogTitle>Create Vacancy</DialogTitle>
           <DialogContent sx={{ margin: '2px 6px' }}>
