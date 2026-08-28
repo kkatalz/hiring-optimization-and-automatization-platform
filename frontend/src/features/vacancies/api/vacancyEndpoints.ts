@@ -1,11 +1,13 @@
 import { baseApi, PUBLIC_ENDPOINT } from '@/app/api/baseApi';
 import type {
   CreateVacancyInput,
+  CreateVacancyQuestionInput,
   GeneralVacancy,
   PaginatedResponse,
   UpdateVacancyInput,
   VacanciesFilters,
   Vacancy,
+  VacancyQuestion,
   VacancyQuestionDetailed,
 } from '@/types';
 
@@ -141,6 +143,26 @@ export const vacancyApi = baseApi.injectEndpoints({
         { type: 'Vacancy', id: 'LIST' },
       ],
     }),
+
+    // Extra endpoints for adding/removing questions to/from a vacancy
+    addQuestionToVacancy: builder.mutation<
+      VacancyQuestion,
+      {
+        vacancyId: string;
+        questionId: string;
+        body: CreateVacancyQuestionInput;
+      }
+    >({
+      query: ({ vacancyId, questionId, body }) => ({
+        url: `/vacancies/${vacancyId}/questions/${questionId}`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: (_result, _error, { vacancyId }) => [
+        { type: 'Vacancy', id: vacancyId },
+        { type: 'Vacancy', id: 'LIST' },
+      ],
+    }),
   }),
 });
 
@@ -155,4 +177,5 @@ export const {
   useCreateVacancyMutation,
   useUpdateVacancyMutation,
   useDeleteVacancyMutation,
+  useAddQuestionToVacancyMutation,
 } = vacancyApi;

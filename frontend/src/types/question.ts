@@ -1,4 +1,4 @@
-import type { QuestionType } from './question.enum';
+import { QuestionType } from './question.enum';
 
 export interface Question {
   id: string;
@@ -13,3 +13,15 @@ export interface QuestionAnswer {
   questionId: string;
   value?: string | string[];
 }
+
+export interface CreateQuestionInput {
+  label: string;
+  type: QuestionType;
+  answerOptions?: string[];
+}
+
+export const EMPTY_QUESTION_FORM: CreateQuestionInput = {
+  label: '',
+  type: QuestionType.text,
+  answerOptions: [],
+};
