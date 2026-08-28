@@ -28,7 +28,11 @@ const VacancyOverview = () => {
   ];
 
   return (
-    <Stack direction='column' spacing={2} sx={{ width: '60%' }}>
+    <Stack
+      direction='column'
+      spacing={2}
+      sx={{ width: { xs: '100%', md: '60%' }, maxWidth: 600 }}
+    >
       <Typography variant='subtitle1' color='textSecondary'>
         DESCRIPTION
       </Typography>
@@ -43,17 +47,17 @@ const VacancyOverview = () => {
       </Typography>
 
       {role && role !== 'candidate' && (
-        <Paper sx={{ p: 2, width: '80%' }}>
+        <Paper sx={{ p: { xs: 2, sm: 3 } }}>
           <Typography variant='h6'>Scoring weights</Typography>
           <Typography
             variant='body1'
             color='textSecondary'
-            sx={{ mt: 1, mb: 1 }}
+            sx={{ mt: 0.5, mb: 2 }}
           >
             How much each dimension counts toward the match score in the table.
           </Typography>
 
-          <Stack spacing={1}>
+          <Stack spacing={2}>
             {vacancyWeights.map((row) => (
               <Stack
                 key={row.name}
@@ -90,7 +94,14 @@ const VacancyOverview = () => {
                     };
                   }}
                 />
-                <Typography variant='body2' sx={{ mt: 1, minWidth: 40 }}>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    mt: 1,
+                    minWidth: 40,
+                    textAlign: 'right',
+                  }}
+                >
                   {`${row.vacancyWeight}%`}
                 </Typography>
               </Stack>
