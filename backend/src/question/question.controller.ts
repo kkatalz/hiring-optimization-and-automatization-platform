@@ -18,6 +18,7 @@ import { CreateQuestionDto } from './dto/createQuestion.dto';
 import { UpdateQuestionDto } from './dto/updateQuestion.dto';
 import { QuestionService } from './question.service';
 import { extractUserTenantId } from '../utils/extractUserTenantId';
+import { QuestionDto } from './dto/question.dto';
 
 @Controller('questions')
 export class QuestionController {
@@ -33,7 +34,7 @@ export class QuestionController {
     @Body() createQuestionDto: CreateQuestionDto,
     @AuthUser() user: UserDto,
     @Query('tenantId') tenantId?: string,
-  ) {
+  ): Promise<QuestionDto> {
     tenantId = extractUserTenantId(user, tenantId);
 
     validateTenantAccess(user, tenantId);
@@ -51,7 +52,7 @@ export class QuestionController {
   async findAllQuestions(
     @AuthUser() user: UserDto,
     @Query('tenantId') tenantId?: string,
-  ) {
+  ): Promise<QuestionDto[]> {
     tenantId = tenantId ?? user.tenantId;
 
     if (tenantId) validateTenantAccess(user, tenantId);
@@ -68,7 +69,7 @@ export class QuestionController {
   async findQuestionById(
     @Param('id', new ParseUUIDPipe()) id: string,
     @AuthUser() user: UserDto,
-  ) {
+  ): Promise<QuestionDto> {
     const question = await this.questionService.findDtoById(id);
 
     validateTenantAccess(user, question.tenantId);
@@ -86,7 +87,7 @@ export class QuestionController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateQuestionDto: UpdateQuestionDto,
     @AuthUser() user: UserDto,
-  ) {
+  ): Promise<QuestionDto> {
     const question = await this.questionService.findById(id);
 
     validateTenantAccess(user, question.tenantId);
@@ -103,7 +104,7 @@ export class QuestionController {
   async removeQuestion(
     @Param('id', new ParseUUIDPipe()) id: string,
     @AuthUser() user: UserDto,
-  ) {
+  ): Promise<QuestionDto> {
     const question = await this.questionService.findById(id);
 
     validateTenantAccess(user, question.tenantId);
