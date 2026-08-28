@@ -27,11 +27,11 @@ const VacancyCard = ({
       <Card elevation={4} sx={{ width: '100%' }}>
         <CardContent>
           <Stack
-            direction='row'
+            direction={{ xs: 'column', sm: 'row' }}
             sx={{
-              alignItems: 'center',
-              p: 2,
-              gap: 5,
+              alignItems: { xs: 'stretch', sm: 'center' },
+              p: { xs: 0, sm: 2 },
+              gap: { xs: 2, sm: 5 },
               justifyContent: 'space-between',
             }}
           >
@@ -46,7 +46,7 @@ const VacancyCard = ({
               <Stack
                 direction='column'
                 spacing={1}
-                sx={{ alignItems: 'center' }}
+                sx={{ alignItems: { xs: 'flex-start', sm: 'center' } }}
               >
                 <Typography
                   variant='subtitle2'

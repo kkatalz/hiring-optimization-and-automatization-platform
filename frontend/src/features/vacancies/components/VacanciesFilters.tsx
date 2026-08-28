@@ -23,6 +23,7 @@ import {
 } from '@/features/vacancies/model/vacancyFiltersSlice';
 import SortOrderLimitFilters from '../../../shared/ui/SortOrderLimitFilters';
 import { LanguageRequirementsFilter } from '../../../shared/ui/filters/LanguageRequirementsFilter';
+import { Grid } from '@mui/material';
 
 export const VacanciesFilters = () => {
   const dispatch = useAppDispatch();
@@ -44,123 +45,142 @@ export const VacanciesFilters = () => {
   };
 
   return (
-    <Paper elevation={3} sx={{ padding: '20px', maxWidth: '650px' }}>
-      <Stack
-        component='form'
-        onSubmit={handleSubmit}
-        sx={{ display: 'flex', gap: '20px' }}
-      >
-        <Stack direction='row' spacing={2}>
-          <TextField
-            label='Name'
-            placeholder='e.g. React Developer'
-            slotProps={{
-              inputLabel: { shrink: true },
-            }}
-            value={draft.name ?? ''}
-            onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-          />
-          <TextField
-            label='Min salary'
-            placeholder='0'
-            slotProps={{
-              inputLabel: { shrink: true },
-            }}
-            value={draft.minSalary ?? ''}
-            onChange={(e) =>
-              setDraft({
-                ...draft,
-                minSalary:
-                  e.target.value === '' ? undefined : Number(e.target.value),
-              })
-            }
-          />
-          <TextField
-            label='Max salary'
-            placeholder='5000'
-            slotProps={{
-              inputLabel: { shrink: true },
-            }}
-            value={draft.maxSalary ?? ''}
-            onChange={(e) =>
-              setDraft({
-                ...draft,
-                maxSalary:
-                  e.target.value === '' ? undefined : Number(e.target.value),
-              })
-            }
-          />
-        </Stack>
+    <Paper
+      elevation={3}
+      sx={{
+        p: { xs: 2, md: '20px' },
+        maxWidth: '650px',
+      }}
+    >
+      <Stack component='form' onSubmit={handleSubmit} spacing={2}>
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <TextField
+              label='Name'
+              placeholder='e.g. React Developer'
+              slotProps={{
+                inputLabel: { shrink: true },
+              }}
+              value={draft.name ?? ''}
+              onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+              fullWidth
+            />
+          </Grid>
 
-        <Stack direction='row' spacing={2}>
-          <TextField
-            label='Min experience (yrs)'
-            placeholder='0'
-            slotProps={{
-              inputLabel: { shrink: true },
-            }}
-            value={draft.minRequiredExperience ?? ''}
-            onChange={(e) =>
-              setDraft({
-                ...draft,
-                minRequiredExperience:
-                  e.target.value === '' ? undefined : Number(e.target.value),
-              })
-            }
-          />
-          <TextField
-            label='Max experience (yrs)'
-            placeholder='10'
-            slotProps={{
-              inputLabel: { shrink: true },
-            }}
-            value={draft.maxRequiredExperience ?? ''}
-            onChange={(e) =>
-              setDraft({
-                ...draft,
-                maxRequiredExperience:
-                  e.target.value === '' ? undefined : Number(e.target.value),
-              })
-            }
-          />
+          <Grid size={{ xs: 6, md: 3 }}>
+            <TextField
+              label='Min salary'
+              placeholder='0'
+              slotProps={{
+                inputLabel: { shrink: true },
+              }}
+              value={draft.minSalary ?? ''}
+              onChange={(e) =>
+                setDraft({
+                  ...draft,
+                  minSalary:
+                    e.target.value === '' ? undefined : Number(e.target.value),
+                })
+              }
+              fullWidth
+            />
+          </Grid>
 
-          {/* Tags */}
-          <Autocomplete
-            multiple
-            id='tags-outlined'
-            options={allTags || []}
-            value={draft.tags ?? []}
-            getOptionLabel={(option) => option}
-            filterSelectedOptions
-            renderInput={(params) => <TextField {...params} label='Tags' />}
-            onChange={(_event, newValue) => {
-              setDraft({
-                ...draft,
-                tags: newValue.map((option) => option),
-              });
-            }}
-            sx={{
-              maxWidth: 230,
-              '& .MuiAutocomplete-tag': {
-                backgroundColor: 'primary.light',
-                color: 'primary.main',
-              },
-              // Target the delete/cancel icon
-              '& .MuiAutocomplete-tag .MuiChip-deleteIcon': {
-                color: 'primary.main',
-              },
-            }}
-            slotProps={{
-              paper: {
-                sx: {
-                  width: 'fit-content',
+          <Grid size={{ xs: 6, md: 3 }}>
+            <TextField
+              label='Max salary'
+              placeholder='5000'
+              slotProps={{
+                inputLabel: { shrink: true },
+              }}
+              value={draft.maxSalary ?? ''}
+              onChange={(e) =>
+                setDraft({
+                  ...draft,
+                  maxSalary:
+                    e.target.value === '' ? undefined : Number(e.target.value),
+                })
+              }
+              fullWidth
+            />
+          </Grid>
+        </Grid>
+
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 6 }}>
+            {/* Tags */}
+            <Autocomplete
+              multiple
+              id='tags-outlined'
+              options={allTags || []}
+              value={draft.tags ?? []}
+              getOptionLabel={(option) => option}
+              filterSelectedOptions
+              renderInput={(params) => <TextField {...params} label='Tags' />}
+              onChange={(_event, newValue) => {
+                setDraft({
+                  ...draft,
+                  tags: newValue.map((option) => option),
+                });
+              }}
+              sx={{
+                '& .MuiAutocomplete-tag': {
+                  backgroundColor: 'primary.light',
+                  color: 'primary.main',
                 },
-              },
-            }}
-          />
-        </Stack>
+                // Target the delete/cancel icon
+                '& .MuiAutocomplete-tag .MuiChip-deleteIcon': {
+                  color: 'primary.main',
+                },
+              }}
+              slotProps={{
+                paper: {
+                  sx: {
+                    width: 'fit-content',
+                  },
+                },
+              }}
+            />
+          </Grid>
+          <Grid size={{ xs: 6, md: 3 }}>
+            <TextField
+              label='Min experience (yrs)'
+              placeholder='0'
+              slotProps={{
+                inputLabel: { shrink: true },
+              }}
+              value={draft.minRequiredExperience ?? ''}
+              onChange={(e) =>
+                setDraft({
+                  ...draft,
+                  minRequiredExperience:
+                    e.target.value === '' ? undefined : Number(e.target.value),
+                })
+              }
+              fullWidth
+            />
+          </Grid>
+          <Grid size={{ xs: 6, md: 3 }}>
+            <TextField
+              label='Max experience (yrs)'
+              placeholder='10'
+              slotProps={{
+                inputLabel: { shrink: true },
+              }}
+              value={draft.maxRequiredExperience ?? ''}
+              onChange={(e) =>
+                setDraft({
+                  ...draft,
+                  maxRequiredExperience:
+                    e.target.value === '' ? undefined : Number(e.target.value),
+                })
+              }
+              fullWidth
+            />
+          </Grid>
+        </Grid>
 
-        <Stack direction='row' spacing={2}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           {/* Time Commitment */}
           <Autocomplete
             multiple
@@ -180,7 +200,7 @@ export const VacanciesFilters = () => {
             }}
             sx={{
               minWidth: 200,
-              maxWidth: 230,
+              maxWidth: { xs: '100%', md: 230 },
               '& .MuiAutocomplete-tag': {
                 backgroundColor: 'primary.light',
                 color: 'primary.main',

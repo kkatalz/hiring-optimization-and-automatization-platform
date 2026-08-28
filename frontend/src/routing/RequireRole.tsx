@@ -1,13 +1,7 @@
 import { Outlet } from 'react-router-dom';
-import { UserRole } from '../types';
+import { STAFF_ROLES } from '../types';
 import { useAppSelector } from '../app/hooks';
 import { Typography } from '@mui/material';
-
-const STAFF_ROLES: UserRole[] = [
-  UserRole.superAdmin,
-  UserRole.admin,
-  UserRole.recruiter,
-];
 
 export const RequireRole = () => {
   const role = useAppSelector((state) => state.auth.user?.role);

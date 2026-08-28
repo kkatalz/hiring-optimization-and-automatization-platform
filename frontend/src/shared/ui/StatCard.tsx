@@ -12,7 +12,7 @@ const StatCard = ({
   valueColor = 'text.primary',
 }: StatCardProps) => {
   return (
-    <Card sx={{ minWidth: 200 }}>
+    <Card sx={{ flex: 1, textAlign: 'center', minWidth: 200 }}>
       <CardContent>
         <Typography
           variant='h5'
@@ -21,9 +21,7 @@ const StatCard = ({
         >
           {value}
         </Typography>
-        <Typography sx={{ color: 'text.secondary', mb: 1.5 }}>
-          {label}
-        </Typography>
+        <Typography sx={{ color: 'text.secondary' }}>{label}</Typography>
       </CardContent>
     </Card>
   );

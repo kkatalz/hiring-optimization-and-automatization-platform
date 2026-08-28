@@ -1,4 +1,4 @@
-import { ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { ToggleButton, ToggleButtonGroup, useMediaQuery } from '@mui/material';
 import { VacancySubmissionStatus } from '@/types';
 
 const ALL = 'all';
@@ -9,6 +9,8 @@ type Props = {
 };
 
 const SubmissionStatusToggleButtons = ({ value, onChange }: Props) => {
+  const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
+
   const handleChange = (
     _event: React.MouseEvent<HTMLElement>,
     newValue: string | null,
@@ -27,7 +29,11 @@ const SubmissionStatusToggleButtons = ({ value, onChange }: Props) => {
       onChange={handleChange}
       aria-label='submission status'
       color='primary'
-      sx={{ '& .Mui-selected': { fontWeight: 'bold' } }}
+      size={isMobile ? 'small' : 'medium'}
+      sx={{
+        flexWrap: 'wrap',
+        '& .Mui-selected': { fontWeight: 'bold' },
+      }}
     >
       <ToggleButton value={ALL} aria-label='All statuses'>
         ALL

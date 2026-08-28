@@ -12,6 +12,7 @@ import Menu from '@mui/material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import MenuIcon from '@mui/icons-material/Menu';
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
@@ -60,8 +61,12 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
+interface AppTopBarProps {
+  onMobileMenuClick?: () => void;
+}
+
 // TODO: Implement the functionality. Now it is just a visual component.
-export default function AppTopBar() {
+export default function AppTopBar({ onMobileMenuClick }: AppTopBarProps) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
@@ -113,6 +118,7 @@ export default function AppTopBar() {
       keepMounted
       open={isMenuOpen}
       onClose={handleMenuClose}
+      disableScrollLock
     >
       {status === 'authenticated' && (
         <MenuItem onClick={handleMenuClose}>My account</MenuItem>
@@ -126,6 +132,18 @@ export default function AppTopBar() {
     <>
       <AppBar sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar>
+          {onMobileMenuClick && (
+            <IconButton
+              size='large'
+              edge='start'
+              color='inherit'
+              aria-label='open navigation menu'
+              onClick={onMobileMenuClick}
+              sx={{ display: { md: 'none' }, mr: 1 }}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
           <IconButton size='large' color='inherit'>
             <TravelExploreIcon />
           </IconButton>
@@ -137,7 +155,7 @@ export default function AppTopBar() {
           >
             Hiring Platform
           </Typography>
-          <Search>
+          <Search sx={{ width: { xs: '60%', sm: '40%' } }}>
             <SearchIconWrapper>
               <SearchIcon />
             </SearchIconWrapper>
@@ -147,7 +165,12 @@ export default function AppTopBar() {
             />
           </Search>
           <Box sx={{ flexGrow: 1 }} />
-          <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+            }}
+          >
             <IconButton size='large' color='inherit'>
               <Badge badgeContent={0} color='error'>
                 <NotificationsIcon />

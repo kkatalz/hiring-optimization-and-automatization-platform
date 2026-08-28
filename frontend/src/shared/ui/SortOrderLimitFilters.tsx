@@ -22,7 +22,11 @@ const SortOrderLimitFilters = ({
   onLimitChange,
 }: Props<string>) => {
   return (
-    <Stack direction='row' spacing={2}>
+    <Stack
+      direction={{ xs: 'column', sm: 'row' }}
+      spacing={2}
+      sx={{ width: { xs: '100%', sm: 'auto' } }}
+    >
       {/* Sorting */}
       <TextField
         id='sortby-select'
@@ -33,7 +37,7 @@ const SortOrderLimitFilters = ({
           const next = e.target.value;
           onSortByChange?.(next === '' ? undefined : next);
         }}
-        sx={{ minWidth: 150 }}
+        sx={{ minWidth: { xs: 0, sm: 150 } }}
       >
         {sortFields.map((option) => (
           <MenuItem key={option} value={option}>
@@ -53,7 +57,7 @@ const SortOrderLimitFilters = ({
           const next = e.target.value;
           onOrderChange?.(next === '' ? undefined : (next as SortOrder));
         }}
-        sx={{ minWidth: 150 }}
+        sx={{ minWidth: { xs: 0, sm: 150 } }}
       >
         {ORDER_FIELDS.map((option, index) => (
           <MenuItem key={index} value={option}>
@@ -71,7 +75,7 @@ const SortOrderLimitFilters = ({
             const next = e.target.value;
             onLimitChange?.(next === '' ? undefined : Number(next));
           }}
-          sx={{ maxWidth: 100 }}
+          sx={{ maxWidth: { xs: '100%', sm: 100 } }}
         />
       )}
     </Stack>

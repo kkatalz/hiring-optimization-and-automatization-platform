@@ -97,7 +97,7 @@ const ScreeningQuestionsFilter = ({
         </Stack>
       )}
 
-      <Stack direction='row' spacing={2}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
         <TextField
           select
           label='Question'

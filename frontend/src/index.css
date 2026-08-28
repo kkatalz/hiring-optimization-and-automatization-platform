@@ -2,3 +2,9 @@
    The Vite starter demo styles that used to live here were removed: they
    fought the theme (a 1126px #root with side borders -> the gray vertical
    lines, forced `color-scheme: light dark`, h1/h2 font overrides, etc.). */
+
+html {
+   /* Always reserve the scrollbar gutter, so a scrollbar appearing or
+     disappearing never changes the layout width. */
+   scrollbar-gutter: stable;
+}
