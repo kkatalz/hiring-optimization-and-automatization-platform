@@ -163,6 +163,26 @@ export const vacancyApi = baseApi.injectEndpoints({
         { type: 'Vacancy', id: 'LIST' },
       ],
     }),
+
+    findAllQuestionsByVacancyId: builder.query<
+      VacancyQuestionDetailed[],
+      string
+    >({
+      query: (vacancyId) => ({
+        url: `/vacancies/all-questions/${vacancyId}`,
+        method: 'GET',
+      }),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((question) => ({
+                type: 'Vacancy' as const,
+                id: question.questionId,
+              })),
+              { type: 'Vacancy', id: 'LIST' },
+            ]
+          : [{ type: 'Vacancy', id: 'LIST' }],
+    }),
   }),
 });
 
@@ -178,4 +198,5 @@ export const {
   useUpdateVacancyMutation,
   useDeleteVacancyMutation,
   useAddQuestionToVacancyMutation,
+  useFindAllQuestionsByVacancyIdQuery,
 } = vacancyApi;

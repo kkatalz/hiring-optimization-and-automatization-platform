@@ -21,6 +21,14 @@ export const questionEndpoints = baseApi.injectEndpoints({
           : [{ type: 'Question', id: 'LIST' }],
     }),
 
+    findQuestionById: builder.query<Question, { id: string }>({
+      query: ({ id }) => ({
+        url: `/questions/${id}`,
+        method: 'GET',
+      }),
+      providesTags: (_result, _error, { id }) => [{ type: 'Question', id }],
+    }),
+
     createQuestion: builder.mutation<
       Question,
       { tenantId?: string; body: CreateQuestionInput }
@@ -33,8 +41,23 @@ export const questionEndpoints = baseApi.injectEndpoints({
       }),
       invalidatesTags: [{ type: 'Question', id: 'LIST' }],
     }),
+
+    removeQuestion: builder.mutation<Question, { id: string }>({
+      query: ({ id }) => ({
+        url: `/questions/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Question', id },
+        { type: 'Question', id: 'LIST' },
+      ],
+    }),
   }),
 });
 
-export const { useFindAllQuestionsQuery, useCreateQuestionMutation } =
-  questionEndpoints;
+export const {
+  useFindAllQuestionsQuery,
+  useFindQuestionByIdQuery,
+  useCreateQuestionMutation,
+  useRemoveQuestionMutation,
+} = questionEndpoints;
