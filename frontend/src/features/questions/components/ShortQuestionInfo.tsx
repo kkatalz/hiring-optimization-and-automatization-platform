@@ -19,16 +19,15 @@ const ShortQuestionInfo = ({ question }: ShortQuestionInfoProps) => {
             }}
           />
         )}
-        {question.isRequired && (
-          <Chip
-            key={question.questionId + '-required'}
-            label={question.isRequired ? 'required' : 'optional'}
-            sx={{
-              backgroundColor: 'info.light',
-              color: 'info.main',
-            }}
-          />
-        )}
+        <Chip
+          key={question.questionId + '-required'}
+          label={question.isRequired ? 'required' : 'optional'}
+          sx={{
+            backgroundColor: 'info.light',
+            color: 'info.main',
+          }}
+        />
+
         {question.priority && (
           <Chip
             key={question.questionId + '-priority'}
