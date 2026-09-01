@@ -13,7 +13,7 @@ const ScreeningQuestionsView = () => {
     isError,
   } = useFindAllQuestionsByVacancyIdQuery(vacancyId);
 
-  const questionsCount = vacancyQuestions?.length;
+  const questionsCount = vacancyQuestions?.length ?? 0;
 
   return (
     <>
@@ -47,7 +47,7 @@ const ScreeningQuestionsView = () => {
           </Typography>
         </Stack>
 
-        <AddQuestionToVacancy />
+        <AddQuestionToVacancy vacancyId={vacancyId} />
       </Stack>
 
       <QuestionsList

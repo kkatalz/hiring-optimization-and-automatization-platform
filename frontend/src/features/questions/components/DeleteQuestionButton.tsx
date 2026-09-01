@@ -23,7 +23,7 @@ const DeleteQuestionButton = ({
       isLoading={isLoading}
       onNotify={onNotify}
       variant='icon'
-      sx={{ color: 'grey.50' }}
+      sx={{ color: 'text.disabled' }}
     />
   );
 };

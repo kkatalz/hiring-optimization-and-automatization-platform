@@ -19,9 +19,3 @@ export interface CreateQuestionInput {
   type: QuestionType;
   answerOptions?: string[];
 }
-
-export const EMPTY_QUESTION_FORM: CreateQuestionInput = {
-  label: '',
-  type: QuestionType.text,
-  answerOptions: [],
-};

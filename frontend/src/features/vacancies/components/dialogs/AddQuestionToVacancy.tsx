@@ -25,14 +25,11 @@ import {
 } from '@mui/material';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useState, type SubmitEvent } from 'react';
-import { useParams } from 'react-router-dom';
 
 /** Either an existing tenant question is reused, or a brand new one is created. */
 type QuestionSource = 'existingQuestion' | 'newQuestion';
 
-const AddQuestionToVacancy = () => {
-  const { vacancyId } = useParams();
-
+const AddQuestionToVacancy = ({ vacancyId }: { vacancyId: string }) => {
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down('md'));
 
   const [error, setError] = useState<string | null>(null);
@@ -107,7 +104,8 @@ const AddQuestionToVacancy = () => {
       normalizeExpectedValue(question);
 
     const validationError = validateVacancyQuestion(question);
-    if (validationError || !type) return setError(validationError);
+    if (validationError) return setError(validationError);
+    if (!type) return setError('Please select a question type.');
 
     try {
       const questionId =
