@@ -13,3 +13,9 @@ export interface QuestionAnswer {
   questionId: string;
   value?: string | string[];
 }
+
+export interface CreateQuestionInput {
+  label: string;
+  type: QuestionType;
+  answerOptions?: string[];
+}

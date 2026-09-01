@@ -1,11 +1,13 @@
 import { baseApi, PUBLIC_ENDPOINT } from '@/app/api/baseApi';
 import type {
   CreateVacancyInput,
+  CreateVacancyQuestionInput,
   GeneralVacancy,
   PaginatedResponse,
   UpdateVacancyInput,
   VacanciesFilters,
   Vacancy,
+  VacancyQuestion,
   VacancyQuestionDetailed,
 } from '@/types';
 
@@ -92,23 +94,6 @@ export const vacancyApi = baseApi.injectEndpoints({
           : [{ type: 'Vacancy', id: 'LIST' }],
     }),
 
-    getAllVacancyQuestions: builder.query<VacancyQuestionDetailed[], string>({
-      query: (vacancyId) => ({
-        url: `/vacancies/all-questions/${vacancyId}`,
-        method: 'GET',
-      }),
-      providesTags: (result) =>
-        result
-          ? [
-              ...result.map((question) => ({
-                type: 'Vacancy' as const,
-                id: question.questionId,
-              })),
-              { type: 'Vacancy', id: 'LIST' },
-            ]
-          : [{ type: 'Vacancy', id: 'LIST' }],
-    }),
-
     // VACANCY MUTATIONS
     createVacancy: builder.mutation<Vacancy, CreateVacancyInput>({
       query: (body) => ({
@@ -141,6 +126,53 @@ export const vacancyApi = baseApi.injectEndpoints({
         { type: 'Vacancy', id: 'LIST' },
       ],
     }),
+
+    // Extra endpoints for adding/removing questions to/from a vacancy
+    addQuestionToVacancy: builder.mutation<
+      VacancyQuestion,
+      {
+        vacancyId: string;
+        questionId: string;
+        body: CreateVacancyQuestionInput;
+      }
+    >({
+      query: ({ vacancyId, questionId, body }) => ({
+        url: `/vacancies/${vacancyId}/questions/${questionId}`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: (_result, _error, { vacancyId }) => [
+        { type: 'Vacancy', id: vacancyId },
+        { type: 'Vacancy', id: 'LIST' },
+      ],
+    }),
+
+    removeQuestionFromVacancy: builder.mutation<
+      VacancyQuestion,
+      { vacancyId: string; questionId: string }
+    >({
+      query: ({ vacancyId, questionId }) => ({
+        url: `/vacancies/${vacancyId}/questions/${questionId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _error, { vacancyId }) => [
+        { type: 'Vacancy', id: vacancyId },
+        { type: 'Vacancy', id: 'LIST' },
+      ],
+    }),
+
+    findAllQuestionsByVacancyId: builder.query<
+      VacancyQuestionDetailed[],
+      string
+    >({
+      query: (vacancyId) => ({
+        url: `/vacancies/all-questions/${vacancyId}`,
+        method: 'GET',
+      }),
+      providesTags: (_result, _error, vacancyId) => [
+        { type: 'Vacancy', id: vacancyId },
+      ],
+    }),
   }),
 });
 
@@ -151,8 +183,10 @@ export const {
   useBrowseVacanciesQuery,
   useGetAllVacanciesTagsQuery,
   useGetAllVacanciesLanguagesCodesQuery,
-  useGetAllVacancyQuestionsQuery,
   useCreateVacancyMutation,
   useUpdateVacancyMutation,
   useDeleteVacancyMutation,
+  useAddQuestionToVacancyMutation,
+  useRemoveQuestionFromVacancyMutation,
+  useFindAllQuestionsByVacancyIdQuery,
 } = vacancyApi;

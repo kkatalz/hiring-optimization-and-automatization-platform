@@ -4,7 +4,7 @@ import {
   type UpdateVacancyInput,
 } from '@/types';
 import {
-  useGetAllVacancyQuestionsQuery,
+  useFindAllQuestionsByVacancyIdQuery,
   useUpdateVacancyMutation,
 } from '@/features/vacancies/api/vacancyEndpoints';
 import { getErrorMessage } from '@/shared/lib/errorMessage';
@@ -34,7 +34,7 @@ const UpdateVacancyForm = ({ vacancyId, initialData }: Props) => {
     data: questions,
     isLoading,
     isError,
-  } = useGetAllVacancyQuestionsQuery(vacancyId, { skip: !open });
+  } = useFindAllQuestionsByVacancyIdQuery(vacancyId, { skip: !open });
 
   return (
     <>

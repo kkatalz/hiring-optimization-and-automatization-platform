@@ -35,3 +35,9 @@ export const VacancyQuestionDetailedToQuestionInput = (
   priority: q.priority,
   expectedValue: q.expectedValue,
 });
+
+export interface CreateVacancyQuestionInput {
+  isRequired: boolean;
+  priority?: number; // the backend defaults it to 1
+  expectedValue?: string | string[];
+}
