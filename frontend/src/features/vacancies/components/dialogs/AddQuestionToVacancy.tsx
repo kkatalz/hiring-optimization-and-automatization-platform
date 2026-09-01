@@ -10,7 +10,6 @@ import {
   normalizeExpectedValue,
   validateVacancyQuestion,
 } from '@/features/vacancies/model/vacancyQuestionForm';
-import { getErrorMessage } from '@/shared/lib/errorMessage';
 import type { Question, VacancyQuestionInput } from '@/types';
 import {
   Alert,
@@ -50,15 +49,11 @@ const AddQuestionToVacancy = ({ vacancyId }: { vacancyId: string }) => {
     open && vacancyId ? vacancyId : skipToken,
   );
 
-  const [
-    createQuestion,
-    { isLoading: isCreating, error: createQuestionError },
-  ] = useCreateQuestionMutation();
+  const [createQuestion, { isLoading: isCreating }] =
+    useCreateQuestionMutation();
 
-  const [
-    addQuestionToVacancy,
-    { isLoading: isAdding, error: addQuestionToVacancyError },
-  ] = useAddQuestionToVacancyMutation();
+  const [addQuestionToVacancy, { isLoading: isAdding }] =
+    useAddQuestionToVacancyMutation();
 
   const resetForm = () => {
     setExistingQuestion(null);
@@ -132,9 +127,7 @@ const AddQuestionToVacancy = ({ vacancyId }: { vacancyId: string }) => {
       const err = error as { data?: { error?: string; message?: string } };
 
       const backendError = err?.data?.error ?? 'Unknown Error';
-      const backendMessage =
-        err?.data?.message ??
-        getErrorMessage(createQuestionError ?? addQuestionToVacancyError);
+      const backendMessage = err?.data?.message;
 
       setError(
         `Failed to add question. Error: ${backendError}. Message: ${backendMessage}. Please try again.`,

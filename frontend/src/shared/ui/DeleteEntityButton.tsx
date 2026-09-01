@@ -17,6 +17,7 @@ import { capitalizeName } from '@/shared/lib/formatText';
 
 type DeleteEntityButtonProps = {
   entityLabel: string;
+  description?: string;
   onDelete: () => Promise<unknown>;
   isLoading: boolean;
   onNotify: (message: string, severity: 'success' | 'error') => void;
@@ -26,6 +27,7 @@ type DeleteEntityButtonProps = {
 
 const DeleteEntityButton = ({
   entityLabel,
+  description,
   onDelete,
   isLoading,
   onNotify,
@@ -94,10 +96,16 @@ const DeleteEntityButton = ({
           Delete {capitalizeName(entityLabel)}
         </DialogTitle>
         <DialogContent>
-          <DialogContentText id='delete-dialog-description'>
-            Are you sure you want to delete this {entityLabel}? This action
-            cannot be undone.
-          </DialogContentText>
+          {description ? (
+            <DialogContentText id='delete-dialog-description'>
+              {description}
+            </DialogContentText>
+          ) : (
+            <DialogContentText id='delete-dialog-description'>
+              Are you sure you want to delete this {entityLabel}? This action
+              cannot be undone.
+            </DialogContentText>
+          )}
         </DialogContent>
         <DialogActions>
           <Button
