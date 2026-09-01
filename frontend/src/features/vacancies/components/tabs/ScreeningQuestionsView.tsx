@@ -26,9 +26,15 @@ const ScreeningQuestionsView = () => {
       >
         <Stack
           divider={<span>·</span>}
-          direction='row'
-          spacing={1}
-          sx={{ alignItems: 'center', color: 'text.secondary' }}
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={{ xs: 0, sm: 1 }}
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'text.secondary',
+            textAlign: 'center',
+            paddingBottom: { xs: 1, lg: 0 },
+          }}
         >
           <Typography variant='subtitle1'>
             {questionsCount} questions

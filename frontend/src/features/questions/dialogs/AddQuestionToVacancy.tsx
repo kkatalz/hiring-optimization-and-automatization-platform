@@ -230,7 +230,14 @@ const AddQuestionToVacancy = () => {
           </DialogActions>
         </form>
       </Dialog>
-      <Button variant='contained' onClick={() => setOpen(true)}>
+      <Button
+        variant='contained'
+        onClick={() => setOpen(true)}
+        sx={{
+          width: { xs: '100%', md: 'auto' },
+          margin: { xs: '0 auto', lg: 0 },
+        }}
+      >
         + Add Question
       </Button>
     </>
