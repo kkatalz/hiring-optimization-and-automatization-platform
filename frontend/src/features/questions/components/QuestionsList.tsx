@@ -3,7 +3,6 @@ import type { Notification, VacancyQuestionDetailed } from '@/types';
 import { Alert, List } from '@mui/material';
 import NotificationAlert from '@/shared/ui/NotificationAlert';
 import QuestionCard from '@/features/questions/components/QuestionCard';
-import omit from 'lodash/omit';
 
 interface QuestionsListProps {
   vacancyQuestions: VacancyQuestionDetailed[] | undefined;
@@ -17,10 +16,6 @@ const QuestionsList = ({
   isError,
 }: QuestionsListProps) => {
   const [notification, setNotification] = useState<Notification | null>(null);
-
-  const questionsWithoutVacancyId = vacancyQuestions?.map((q) =>
-    omit(q, 'vacancyId'),
-  );
 
   if (isLoading) return <div>Loading...</div>;
   if (isError)
@@ -46,7 +41,7 @@ const QuestionsList = ({
         onClose={() => setNotification(null)}
       />
 
-      {questionsWithoutVacancyId?.map((questionInfo) => (
+      {vacancyQuestions?.map((questionInfo) => (
         <QuestionCard
           key={questionInfo.questionId}
           questionInfo={questionInfo}

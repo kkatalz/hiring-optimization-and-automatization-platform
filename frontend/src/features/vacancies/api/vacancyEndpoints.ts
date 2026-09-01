@@ -169,16 +169,9 @@ export const vacancyApi = baseApi.injectEndpoints({
         url: `/vacancies/all-questions/${vacancyId}`,
         method: 'GET',
       }),
-      providesTags: (result) =>
-        result
-          ? [
-              ...result.map((question) => ({
-                type: 'Vacancy' as const,
-                id: question.questionId,
-              })),
-              { type: 'Vacancy', id: 'LIST' },
-            ]
-          : [{ type: 'Vacancy', id: 'LIST' }],
+      providesTags: (_result, _error, vacancyId) => [
+        { type: 'Vacancy', id: vacancyId },
+      ],
     }),
   }),
 });

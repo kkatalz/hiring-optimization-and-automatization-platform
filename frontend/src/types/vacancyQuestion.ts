@@ -14,8 +14,6 @@ export interface VacancyQuestionDetailed extends VacancyQuestion {
   answerOptions?: string[] | null;
 }
 
-export type QuestionCardInfo = Omit<VacancyQuestionDetailed, 'vacancyId'>;
-
 export interface VacancyQuestionInput {
   questionId?: string; // present for existing questions, omitted for newly added ones
   label: string;

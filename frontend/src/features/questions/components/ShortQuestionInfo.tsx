@@ -1,8 +1,8 @@
-import type { QuestionCardInfo } from '@/types';
+import type { VacancyQuestionDetailed } from '@/types';
 import { Chip, Stack, Typography } from '@mui/material';
 
 interface ShortQuestionInfoProps {
-  question: QuestionCardInfo;
+  question: VacancyQuestionDetailed;
 }
 
 const ShortQuestionInfo = ({ question }: ShortQuestionInfoProps) => {

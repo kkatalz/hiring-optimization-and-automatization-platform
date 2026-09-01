@@ -1,10 +1,10 @@
 import ShortQuestionInfo from '@/features/questions/components/ShortQuestionInfo';
 import DeleteQuestionButton from '@/features/questions/components/DeleteQuestionButton';
-import type { QuestionCardInfo } from '@/types';
+import type { VacancyQuestionDetailed } from '@/types';
 import { Card, CardContent, ListItem, Stack, Typography } from '@mui/material';
 
 interface QuestionCardProps {
-  questionInfo: QuestionCardInfo;
+  questionInfo: VacancyQuestionDetailed;
   onNotify: (message: string, severity: 'success' | 'error') => void;
 }
 
@@ -28,6 +28,7 @@ const QuestionCard = ({ questionInfo, onNotify }: QuestionCardProps) => {
               <ShortQuestionInfo question={questionInfo} />
             </Stack>
             <DeleteQuestionButton
+              vacancyId={questionInfo.vacancyId}
               questionId={questionInfo.questionId}
               onNotify={onNotify}
             />
