@@ -8,6 +8,16 @@ import type {
 export const vacancySubmissionApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // SUBMISSION QUERIES
+    findSubmissionById: builder.query<VacancySubmission, string>({
+      query: (submissionId) => ({
+        url: `/vacanciesSubmissions/${submissionId}`,
+        method: 'GET',
+      }),
+      providesTags: (_result, _error, submissionId) => [
+        { type: 'Submission', id: submissionId },
+      ],
+    }),
+
     getSubmissionsByVacancyId: builder.query<
       VacancySubmission[],
       {
@@ -92,6 +102,7 @@ export const vacancySubmissionApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useFindSubmissionByIdQuery,
   useGetSubmissionsByVacancyIdQuery,
   useGetAllSubmissionsCitiesByVacancyIdQuery,
   useGetAllSubmissionsCountriesByVacancyIdQuery,

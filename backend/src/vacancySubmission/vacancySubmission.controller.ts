@@ -41,6 +41,22 @@ export class VacancySubmissionController {
   ) {}
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
+  @Get(':submissionId')
+  async findOneById(
+    @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
+    @AuthUser() requester: UserDto,
+  ): Promise<VacancySubmissionDto> {
+    const submissionTenantId =
+      await this.vacancySubmissionService.getTenantIdBySubmissionId(
+        submissionId,
+      );
+
+    validateTenantAccess(requester, submissionTenantId);
+
+    return await this.vacancySubmissionService.findSubmissionById(submissionId);
+  }
+
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Post(':submissionId/approve')
   async approveVacancySubmission(
     @Param('submissionId', new ParseUUIDPipe()) submissionId: string,

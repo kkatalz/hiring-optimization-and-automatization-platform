@@ -31,12 +31,15 @@ import {
 import CandidateInfo from '@/features/vacancySubmissions/components/CandidateInfo';
 import NotificationAlert from '@/shared/ui/NotificationAlert';
 import { CustomTablePagination } from './SubmissionTablePagination';
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
   submissions?: VacancySubmission[];
 }
 
 export const VacancySubmissionsTable = ({ submissions }: Props) => {
+  const navigate = useNavigate();
+
   const [notification, setNotification] = useState<Notification | null>(null);
 
   const [approveSubmission] = useApproveSubmissionMutation();
@@ -95,6 +98,13 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
         severity: 'error',
       });
     }
+  };
+
+  const handleShowSubmissionDetail = (
+    vacancyId: string,
+    submissionId: string,
+  ) => {
+    navigate(`/vacancies/${vacancyId}/vacancy-submissions/${submissionId}`);
   };
 
   return (
@@ -283,7 +293,10 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
                   variant='text'
                   color='success'
                   size='small'
-                  onClick={() => handleApprove(submission.id)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleApprove(submission.id);
+                  }}
                 >
                   Approve
                 </Button>
@@ -294,7 +307,10 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
                   variant='text'
                   color='error'
                   size='small'
-                  onClick={() => handleReject(submission.id)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleReject(submission.id);
+                  }}
                 >
                   Reject
                 </Button>
@@ -305,6 +321,12 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
                   variant='text'
                   size='small'
                   sx={{ color: 'info.contrastText' }}
+                  onClick={() =>
+                    handleShowSubmissionDetail(
+                      submission.vacancyId,
+                      submission.id,
+                    )
+                  }
                 >
                   View
                 </Button>

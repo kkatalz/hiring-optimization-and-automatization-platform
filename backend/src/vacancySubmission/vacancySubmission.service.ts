@@ -78,12 +78,30 @@ export class VacancySubmissionService {
     private dataSource: DataSource,
   ) {}
 
+  async findSubmissionById(
+    submissionId: string,
+  ): Promise<VacancySubmissionDto> {
+    const submission = await this.vacancySubmissionRepository.findOne({
+      where: { id: submissionId },
+      relations: ['answers', 'candidateProfile', 'candidateProfile.user'],
+    });
+
+    if (!submission) {
+      throw new HttpException(
+        `Vacancy submission with id ${submissionId} not found`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return vacancySubmToVacancySubmDto(submission);
+  }
+
   async findSubmissionsWithAnswersByVacancyId(
     vacancyId: string,
   ): Promise<VacancySubmission[]> {
     const submissions = await this.vacancySubmissionRepository.find({
       where: { vacancyId },
-      relations: ['answers', 'candidateProfile'],
+      relations: ['answers', 'candidateProfile', 'candidateProfile.user'],
     });
 
     return submissions;
