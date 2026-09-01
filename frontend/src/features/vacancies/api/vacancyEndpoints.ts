@@ -94,23 +94,6 @@ export const vacancyApi = baseApi.injectEndpoints({
           : [{ type: 'Vacancy', id: 'LIST' }],
     }),
 
-    getAllVacancyQuestions: builder.query<VacancyQuestionDetailed[], string>({
-      query: (vacancyId) => ({
-        url: `/vacancies/all-questions/${vacancyId}`,
-        method: 'GET',
-      }),
-      providesTags: (result) =>
-        result
-          ? [
-              ...result.map((question) => ({
-                type: 'Vacancy' as const,
-                id: question.questionId,
-              })),
-              { type: 'Vacancy', id: 'LIST' },
-            ]
-          : [{ type: 'Vacancy', id: 'LIST' }],
-    }),
-
     // VACANCY MUTATIONS
     createVacancy: builder.mutation<Vacancy, CreateVacancyInput>({
       query: (body) => ({
@@ -207,7 +190,6 @@ export const {
   useBrowseVacanciesQuery,
   useGetAllVacanciesTagsQuery,
   useGetAllVacanciesLanguagesCodesQuery,
-  useGetAllVacancyQuestionsQuery,
   useCreateVacancyMutation,
   useUpdateVacancyMutation,
   useDeleteVacancyMutation,

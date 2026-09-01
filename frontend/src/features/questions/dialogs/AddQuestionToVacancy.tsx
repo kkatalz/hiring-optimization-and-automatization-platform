@@ -2,7 +2,7 @@ import { useCreateQuestionMutation } from '@/features/questions/api/questionEndp
 import QuestionPicker from '@/features/questions/components/QuestionPicker';
 import {
   useAddQuestionToVacancyMutation,
-  useGetAllVacancyQuestionsQuery,
+  useFindAllQuestionsByVacancyIdQuery,
 } from '@/features/vacancies/api/vacancyEndpoints';
 import VacancyQuestionFields from '@/features/vacancies/components/form/VacancyQuestionFields';
 import {
@@ -49,7 +49,7 @@ const AddQuestionToVacancy = () => {
     EMPTY_VACANCY_QUESTION,
   );
 
-  const { data: vacancyQuestions = [] } = useGetAllVacancyQuestionsQuery(
+  const { data: vacancyQuestions = [] } = useFindAllQuestionsByVacancyIdQuery(
     open && vacancyId ? vacancyId : skipToken,
   );
 
