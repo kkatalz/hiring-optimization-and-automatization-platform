@@ -7,9 +7,10 @@ const random = Math.random();
 
 interface Props {
   candidateProfile: CandidateProfile;
+  globalDirection: 'row' | 'column';
 }
 
-const CandidateInfo = ({ candidateProfile }: Props) => {
+const CandidateInfo = ({ candidateProfile, globalDirection }: Props) => {
   const chipColors = useChipColors();
 
   const fullName = capitalizeName(
@@ -29,7 +30,11 @@ const CandidateInfo = ({ candidateProfile }: Props) => {
 
   return (
     <>
-      <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+      <Stack
+        direction={globalDirection}
+        spacing={1}
+        sx={{ alignItems: 'center' }}
+      >
         <Chip
           label={fullNameAbreviated}
           color={randomChipColor}

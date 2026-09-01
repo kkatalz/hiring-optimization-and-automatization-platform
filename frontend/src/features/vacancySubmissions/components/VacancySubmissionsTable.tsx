@@ -28,7 +28,7 @@ import {
   progressBarColorBasedOnScore,
   themeColorsBasedOnScore,
 } from '@/shared/lib/muiColors';
-import CandidateInfo from '@/features/candidateProfile/components/CandidateInfo';
+import CandidateInfo from '@/features/vacancySubmissions/components/CandidateInfo';
 import NotificationAlert from '@/shared/ui/NotificationAlert';
 import { CustomTablePagination } from './SubmissionTablePagination';
 
@@ -148,6 +148,7 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
                 {submission.candidateProfile && (
                   <CandidateInfo
                     candidateProfile={submission.candidateProfile}
+                    globalDirection='row'
                   />
                 )}
               </TableCell>
