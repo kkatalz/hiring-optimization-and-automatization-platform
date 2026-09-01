@@ -1,5 +1,5 @@
 import QuestionsList from '@/features/questions/components/QuestionsList';
-import AddQuestionToVacancy from '@/features/questions/dialogs/AddQuestionToVacancy';
+import AddQuestionToVacancy from '@/features/vacancies/components/dialogs/AddQuestionToVacancy';
 import { Stack, Typography } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { useFindAllQuestionsByVacancyIdQuery } from '@/features/vacancies/api/vacancyEndpoints';
