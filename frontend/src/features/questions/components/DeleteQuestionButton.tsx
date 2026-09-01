@@ -1,5 +1,6 @@
-import { useRemoveQuestionMutation } from '@/features/questions/api/questionEndpoints';
+import { useRemoveQuestionFromVacancyMutation } from '@/features/vacancies/api/vacancyEndpoints';
 import DeleteEntityButton from '@/shared/ui/DeleteEntityButton';
+import { useParams } from 'react-router-dom';
 
 type DeleteQuestionButtonProps = {
   questionId: string;
@@ -10,12 +11,15 @@ const DeleteQuestionButton = ({
   questionId,
   onNotify,
 }: DeleteQuestionButtonProps) => {
-  const [removeQuestion, { isLoading }] = useRemoveQuestionMutation();
+  const vacancyId = useParams().vacancyId as string;
+
+  const [removeQuestion, { isLoading }] =
+    useRemoveQuestionFromVacancyMutation();
 
   return (
     <DeleteEntityButton
-      entityLabel='question'
-      onDelete={() => removeQuestion({ id: questionId }).unwrap()}
+      entityLabel='question from vacancy'
+      onDelete={() => removeQuestion({ vacancyId, questionId }).unwrap()}
       isLoading={isLoading}
       onNotify={onNotify}
       variant='icon'

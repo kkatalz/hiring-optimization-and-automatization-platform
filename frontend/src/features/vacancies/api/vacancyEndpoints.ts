@@ -164,6 +164,20 @@ export const vacancyApi = baseApi.injectEndpoints({
       ],
     }),
 
+    removeQuestionFromVacancy: builder.mutation<
+      VacancyQuestion,
+      { vacancyId: string; questionId: string }
+    >({
+      query: ({ vacancyId, questionId }) => ({
+        url: `/vacancies/${vacancyId}/questions/${questionId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _error, { vacancyId }) => [
+        { type: 'Vacancy', id: vacancyId },
+        { type: 'Vacancy', id: 'LIST' },
+      ],
+    }),
+
     findAllQuestionsByVacancyId: builder.query<
       VacancyQuestionDetailed[],
       string
@@ -198,5 +212,6 @@ export const {
   useUpdateVacancyMutation,
   useDeleteVacancyMutation,
   useAddQuestionToVacancyMutation,
+  useRemoveQuestionFromVacancyMutation,
   useFindAllQuestionsByVacancyIdQuery,
 } = vacancyApi;
