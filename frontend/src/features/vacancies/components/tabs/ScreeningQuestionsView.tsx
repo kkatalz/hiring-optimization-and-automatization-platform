@@ -1,4 +1,4 @@
-import QuestionsList from '@/features/questions/components/QuestionsList';
+import QuestionsList from '@/features/vacancies/components/QuestionsList';
 import AddQuestionToVacancy from '@/features/vacancies/components/dialogs/AddQuestionToVacancy';
 import { Stack, Typography } from '@mui/material';
 import { useParams } from 'react-router-dom';
@@ -37,7 +37,7 @@ const ScreeningQuestionsView = () => {
           }}
         >
           <Typography variant='subtitle1'>
-            {questionsCount} questions
+            {questionsCount} {questionsCount === 1 ? 'question' : 'questions'}
           </Typography>
           <Typography variant='subtitle1'>
             shown to candidates when they apply

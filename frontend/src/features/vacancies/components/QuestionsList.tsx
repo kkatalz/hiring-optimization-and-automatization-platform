@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Notification, VacancyQuestionDetailed } from '@/types';
 import { Alert, List } from '@mui/material';
 import NotificationAlert from '@/shared/ui/NotificationAlert';
-import QuestionCard from '@/features/questions/components/QuestionCard';
+import QuestionCard from '@/features/vacancies/components/QuestionCard';
 
 interface QuestionsListProps {
   vacancyQuestions: VacancyQuestionDetailed[] | undefined;

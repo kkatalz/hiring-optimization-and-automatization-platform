@@ -1,5 +1,5 @@
-import ShortQuestionInfo from '@/features/questions/components/ShortQuestionInfo';
-import DeleteQuestionButton from '@/features/questions/components/DeleteQuestionButton';
+import ShortQuestionInfo from '@/features/vacancies/components/ShortQuestionInfo';
+import DeleteQuestionButton from '@/features/vacancies/components/dialogs/DeleteQuestionButton';
 import type { VacancyQuestionDetailed } from '@/types';
 import { Card, CardContent, ListItem, Stack, Typography } from '@mui/material';
 

@@ -17,7 +17,8 @@ const DeleteQuestionButton = ({
 
   return (
     <DeleteEntityButton
-      entityLabel='question from vacancy'
+      entityLabel='question'
+      description='Remove this question from the vacancy? The question itself stays in your question library. '
       onDelete={() => removeQuestion({ vacancyId, questionId }).unwrap()}
       isLoading={isLoading}
       onNotify={onNotify}
