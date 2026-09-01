@@ -1,4 +1,4 @@
-import { Chip, Stack, Typography, type ChipProps } from '@mui/material';
+import { Avatar, Chip, Stack, Typography, type ChipProps } from '@mui/material';
 import type { CandidateProfile } from '@/types';
 import { capitalizeName } from '@/shared/lib/formatText';
 import { useChipColors } from '@/shared/lib/muiColors';
@@ -8,9 +8,14 @@ const random = Math.random();
 interface Props {
   candidateProfile: CandidateProfile;
   globalDirection: 'row' | 'column';
+  showChipOrAvatar: 'chip' | 'avatar';
 }
 
-const CandidateInfo = ({ candidateProfile, globalDirection }: Props) => {
+const CandidateInfo = ({
+  candidateProfile,
+  globalDirection,
+  showChipOrAvatar,
+}: Props) => {
   const chipColors = useChipColors();
 
   const fullName = capitalizeName(
@@ -28,6 +33,8 @@ const CandidateInfo = ({ candidateProfile, globalDirection }: Props) => {
   const randomChipColor: ChipProps['color'] =
     chipColors[Math.floor(random * chipColors.length)];
 
+  const alignTextItems = globalDirection === 'row' ? 'flex-start' : 'center';
+
   return (
     <>
       <Stack
@@ -35,16 +42,29 @@ const CandidateInfo = ({ candidateProfile, globalDirection }: Props) => {
         spacing={1}
         sx={{ alignItems: 'center' }}
       >
-        <Chip
-          label={fullNameAbreviated}
-          color={randomChipColor}
-          sx={{ color: 'text.primary' }}
-        />
+        {showChipOrAvatar === 'avatar' ? (
+          <Avatar
+            sx={{
+              width: 70,
+              height: 70,
+              bgcolor: 'info.dark',
+              fontWeight: 'bold',
+            }}
+          >
+            {fullNameAbreviated}
+          </Avatar>
+        ) : (
+          <Chip
+            label={fullNameAbreviated}
+            color={randomChipColor}
+            sx={{ color: 'text.primary' }}
+          />
+        )}
 
-        <Stack direction='column'>
+        <Stack direction='column' sx={{ alignItems: alignTextItems }}>
           <Typography variant='subtitle2'>{fullName}</Typography>
           <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-            {livingPlace} · {experience}
+            {livingPlace} · {experience} experience
           </Typography>
         </Stack>
       </Stack>

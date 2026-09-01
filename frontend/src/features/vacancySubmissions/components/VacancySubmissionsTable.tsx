@@ -159,6 +159,7 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
                   <CandidateInfo
                     candidateProfile={submission.candidateProfile}
                     globalDirection='row'
+                    showChipOrAvatar='chip'
                   />
                 )}
               </TableCell>
