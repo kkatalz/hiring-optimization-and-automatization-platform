@@ -32,6 +32,23 @@ export const progressBarColorBasedOnScore = (
 
   return { bgColor };
 };
+
+export const aiDetectionBarColorBasedOnScore = (
+  score: number,
+  baseThemePalette: Palette,
+): { bgColor: string } => {
+  const isLow = score <= 30;
+  const isMedium = score <= 70;
+
+  const bgColor = isLow
+    ? baseThemePalette.primary.main
+    : isMedium
+      ? baseThemePalette.info.main
+      : baseThemePalette.secondary.main;
+
+  return { bgColor };
+};
+
 /** Used for Resume AI score (Chip) */
 export const themeColorsBasedOnScore = (
   score: number,

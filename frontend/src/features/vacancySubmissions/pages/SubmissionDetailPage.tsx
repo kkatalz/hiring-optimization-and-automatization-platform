@@ -22,6 +22,7 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ApplicationStatusChip from '@/features/vacancySubmissions/components/details/ApplicationStatusChip';
 import SubmissionScoresCard from '@/features/vacancySubmissions/components/details/SubmissionScoresCard';
+import AiDetectionCard from '@/features/vacancySubmissions/components/details/AiDetectionCard';
 
 const SubmissionDetailPage = () => {
   const { vacancyId, submissionId } = useParams();
@@ -106,39 +107,43 @@ const SubmissionDetailPage = () => {
           </Stack>
         </Grid>
         <Grid size={8}>
-          <Card>
-            <CardContent
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 3,
-              }}
-            >
-              <Stack
-                direction='row'
+          <Stack spacing={2}>
+            <Card>
+              <CardContent
                 sx={{
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingX: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 3,
                 }}
               >
-                <Typography variant='h6'>Application status</Typography>
-                <ApplicationStatusChip submissionStatus={submission.status} />
-              </Stack>
+                <Stack
+                  direction='row'
+                  sx={{
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingX: 1,
+                  }}
+                >
+                  <Typography variant='h6'>Application status</Typography>
+                  <ApplicationStatusChip submissionStatus={submission.status} />
+                </Stack>
+                <ApplicationStatusWorkflow
+                  submissionStatus={submission.status}
+                />
+                <SubmissionDecisionButtons
+                  submissionId={submission.id}
+                  submissionStatus={submission.status}
+                  onNotify={(message, severity) =>
+                    setNotification({ message, severity })
+                  }
+                  variant='outlined'
+                  size='medium'
+                />
+              </CardContent>
+            </Card>
 
-              <ApplicationStatusWorkflow submissionStatus={submission.status} />
-
-              <SubmissionDecisionButtons
-                submissionId={submission.id}
-                submissionStatus={submission.status}
-                onNotify={(message, severity) =>
-                  setNotification({ message, severity })
-                }
-                variant='outlined'
-                size='medium'
-              />
-            </CardContent>
-          </Card>
+            <AiDetectionCard submission={submission}/>
+          </Stack>
         </Grid>
       </Grid>
     </>

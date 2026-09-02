@@ -1,5 +1,4 @@
-import CircleIcon from '@mui/icons-material/Circle';
-import { Button, Chip, TableFooter } from '@mui/material';
+import { Button, TableFooter } from '@mui/material';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -10,7 +9,6 @@ import TableRow from '@mui/material/TableRow';
 import { useState } from 'react';
 import type { Notification, VacancySubmission } from '@/types';
 import { formatDate } from '@/shared/lib/formatDate';
-import { themeColorsBasedOnScore } from '@/shared/lib/muiColors';
 import CandidateInfo from '@/features/vacancySubmissions/components/CandidateInfo';
 import SubmissionDecisionButtons from '@/features/vacancySubmissions/components/details/SubmissionDecisionButtons';
 import NotificationAlert from '@/shared/ui/NotificationAlert';
@@ -21,6 +19,7 @@ import ClusterChip from '@/features/vacancySubmissions/components/details/Cluste
 import ExpectedSalary from '@/features/vacancySubmissions/components/details/ExpectedSalary';
 import MatchScoreBar from '@/features/vacancySubmissions/components/details/MatchScoreBar';
 import RecruiterRating from '@/features/vacancySubmissions/components/details/RecruiterRating';
+import PercentageChip from '@/features/vacancySubmissions/components/details/PercentageChip';
 
 interface Props {
   submissions?: VacancySubmission[];
@@ -131,31 +130,7 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
               </TableCell>
 
               <TableCell align='center'>
-                {submission.resumeAiScore != null ? (
-                  <Chip
-                    icon={<CircleIcon />}
-                    label={`${submission.resumeAiScore}% AI`}
-                    sx={(theme) => {
-                      const { bgColor, textColor } = themeColorsBasedOnScore(
-                        submission.resumeAiScore!,
-                        theme.palette,
-                      );
-
-                      return {
-                        backgroundColor: bgColor,
-                        color: textColor,
-                        padding: '2px',
-                        // Target the Chip icon slot directly for contrast
-                        '& .MuiChip-icon': {
-                          color: textColor, // Matches text for clear contrast against light background
-                          fontSize: 'medium',
-                        },
-                      };
-                    }}
-                  />
-                ) : (
-                  <Chip label='No resume' />
-                )}
+                <PercentageChip score={submission.resumeAiScore} label='AI' />
               </TableCell>
 
               <TableCell align='center'>
