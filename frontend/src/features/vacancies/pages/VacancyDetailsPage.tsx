@@ -6,8 +6,9 @@ import type { Notification } from '@/types';
 import { useGetVacancyByIdQuery } from '@/features/vacancies/api/vacancyEndpoints';
 import { useGetSubmissionsByVacancyIdQuery } from '@/features/vacancySubmissions/api/vacancySubmissionEndpoints';
 import { getErrorMessage } from '@/shared/lib/errorMessage';
+import { capitalizeName } from '@/shared/lib/formatText';
+import AppBreadcrumbs from '@/shared/ui/AppBreadcrumbs';
 import NotificationAlert from '../../../shared/ui/NotificationAlert';
-import VacancyDetailsBreadcrumbs from '../components/details/VacancyDetailsBreadcrumbs';
 import VacancyDetailsHeader from '../components/details/VacancyDetailsHeader';
 import VacancySubmissionsStats from '../components/details/VacancySubmissionsStats';
 import { VacancyTabs } from '../components/tabs/VacancyTabs';
@@ -39,7 +40,12 @@ const VacancyDetailsPage = () => {
 
   return (
     <>
-      <VacancyDetailsBreadcrumbs vacancyName={vacancy.name} />
+      <AppBreadcrumbs
+        items={[
+          { label: 'Vacancies', to: '/vacancies' },
+          { label: capitalizeName(vacancy.name) },
+        ]}
+      />
 
       <VacancyDetailsHeader
         vacancy={vacancy}

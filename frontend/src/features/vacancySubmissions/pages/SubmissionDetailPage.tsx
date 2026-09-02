@@ -1,18 +1,24 @@
+import { useGetVacancyByIdQuery } from '@/features/vacancies/api/vacancyEndpoints';
 import { useFindSubmissionByIdQuery } from '@/features/vacancySubmissions/api/vacancySubmissionEndpoints';
 import { ApplicationStatusWorkflow } from '@/features/vacancySubmissions/components/ApplicationStatusWorkflow';
 import CandidateInfo from '@/features/vacancySubmissions/components/CandidateInfo';
+import { capitalizeName } from '@/shared/lib/formatText';
+import AppBreadcrumbs from '@/shared/ui/AppBreadcrumbs';
 import LanguagesChips from '@/shared/ui/LanguagesChips';
+import { skipToken } from '@reduxjs/toolkit/query';
 import { Alert, Card, CardContent, Grid } from '@mui/material';
 import { useParams } from 'react-router-dom';
 
 const SubmissionDetailPage = () => {
-  const submissionId = useParams().submissionId as string;
+  const { vacancyId, submissionId } = useParams();
 
   const {
     data: submission,
     isLoading,
     isError,
-  } = useFindSubmissionByIdQuery(submissionId);
+  } = useFindSubmissionByIdQuery(submissionId ?? skipToken);
+
+  const { data: vacancy } = useGetVacancyByIdQuery(vacancyId ?? skipToken);
 
   const candidateProfile = submission?.candidateProfile;
 
@@ -27,6 +33,21 @@ const SubmissionDetailPage = () => {
 
   return (
     <>
+      <AppBreadcrumbs
+        items={[
+          { label: 'Vacancies', to: '/vacancies' },
+          {
+            label: vacancy ? capitalizeName(vacancy.name) : 'Vacancy',
+            to: `/vacancies/${submission.vacancyId}/candidates`,
+          },
+          {
+            label: capitalizeName(
+              `${candidateProfile.firstName} ${candidateProfile.lastName}`,
+            ),
+          },
+        ]}
+      />
+
       <Grid container spacing={2}>
         <Grid size={4}>
           <Card>
