@@ -1,3 +1,4 @@
+import ScheduleInterviewDialog from '@/features/interviews/components/ScheduleInterviewDialog';
 import { useGetVacancyByIdQuery } from '@/features/vacancies/api/vacancyEndpoints';
 import { useFindSubmissionByIdQuery } from '@/features/vacancySubmissions/api/vacancySubmissionEndpoints';
 import { ApplicationStatusWorkflow } from '@/features/vacancySubmissions/components/details/ApplicationStatusWorkflow';
@@ -87,6 +88,13 @@ const SubmissionDetailPage = () => {
                     showChipOrAvatar={'avatar'}
                   />
                   <LanguagesChips languages={candidateProfile.languages} />
+
+                  <ScheduleInterviewDialog
+                    submissionId={submission.id}
+                    onNotify={(message, severity) =>
+                      setNotification({ message, severity })
+                    }
+                  />
                 </>
               )}
             </CardContent>
