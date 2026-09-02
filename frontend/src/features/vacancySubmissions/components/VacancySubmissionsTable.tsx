@@ -17,10 +17,6 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { useState } from 'react';
 import type { Notification, VacancySubmission } from '@/types';
-import {
-  useApproveSubmissionMutation,
-  useRejectSubmissionMutation,
-} from '@/features/vacancySubmissions/api/vacancySubmissionEndpoints';
 import { formatDate } from '@/shared/lib/formatDate';
 import { capitalizeName } from '@/shared/lib/formatText';
 import {
@@ -29,6 +25,7 @@ import {
   themeColorsBasedOnScore,
 } from '@/shared/lib/muiColors';
 import CandidateInfo from '@/features/vacancySubmissions/components/CandidateInfo';
+import SubmissionDecisionButtons from '@/features/vacancySubmissions/components/SubmissionDecisionButtons';
 import NotificationAlert from '@/shared/ui/NotificationAlert';
 import { CustomTablePagination } from './SubmissionTablePagination';
 import { useNavigate } from 'react-router-dom';
@@ -41,9 +38,6 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
   const navigate = useNavigate();
 
   const [notification, setNotification] = useState<Notification | null>(null);
-
-  const [approveSubmission] = useApproveSubmissionMutation();
-  const [rejectSubmission] = useRejectSubmissionMutation();
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -66,38 +60,6 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
   ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
-  };
-
-  const handleApprove = async (submissionId: string) => {
-    try {
-      await approveSubmission(submissionId).unwrap();
-      setNotification({
-        message: 'Submission approved successfully.',
-        severity: 'success',
-      });
-    } catch (error) {
-      console.error('Error approving submission:', error);
-      setNotification({
-        message: 'Failed to approve submission.',
-        severity: 'error',
-      });
-    }
-  };
-
-  const handleReject = async (submissionId: string) => {
-    try {
-      await rejectSubmission(submissionId).unwrap();
-      setNotification({
-        message: 'Submission rejected successfully.',
-        severity: 'success',
-      });
-    } catch (error) {
-      console.error('Error rejecting submission:', error);
-      setNotification({
-        message: 'Failed to reject submission.',
-        severity: 'error',
-      });
-    }
   };
 
   const handleShowSubmissionDetail = (
@@ -136,9 +98,9 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
             <TableCell align='center'>Status</TableCell>
             <TableCell align='center'>Rating</TableCell>
             <TableCell align='center'>Cluster</TableCell>
-            {/* Approve & Reject & View */}
+            {/* Approve & Reject */}
             <TableCell align='center'></TableCell>
-            <TableCell align='center'></TableCell>
+            {/* View */}
             <TableCell align='center'></TableCell>
           </TableRow>
         </TableHead>
@@ -290,31 +252,13 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
               </TableCell>
 
               <TableCell align='center'>
-                <Button
-                  variant='text'
-                  color='success'
-                  size='small'
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleApprove(submission.id);
-                  }}
-                >
-                  Approve
-                </Button>
-              </TableCell>
-
-              <TableCell align='center'>
-                <Button
-                  variant='text'
-                  color='error'
-                  size='small'
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleReject(submission.id);
-                  }}
-                >
-                  Reject
-                </Button>
+                <SubmissionDecisionButtons
+                  submissionId={submission.id}
+                  submissionStatus={submission.status}
+                  onNotify={(message, severity) =>
+                    setNotification({ message, severity })
+                  }
+                />
               </TableCell>
 
               <TableCell align='center'>

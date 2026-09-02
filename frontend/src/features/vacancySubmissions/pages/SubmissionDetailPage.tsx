@@ -2,15 +2,21 @@ import { useGetVacancyByIdQuery } from '@/features/vacancies/api/vacancyEndpoint
 import { useFindSubmissionByIdQuery } from '@/features/vacancySubmissions/api/vacancySubmissionEndpoints';
 import { ApplicationStatusWorkflow } from '@/features/vacancySubmissions/components/ApplicationStatusWorkflow';
 import CandidateInfo from '@/features/vacancySubmissions/components/CandidateInfo';
+import SubmissionDecisionButtons from '@/features/vacancySubmissions/components/SubmissionDecisionButtons';
 import { capitalizeName } from '@/shared/lib/formatText';
 import AppBreadcrumbs from '@/shared/ui/AppBreadcrumbs';
 import LanguagesChips from '@/shared/ui/LanguagesChips';
+import NotificationAlert from '@/shared/ui/NotificationAlert';
+import type { Notification } from '@/types';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { Alert, Card, CardContent, Grid } from '@mui/material';
+import { Alert, Card, CardContent, Divider, Grid } from '@mui/material';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 const SubmissionDetailPage = () => {
   const { vacancyId, submissionId } = useParams();
+
+  const [notification, setNotification] = useState<Notification | null>(null);
 
   const {
     data: submission,
@@ -48,6 +54,11 @@ const SubmissionDetailPage = () => {
         ]}
       />
 
+      <NotificationAlert
+        notification={notification}
+        onClose={() => setNotification(null)}
+      />
+
       <Grid container spacing={2}>
         <Grid size={4}>
           <Card>
@@ -75,8 +86,26 @@ const SubmissionDetailPage = () => {
         </Grid>
         <Grid size={8}>
           <Card>
-            <CardContent>
+            <CardContent
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+              }}
+            >
               <ApplicationStatusWorkflow submissionStatus={submission.status} />
+
+              <Divider />
+
+              <SubmissionDecisionButtons
+                submissionId={submission.id}
+                submissionStatus={submission.status}
+                onNotify={(message, severity) =>
+                  setNotification({ message, severity })
+                }
+                variant='outlined'
+                size='medium'
+              />
             </CardContent>
           </Card>
         </Grid>
