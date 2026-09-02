@@ -89,9 +89,9 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
             <TableCell align='center'>Status</TableCell>
             <TableCell align='center'>Rating</TableCell>
             <TableCell align='center'>Cluster</TableCell>
-            {/* Approve & Reject */}
-            <TableCell align='center'></TableCell>
             {/* View */}
+            <TableCell align='center'></TableCell>
+            {/* Approve & Reject */}
             <TableCell align='center'></TableCell>
           </TableRow>
         </TableHead>
@@ -145,16 +145,6 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
               </TableCell>
 
               <TableCell align='center'>
-                <SubmissionDecisionButtons
-                  submissionId={submission.id}
-                  submissionStatus={submission.status}
-                  onNotify={(message, severity) =>
-                    setNotification({ message, severity })
-                  }
-                />
-              </TableCell>
-
-              <TableCell align='center'>
                 <Button
                   variant='text'
                   size='small'
@@ -168,6 +158,16 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
                 >
                   View
                 </Button>
+              </TableCell>
+
+              <TableCell align='center'>
+                <SubmissionDecisionButtons
+                  submissionId={submission.id}
+                  submissionStatus={submission.status}
+                  onNotify={(message, severity) =>
+                    setNotification({ message, severity })
+                  }
+                />
               </TableCell>
             </TableRow>
           ))}
