@@ -1,3 +1,4 @@
+import InterviewsCard from '@/features/interviews/components/InterviewsCard';
 import ScheduleInterviewDialog from '@/features/interviews/components/ScheduleInterviewDialog';
 import { useGetVacancyByIdQuery } from '@/features/vacancies/api/vacancyEndpoints';
 import { useFindSubmissionByIdQuery } from '@/features/vacancySubmissions/api/vacancySubmissionEndpoints';
@@ -142,7 +143,9 @@ const SubmissionDetailPage = () => {
               </CardContent>
             </Card>
 
-            <AiDetectionCard submission={submission}/>
+            <AiDetectionCard submission={submission} />
+
+            <InterviewsCard submissionId={submission.id} />
           </Stack>
         </Grid>
       </Grid>

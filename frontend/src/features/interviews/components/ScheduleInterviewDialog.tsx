@@ -21,9 +21,11 @@ import { getErrorMessage } from '@/shared/lib/errorMessage';
 import { toDateTimeLocalValue } from '@/shared/lib/formatDate';
 import type { CreateInterviewInput, NotifyHandler } from '@/types';
 
+const TITLE_MAX_LENGTH = 120;
 const NOTES_MAX_LENGTH = 2000;
 
 interface InterviewForm {
+  title: string;
   meetLink: string;
   scheduledDate: string;
   durationMinutes: string;
@@ -32,6 +34,7 @@ interface InterviewForm {
 }
 
 const EMPTY_INTERVIEW_FORM: InterviewForm = {
+  title: '',
   meetLink: '',
   scheduledDate: '',
   durationMinutes: '',
@@ -69,6 +72,7 @@ const ScheduleInterviewDialog = ({
 
     const createInterviewDto: CreateInterviewInput = {
       submissionId,
+      title: form.title.trim(),
       meetLink: form.meetLink.trim(),
       scheduledDate: new Date(form.scheduledDate).toISOString(),
     };
@@ -132,6 +136,18 @@ const ScheduleInterviewDialog = ({
             )}
 
             <Stack direction='column' sx={{ gap: '20px', mt: 2 }}>
+              <TextField
+                required
+                label='Title'
+                placeholder='e.g. Technical screen'
+                slotProps={{
+                  inputLabel: { shrink: true },
+                  htmlInput: { maxLength: TITLE_MAX_LENGTH },
+                }}
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+              />
+
               <TextField
                 required
                 type='url'
