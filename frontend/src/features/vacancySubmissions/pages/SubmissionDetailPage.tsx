@@ -71,8 +71,8 @@ const SubmissionDetailPage = () => {
         onClose={() => setNotification(null)}
       />
 
-      <Grid container spacing={2}>
-        <Grid size={4}>
+      <Grid container spacing={{ xs: 1, sm: 2 }}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <Stack spacing={2}>
             <Card>
               <CardContent
@@ -107,7 +107,7 @@ const SubmissionDetailPage = () => {
             <SubmissionScoresCard submission={submission} />
           </Stack>
         </Grid>
-        <Grid size={8}>
+        <Grid size={{ xs: 12, sm: 8 }}>
           <Stack spacing={2}>
             <Card>
               <CardContent
