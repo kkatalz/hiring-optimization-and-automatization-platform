@@ -8,6 +8,7 @@ export function toInterviewViewDto(
 ): InterviewViewDto {
   const dto: InterviewViewDto = {
     id: interview.id,
+    title: interview.title,
     meetLink: interview.meetLink,
     scheduledDate: interview.scheduledDate,
     durationMinutes: interview.durationMinutes,

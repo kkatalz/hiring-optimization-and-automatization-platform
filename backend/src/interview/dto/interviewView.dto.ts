@@ -2,6 +2,7 @@ import { InterviewStatus } from '../../entities/statuses.enum';
 
 export class InterviewViewDto {
   id: string;
+  title: string;
   meetLink: string;
   scheduledDate: Date;
   durationMinutes: number;

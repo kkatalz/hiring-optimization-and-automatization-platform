@@ -16,6 +16,10 @@ export class CreateInterviewDto {
   @IsUUID()
   submissionId: string;
 
+  @IsString()
+  @MaxLength(120)
+  title: string;
+
   @IsUrl({ require_protocol: true })
   meetLink: string;
 
