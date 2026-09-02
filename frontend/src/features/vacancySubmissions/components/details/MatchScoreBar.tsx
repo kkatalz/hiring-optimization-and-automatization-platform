@@ -21,11 +21,11 @@ const MatchScoreBar = ({
   return (
     <Stack
       direction='row'
-      spacing={2}
       sx={{
         flexWrap: 'wrap',
         alignItems: 'center',
         justifyContent: 'center',
+        gap: 1,
       }}
     >
       <LinearProgress
