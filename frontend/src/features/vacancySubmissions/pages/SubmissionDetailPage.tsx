@@ -1,17 +1,25 @@
 import { useGetVacancyByIdQuery } from '@/features/vacancies/api/vacancyEndpoints';
 import { useFindSubmissionByIdQuery } from '@/features/vacancySubmissions/api/vacancySubmissionEndpoints';
-import { ApplicationStatusWorkflow } from '@/features/vacancySubmissions/components/ApplicationStatusWorkflow';
+import { ApplicationStatusWorkflow } from '@/features/vacancySubmissions/components/details/ApplicationStatusWorkflow';
 import CandidateInfo from '@/features/vacancySubmissions/components/CandidateInfo';
-import SubmissionDecisionButtons from '@/features/vacancySubmissions/components/SubmissionDecisionButtons';
+import SubmissionDecisionButtons from '@/features/vacancySubmissions/components/details/SubmissionDecisionButtons';
 import { capitalizeName } from '@/shared/lib/formatText';
 import AppBreadcrumbs from '@/shared/ui/AppBreadcrumbs';
 import LanguagesChips from '@/shared/ui/LanguagesChips';
 import NotificationAlert from '@/shared/ui/NotificationAlert';
 import type { Notification } from '@/types';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { Alert, Card, CardContent, Divider, Grid } from '@mui/material';
+import {
+  Alert,
+  Card,
+  CardContent,
+  Grid,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import ApplicationStatusChip from '@/features/vacancySubmissions/components/details/ApplicationStatusChip';
 
 const SubmissionDetailPage = () => {
   const { vacancyId, submissionId } = useParams();
@@ -90,12 +98,22 @@ const SubmissionDetailPage = () => {
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 2,
+                gap: 3,
               }}
             >
-              <ApplicationStatusWorkflow submissionStatus={submission.status} />
+              <Stack
+                direction='row'
+                sx={{
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingX: 1,
+                }}
+              >
+                <Typography variant='h6'>Application status</Typography>
+                <ApplicationStatusChip submissionStatus={submission.status} />
+              </Stack>
 
-              <Divider />
+              <ApplicationStatusWorkflow submissionStatus={submission.status} />
 
               <SubmissionDecisionButtons
                 submissionId={submission.id}

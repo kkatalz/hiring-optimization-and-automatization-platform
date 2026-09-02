@@ -66,7 +66,7 @@ export const chipColorBasedOnStatus = (
       : status === VacancySubmissionStatus.pending
         ? baseThemePalette.info.light
         : status === VacancySubmissionStatus.rejected
-          ? baseThemePalette.warning.main
+          ? baseThemePalette.error.main
           : status === VacancySubmissionStatus.approved
             ? baseThemePalette.success.main
             : baseThemePalette.grey[300];

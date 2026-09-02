@@ -18,17 +18,16 @@ import TableRow from '@mui/material/TableRow';
 import { useState } from 'react';
 import type { Notification, VacancySubmission } from '@/types';
 import { formatDate } from '@/shared/lib/formatDate';
-import { capitalizeName } from '@/shared/lib/formatText';
 import {
-  chipColorBasedOnStatus,
   progressBarColorBasedOnScore,
   themeColorsBasedOnScore,
 } from '@/shared/lib/muiColors';
 import CandidateInfo from '@/features/vacancySubmissions/components/CandidateInfo';
-import SubmissionDecisionButtons from '@/features/vacancySubmissions/components/SubmissionDecisionButtons';
+import SubmissionDecisionButtons from '@/features/vacancySubmissions/components/details/SubmissionDecisionButtons';
 import NotificationAlert from '@/shared/ui/NotificationAlert';
 import { CustomTablePagination } from './SubmissionTablePagination';
 import { useNavigate } from 'react-router-dom';
+import ApplicationStatusChip from '@/features/vacancySubmissions/components/details/ApplicationStatusChip';
 
 interface Props {
   submissions?: VacancySubmission[];
@@ -206,19 +205,7 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
               </TableCell>
 
               <TableCell align='center'>
-                <Chip
-                  label={capitalizeName(submission.status)}
-                  sx={(theme) => {
-                    const { bgColor } = chipColorBasedOnStatus(
-                      submission.status,
-                      theme.palette,
-                    );
-                    return {
-                      backgroundColor: bgColor,
-                      color: theme.palette.getContrastText(bgColor),
-                    };
-                  }}
-                />
+                <ApplicationStatusChip submissionStatus={submission.status} />
               </TableCell>
 
               <TableCell align='center'>
