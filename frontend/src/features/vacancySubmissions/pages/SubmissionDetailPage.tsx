@@ -21,6 +21,7 @@ import {
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ApplicationStatusChip from '@/features/vacancySubmissions/components/details/ApplicationStatusChip';
+import SubmissionScoresCard from '@/features/vacancySubmissions/components/details/SubmissionScoresCard';
 
 const SubmissionDetailPage = () => {
   const { vacancyId, submissionId } = useParams();
@@ -70,35 +71,39 @@ const SubmissionDetailPage = () => {
 
       <Grid container spacing={2}>
         <Grid size={4}>
-          <Card>
-            <CardContent
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 2,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              {candidateProfile && (
-                <>
-                  <CandidateInfo
-                    candidateProfile={candidateProfile}
-                    globalDirection='column'
-                    showChipOrAvatar={'avatar'}
-                  />
-                  <LanguagesChips languages={candidateProfile.languages} />
+          <Stack spacing={2}>
+            <Card>
+              <CardContent
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                {candidateProfile && (
+                  <>
+                    <CandidateInfo
+                      candidateProfile={candidateProfile}
+                      globalDirection='column'
+                      showChipOrAvatar={'avatar'}
+                    />
+                    <LanguagesChips languages={candidateProfile.languages} />
 
-                  <ScheduleInterviewDialog
-                    submissionId={submission.id}
-                    onNotify={(message, severity) =>
-                      setNotification({ message, severity })
-                    }
-                  />
-                </>
-              )}
-            </CardContent>
-          </Card>
+                    <ScheduleInterviewDialog
+                      submissionId={submission.id}
+                      onNotify={(message, severity) =>
+                        setNotification({ message, severity })
+                      }
+                    />
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            <SubmissionScoresCard submission={submission} />
+          </Stack>
         </Grid>
         <Grid size={8}>
           <Card>

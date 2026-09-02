@@ -1,13 +1,5 @@
 import CircleIcon from '@mui/icons-material/Circle';
-import StarIcon from '@mui/icons-material/Star';
-import {
-  Button,
-  Chip,
-  LinearProgress,
-  Stack,
-  TableFooter,
-  Typography,
-} from '@mui/material';
+import { Button, Chip, TableFooter } from '@mui/material';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -18,16 +10,17 @@ import TableRow from '@mui/material/TableRow';
 import { useState } from 'react';
 import type { Notification, VacancySubmission } from '@/types';
 import { formatDate } from '@/shared/lib/formatDate';
-import {
-  progressBarColorBasedOnScore,
-  themeColorsBasedOnScore,
-} from '@/shared/lib/muiColors';
+import { themeColorsBasedOnScore } from '@/shared/lib/muiColors';
 import CandidateInfo from '@/features/vacancySubmissions/components/CandidateInfo';
 import SubmissionDecisionButtons from '@/features/vacancySubmissions/components/details/SubmissionDecisionButtons';
 import NotificationAlert from '@/shared/ui/NotificationAlert';
 import { CustomTablePagination } from './SubmissionTablePagination';
 import { useNavigate } from 'react-router-dom';
 import ApplicationStatusChip from '@/features/vacancySubmissions/components/details/ApplicationStatusChip';
+import ClusterChip from '@/features/vacancySubmissions/components/details/ClusterChip';
+import ExpectedSalary from '@/features/vacancySubmissions/components/details/ExpectedSalary';
+import MatchScoreBar from '@/features/vacancySubmissions/components/details/MatchScoreBar';
+import RecruiterRating from '@/features/vacancySubmissions/components/details/RecruiterRating';
 
 interface Props {
   submissions?: VacancySubmission[];
@@ -130,50 +123,11 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
               </TableCell>
 
               <TableCell align='center'>
-                <Stack
-                  direction='row'
-                  spacing={1}
-                  sx={{
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <LinearProgress
-                    variant='determinate'
-                    aria-label='Match score'
-                    value={submission.matchScore ?? 0}
-                    sx={(theme) => {
-                      const { bgColor } = progressBarColorBasedOnScore(
-                        submission.matchScore!,
-                        theme.palette,
-                      );
-
-                      return {
-                        flex: 1, // Prevents collapse by telling flexbox to expand the progress bar
-                        minWidth: 80,
-                        height: 8,
-                        borderRadius: 4,
-                        color: bgColor,
-                        '& .MuiLinearProgress-bar': {
-                          backgroundColor: bgColor,
-                        },
-                      };
-                    }}
-                  />
-                  <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                    {submission.matchScore}
-                  </Typography>
-                </Stack>
+                <MatchScoreBar matchScore={submission.matchScore} />
               </TableCell>
+
               <TableCell align='center'>
-                {submission.expectedSalary != null ? (
-                  `$${submission.expectedSalary}`
-                ) : (
-                  <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                    Not specified
-                  </Typography>
-                )}
+                <ExpectedSalary expectedSalary={submission.expectedSalary} />
               </TableCell>
 
               <TableCell align='center'>
@@ -209,33 +163,10 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
               </TableCell>
 
               <TableCell align='center'>
-                {submission.recruiterRating != null ? (
-                  <Chip
-                    label={`${submission.recruiterRating}/10`}
-                    icon={<StarIcon />}
-                    sx={{
-                      '& .MuiChip-icon': {
-                        color: 'info.main',
-                      },
-                    }}
-                  />
-                ) : (
-                  <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                    Not rated
-                  </Typography>
-                )}
+                <RecruiterRating recruiterRating={submission.recruiterRating} />
               </TableCell>
               <TableCell align='center'>
-                {submission.clusterId != null ? (
-                  <Chip
-                    label={`Cluster ${submission.clusterId}`}
-                    variant='outlined'
-                  />
-                ) : (
-                  <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                    Not clustered
-                  </Typography>
-                )}
+                <ClusterChip clusterId={submission.clusterId} />
               </TableCell>
 
               <TableCell align='center'>
