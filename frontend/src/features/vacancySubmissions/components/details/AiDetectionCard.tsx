@@ -1,5 +1,6 @@
 import AiDetectionScoreBar from '@/features/vacancySubmissions/components/details/AiDetectionScoreBar';
 import PercentageChip from '@/features/vacancySubmissions/components/details/PercentageChip';
+import SubmittedText from '@/features/vacancySubmissions/components/details/SubmittedText';
 import type { VacancySubmission } from '@/types';
 import { Card, CardContent, Divider, Stack, Typography } from '@mui/material';
 
@@ -31,6 +32,7 @@ const AiDetectionCard = ({ submission }: AiDetectionCardProps) => {
           <PercentageChip score={submission.resumeAiScore} label='human' />
         </Stack>
         <AiDetectionScoreBar aiScore={submission.resumeAiScore} />
+        <SubmittedText text={submission.resume} source='resume' />
 
         <Divider />
         {/* Comment AI score results */}
@@ -61,6 +63,7 @@ const AiDetectionCard = ({ submission }: AiDetectionCardProps) => {
           />
         </Stack>
         <AiDetectionScoreBar aiScore={submission.commentAiScore} />
+        <SubmittedText text={submission.comment} source='comment' />
       </CardContent>
     </Card>
   );
