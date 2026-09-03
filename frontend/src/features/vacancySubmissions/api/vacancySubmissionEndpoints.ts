@@ -1,5 +1,6 @@
 import { baseApi } from '@/app/api/baseApi';
 import type {
+  MatchScoreExplanation,
   SubmissionFilters,
   SubmissionSortQuery,
   VacancySubmission,
@@ -78,6 +79,17 @@ export const vacancySubmissionApi = baseApi.injectEndpoints({
       },
     ),
 
+    /** Breakdown of how the submission's match score was derived. */
+    getMatchScoreExplanation: builder.query<MatchScoreExplanation, string>({
+      query: (submissionId) => ({
+        url: `/vacanciesSubmissions/${submissionId}/match-score`,
+        method: 'GET',
+      }),
+      providesTags: (_result, _error, submissionId) => [
+        { type: 'Submission', id: `MATCH_SCORE_${submissionId}` },
+      ],
+    }),
+
     // SUBMISSION MUTATIONS
     approveSubmission: builder.mutation<VacancySubmission, string>({
       query: (submissionId) => ({
@@ -107,6 +119,7 @@ export const {
   useGetAllSubmissionsCitiesByVacancyIdQuery,
   useGetAllSubmissionsCountriesByVacancyIdQuery,
   useGetAllSubmissionsLanguagesCodesByVacancyIdQuery,
+  useGetMatchScoreExplanationQuery,
   useApproveSubmissionMutation,
   useRejectSubmissionMutation,
 } = vacancySubmissionApi;

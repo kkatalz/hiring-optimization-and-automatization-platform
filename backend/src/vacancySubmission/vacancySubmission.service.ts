@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ForbiddenException,
   forwardRef,
   HttpException,
   HttpStatus,
@@ -241,6 +240,18 @@ export class VacancySubmissionService {
     const submission = await this.findOneById(submissionId);
 
     return submission.tenantId;
+  }
+
+  /** Returns the id of the user who owns the submission */
+  async getCandidateUserIdBySubmissionId(
+    submissionId: string,
+  ): Promise<string | undefined> {
+    const submission = await this.findOneById(submissionId, [
+      'candidateProfile',
+      'candidateProfile.user',
+    ]);
+
+    return submission.candidateProfile?.user?.id;
   }
 
   async updateRecruiterRating(
@@ -1181,25 +1192,15 @@ export class VacancySubmissionService {
     return vacancySubmToVacancySubmDto(saved);
   }
 
-  /**
-   * Returns the candidate-facing match score breakdown for a submission.
-   * Only the candidate who owns the submission may call this.
-   */
+  /** Calculate the match score for a given submission. */
   async getMatchScoreExplanation(
     submissionId: string,
-    requesterUserId: string,
   ): Promise<MatchScoreExplanationDto> {
     const submission = await this.findOneById(submissionId, [
       'answers',
       'candidateProfile',
       'candidateProfile.user',
     ]);
-
-    if (submission.candidateProfile?.user?.id !== requesterUserId) {
-      throw new ForbiddenException(
-        'Candidates can view the match score only for their own submissions.',
-      );
-    }
 
     const vacancy = await this.vacancyService.findVacancyById(
       submission.vacancyId,
