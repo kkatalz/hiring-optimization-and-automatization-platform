@@ -173,7 +173,7 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
           ))}
           {emptyRows > 0 && (
             <tr style={{ height: 41 * emptyRows }}>
-              <td colSpan={3} aria-hidden />
+              <td colSpan={10} aria-hidden />
             </tr>
           )}
         </TableBody>

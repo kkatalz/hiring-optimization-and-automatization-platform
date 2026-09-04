@@ -4,6 +4,27 @@ import SubmittedText from '@/features/vacancySubmissions/components/details/Subm
 import type { VacancySubmission } from '@/types';
 import { Card, CardContent, Divider, Stack, Typography } from '@mui/material';
 
+interface ScoreChipsProps {
+  text?: string;
+  score?: number | null;
+  source: 'resume' | 'comment';
+}
+
+// Show only one chip if the score is undefined or null instead of two chips.
+const ScoreChips = ({ text, score, source }: ScoreChipsProps) => {
+  if (score === undefined || score === null)
+    return (
+      <PercentageChip source={source} score={score} label='AI' text={text} />
+    );
+
+  return (
+    <>
+      <PercentageChip source={source} score={score} label='AI' text={text} />
+      <PercentageChip source={source} score={score} label='human' text={text} />
+    </>
+  );
+};
+
 interface AiDetectionCardProps {
   submission: VacancySubmission;
 }
@@ -28,8 +49,11 @@ const AiDetectionCard = ({ submission }: AiDetectionCardProps) => {
           >
             Resume AI score results:
           </Typography>
-          <PercentageChip score={submission.resumeAiScore} label='AI' />
-          <PercentageChip score={submission.resumeAiScore} label='human' />
+          <ScoreChips
+            text={submission.resume}
+            source='resume'
+            score={submission.resumeAiScore}
+          />
         </Stack>
         <AiDetectionScoreBar aiScore={submission.resumeAiScore} />
         <SubmittedText text={submission.resume} source='resume' />
@@ -51,15 +75,10 @@ const AiDetectionCard = ({ submission }: AiDetectionCardProps) => {
           >
             Comment AI score results:
           </Typography>
-          <PercentageChip
+          <ScoreChips
+            text={submission.comment}
             source='comment'
             score={submission.commentAiScore}
-            label='AI'
-          />
-          <PercentageChip
-            source='comment'
-            score={submission.commentAiScore}
-            label='human'
           />
         </Stack>
         <AiDetectionScoreBar aiScore={submission.commentAiScore} />

@@ -84,23 +84,19 @@ const SubmissionDetailPage = () => {
                   alignItems: 'center',
                 }}
               >
-                {candidateProfile && (
-                  <>
-                    <CandidateInfo
-                      candidateProfile={candidateProfile}
-                      globalDirection='column'
-                      showChipOrAvatar={'avatar'}
-                    />
-                    <LanguagesChips languages={candidateProfile.languages} />
+                <CandidateInfo
+                  candidateProfile={candidateProfile}
+                  globalDirection='column'
+                  showChipOrAvatar={'avatar'}
+                />
+                <LanguagesChips languages={candidateProfile.languages} />
 
-                    <ScheduleInterviewDialog
-                      submissionId={submission.id}
-                      onNotify={(message, severity) =>
-                        setNotification({ message, severity })
-                      }
-                    />
-                  </>
-                )}
+                <ScheduleInterviewDialog
+                  submissionId={submission.id}
+                  onNotify={(message, severity) =>
+                    setNotification({ message, severity })
+                  }
+                />
               </CardContent>
             </Card>
 

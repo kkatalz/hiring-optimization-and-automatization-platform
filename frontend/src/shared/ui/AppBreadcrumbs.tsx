@@ -22,10 +22,12 @@ const AppBreadcrumbs = ({ items }: AppBreadcrumbsProps) => {
       {items.map(({ label, to }, index) => {
         const isCurrentPage = index === items.length - 1;
 
+        const key = `${index}-${label}`;
+
         if (isCurrentPage || !to)
           return (
             <Typography
-              key={label}
+              key={key}
               sx={{ color: 'text.primary' }}
               aria-current={isCurrentPage ? 'page' : undefined}
             >
@@ -35,7 +37,7 @@ const AppBreadcrumbs = ({ items }: AppBreadcrumbsProps) => {
 
         return (
           <Link
-            key={label}
+            key={key}
             component={RouterLink}
             to={to}
             color='text.secondary'

@@ -52,10 +52,6 @@ const SubmissionScoresCard = ({ submission }: SubmissionScoresCardProps) => {
     skip: !isExplanationOpen,
   });
 
-  // The breakdown is recomputed server-side, so it is the fresher of the two
-  // once it has loaded.
-  const matchScore = matchScoreExplanation?.matchScore ?? submission.matchScore;
-
   return (
     <Card>
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -65,7 +61,7 @@ const SubmissionScoresCard = ({ submission }: SubmissionScoresCardProps) => {
           Match score
         </Typography>
 
-        <MatchScoreBar matchScore={matchScore} height={10} />
+        <MatchScoreBar matchScore={submission.matchScore} height={10} />
 
         <Button
           size='small'

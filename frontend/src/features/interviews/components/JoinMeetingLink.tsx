@@ -31,6 +31,9 @@ const JoinMeetingLink = ({ interview }: JoinMeetingLinkProps) => {
     <>
       <Link
         href={interview.meetLink}
+        // For security reasons: forces the link to open in a new tab, but the `onClick` handler intercepts it to show a confirmation dialog first
+        target='_blank'
+        rel='noopener noreferrer'
         underline='hover'
         variant='body1'
         onClick={(event) => {

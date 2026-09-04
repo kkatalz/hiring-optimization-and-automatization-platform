@@ -6,12 +6,14 @@ interface ResumeAiDetectionChipProps {
   source?: 'resume' | 'comment';
   score?: number | null;
   label: 'AI' | 'human';
+  text?: string;
 }
 
 const PercentageChip = ({
   source = 'resume',
   score,
   label,
+  text,
 }: ResumeAiDetectionChipProps) => {
   // Both chips must have the same color. Two different values 'scoreValue' and 'score' are deliberate.
   const scoreValue = label === 'human' ? 100 - (score ?? 0) : score;
@@ -37,6 +39,8 @@ const PercentageChip = ({
         };
       }}
     />
+  ) : text ? (
+    <Chip label={`No score for ${source} (text is too short)`} />
   ) : (
     <Chip label={`No ${source}`} />
   );
