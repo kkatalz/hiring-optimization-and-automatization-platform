@@ -25,6 +25,14 @@ const routes = createBrowserRouter([
         Component: LoginForm,
       },
 
+      // Where the emailed password-reset link lands. Public by necessity: the
+      // visitor cannot sign in, and the token in the query string is the only
+      // credential they have.
+      {
+        path: '/reset-password',
+        Component: ResetPasswordPage,
+      },
+
       {
         element: <AppLayout showDrawer />,
         children: [

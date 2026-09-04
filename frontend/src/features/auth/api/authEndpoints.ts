@@ -1,9 +1,34 @@
-import { baseApi } from '@/app/api/baseApi';
+import { baseApi, PUBLIC_ENDPOINT } from '@/app/api/baseApi';
 import { ALL } from '@/app/api/cacheTags';
 import type { User } from '@/types';
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    // PASSWORD RESET - for a visitor who is logged out.
+    /** Step one: ask for the email that carries the reset link. */
+    forgotPassword: builder.mutation<{ message: string }, { email: string }>({
+      query: (body) => ({
+        url: '/auth/forgot-password',
+        method: 'POST',
+        body,
+      }),
+      extraOptions: PUBLIC_ENDPOINT,
+    }),
+
+    /** Step two: use the emailed token for a new password. */
+    resetPassword: builder.mutation<
+      { message: string },
+      { token: string; newPassword: string }
+    >({
+      query: (body) => ({
+        url: '/auth/reset-password',
+        method: 'POST',
+        body,
+      }),
+      extraOptions: PUBLIC_ENDPOINT,
+    }),
+
+    // For a signed-in user changing their own credentials.
     changeEmail: builder.mutation<User, { userId: string; email: string }>({
       query: ({ userId, email }) => ({
         url: `/auth/credentials/email/${userId}`,
@@ -26,4 +51,9 @@ export const authApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useChangeEmailMutation, useChangePasswordMutation } = authApi;
+export const {
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
+  useChangeEmailMutation,
+  useChangePasswordMutation,
+} = authApi;

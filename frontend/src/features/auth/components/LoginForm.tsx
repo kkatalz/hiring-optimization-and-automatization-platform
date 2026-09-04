@@ -9,6 +9,8 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
+import Link from '@mui/material/Link';
+import ForgotPasswordDialog from '@/features/auth/components/ForgotPasswordDialog';
 import { UserRole } from '@/types';
 
 interface LoginFields {
@@ -25,6 +27,8 @@ export const LoginForm = () => {
     password: '',
   });
   const { status, user, error } = useAppSelector((state) => state.auth);
+
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoginFields({ ...loginFields, [e.target.name]: e.target.value });
@@ -108,8 +112,24 @@ export const LoginForm = () => {
           >
             {status === 'loading' ? 'Logging in...' : 'SIGN IN'}
           </Button>
+
+          <Link
+            component='button'
+            type='button'
+            underline='hover'
+            variant='body2'
+            onClick={() => setIsForgotPasswordOpen(true)}
+            sx={{ alignSelf: 'center' }}
+          >
+            Forgot your password?
+          </Link>
         </Stack>
       </Paper>
+
+      <ForgotPasswordDialog
+        open={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
+      />
     </Container>
   );
 };
