@@ -3,6 +3,7 @@ import {
   IsDate,
   IsEmail,
   IsInt,
+  IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
@@ -18,6 +19,7 @@ export class CreateInterviewDto {
 
   @IsString()
   @MaxLength(120)
+  @IsNotEmpty()
   title: string;
 
   @IsUrl({ require_protocol: true })
