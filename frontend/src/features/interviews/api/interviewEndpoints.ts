@@ -1,11 +1,6 @@
 import { baseApi } from '@/app/api/baseApi';
+import { allWithin } from '@/app/api/cacheTags';
 import type { CreateInterviewInput, Interview } from '@/types';
-
-/** Every interview of one submission shares the same cache entry */
-const submissionInterviewsTag = (submissionId: string) => ({
-  type: 'Interview' as const,
-  id: `SUBMISSION_${submissionId}`,
-});
 
 export const interviewApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -16,7 +11,7 @@ export const interviewApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
       providesTags: (_result, _error, submissionId) => [
-        submissionInterviewsTag(submissionId),
+        { type: 'Interview', id: allWithin('SUBMISSION', submissionId) },
       ],
     }),
 
@@ -30,7 +25,7 @@ export const interviewApi = baseApi.injectEndpoints({
       // Scheduling moves a pending submission to `interviewing`,
       // so its cached copy has to be refetched as well
       invalidatesTags: (_result, _error, { submissionId }) => [
-        submissionInterviewsTag(submissionId),
+        { type: 'Interview', id: allWithin('SUBMISSION', submissionId) },
         { type: 'Submission', id: submissionId },
       ],
     }),
