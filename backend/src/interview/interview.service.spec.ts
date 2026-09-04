@@ -15,7 +15,11 @@ import {
   InterviewStatus,
   VacancySubmissionStatus,
 } from '../entities/statuses.enum';
-import { nonExistentInterviewId, TENANT_ID } from '../../test/utils';
+import {
+  nonExistentInterviewId,
+  nonExistentUUIDId,
+  TENANT_ID,
+} from '../../test/utils';
 import { testTenants } from '../../test/fixtures/testTenants';
 import { testUsers } from '../../test/fixtures/testUsers';
 import { testVacancies } from '../../test/fixtures/testVacancies';
@@ -36,11 +40,13 @@ describe('InterviewService', () => {
   let vacancySubmissionService: {
     findOneById: sinon.SinonStub;
     setStatus: sinon.SinonStub;
+    getTenantIdBySubmissionId: sinon.SinonStub;
   };
 
   beforeEach(async () => {
     mailSendStub = sinon.stub().resolves();
     vacancySubmissionService = {
+      getTenantIdBySubmissionId: sinon.stub().resolves(TENANT_ID),
       findOneById: sinon.stub(),
       setStatus: sinon.stub().callsFake((sub, status) => {
         sub.status = status;
@@ -89,8 +95,10 @@ describe('InterviewService', () => {
     it('should return all interviews within viewers tenant', async () => {
       const interviews = await service.getAllInterviews(TENANT_ID);
 
-      expect(interviews).to.have.length(1);
-      expect(interviews[0].id).to.equal(testInterviews[0].id);
+      expect(interviews).to.have.length(2);
+      expect(interviews.map((interview) => interview.id)).to.have.members(
+        testInterviews.map((interview) => interview.id),
+      );
     });
   });
 
@@ -195,6 +203,7 @@ describe('InterviewService', () => {
       overrides: Partial<CreateInterviewDto> = {},
     ): CreateInterviewDto => ({
       submissionId: testVacancySubmissions[0].id,
+      title: 'Technical screen',
       meetLink: 'https://meet.google.com/new-meet-link',
       scheduledDate: futureDate(),
       durationMinutes: 60,
@@ -285,6 +294,113 @@ describe('InterviewService', () => {
     });
   });
 
+  describe('getInterviewsBySubmissionId', () => {
+    const recruiter: UserDto = {
+      id: testUsers[1].id,
+      email: testUsers[1].email,
+      firstName: testUsers[1].firstName,
+      lastName: testUsers[1].lastName,
+      role: UserRole.recruiter,
+      tenantId: TENANT_ID,
+    };
+
+    it('should return all interviews of the submission, newest first', async () => {
+      const result = await service.getInterviewsBySubmissionId(
+        testVacancySubmissions[0].id,
+        recruiter,
+      );
+
+      expect(result).to.have.length(2);
+      // testInterviews[0] is scheduled for July, testInterviews[1] for June
+      expect(result[0].id).to.equal(testInterviews[0].id);
+      expect(result[1].id).to.equal(testInterviews[1].id);
+      expect(result[0].title).to.equal(testInterviews[0].title);
+    });
+
+    it('should return an empty array for a submission without interviews', async () => {
+      // The tenant lookup is stubbed, so any id passes the access check
+      const result = await service.getInterviewsBySubmissionId(
+        nonExistentUUIDId,
+        recruiter,
+      );
+
+      expect(result).to.have.length(0);
+    });
+
+    it('should hide notes from a candidate viewer', async () => {
+      const candidate: UserDto = {
+        id: 'x',
+        email: testInterviews[0].candidateEmail,
+        firstName: 'C',
+        lastName: 'C',
+        role: UserRole.candidate,
+      };
+
+      const result = await service.getInterviewsBySubmissionId(
+        testVacancySubmissions[0].id,
+        candidate,
+      );
+
+      expect(
+        result.every((interview) => interview.notes === undefined),
+      ).to.equal(true);
+    });
+
+    it('should reject a viewer from a different tenant', async () => {
+      try {
+        await service.getInterviewsBySubmissionId(
+          testVacancySubmissions[0].id,
+          { ...recruiter, tenantId: 'different-tenant-id' },
+        );
+
+        expect.fail('Expected ForbiddenException was not thrown');
+      } catch (error) {
+        expect(error.name).to.equal('ForbiddenException');
+      }
+    });
+  });
+
+  describe('CreateInterviewDto validation', () => {
+    const validateCreate = (payload: Record<string, unknown>) =>
+      validate(plainToInstance(CreateInterviewDto, payload) as object, {
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        forbidUnknownValues: true,
+      });
+
+    const validPayload = {
+      submissionId: testVacancySubmissions[0].id,
+      title: 'Technical screen',
+      meetLink: 'https://meet.google.com/abc-defg-hij',
+      scheduledDate: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+    };
+
+    it('accepts a payload with only the required fields', async () => {
+      const errors = await validateCreate(validPayload);
+      expect(errors).to.have.length(0);
+    });
+
+    it('rejects a missing title with the isString constraint', async () => {
+      const withoutTitle: Record<string, unknown> = { ...validPayload };
+      delete withoutTitle.title;
+
+      const errors = await validateCreate(withoutTitle);
+
+      const titleError = errors.find((e) => e.property === 'title');
+      expect(titleError?.constraints).to.have.property('isString');
+    });
+
+    it('rejects a title longer than 120 chars with the maxLength constraint', async () => {
+      const errors = await validateCreate({
+        ...validPayload,
+        title: 'x'.repeat(121),
+      });
+
+      const titleError = errors.find((e) => e.property === 'title');
+      expect(titleError?.constraints).to.have.property('maxLength');
+    });
+  });
+
   describe('UpdateInterviewDto validation', () => {
     const validateUpdate = (payload: Record<string, unknown>) =>
       validate(plainToInstance(UpdateInterviewDto, payload) as object, {
@@ -329,9 +445,13 @@ describe('InterviewService', () => {
 
       const result = await service.getMyInterviews(candidate);
 
-      expect(result).to.have.length(1);
-      expect(result[0].id).to.equal(testInterviews[0].id);
-      expect(result[0].notes).to.equal(undefined);
+      expect(result).to.have.length(2);
+      expect(result.map((interview) => interview.id)).to.have.members(
+        testInterviews.map((interview) => interview.id),
+      );
+      expect(
+        result.every((interview) => interview.notes === undefined),
+      ).to.equal(true);
     });
 
     it('should return interviews where viewer is an interviewer in the same tenant (notes visible)', async () => {

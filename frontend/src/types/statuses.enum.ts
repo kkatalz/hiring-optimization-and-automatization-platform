@@ -8,6 +8,8 @@ export const VacancySubmissionStatus = {
 export type VacancySubmissionStatus =
   (typeof VacancySubmissionStatus)[keyof typeof VacancySubmissionStatus];
 
+export type PositiveStatus = Exclude<VacancySubmissionStatus, 'rejected'>;
+
 export const InterviewStatus = {
   scheduled: 'scheduled',
   completed: 'completed',

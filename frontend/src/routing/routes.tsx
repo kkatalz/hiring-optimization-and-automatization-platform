@@ -12,6 +12,7 @@ import { RequireRole } from './RequireRole';
 import BrowseVacancies from '../features/vacancies/pages/BrowseVacancies';
 import PublicVacancy from '../features/vacancies/pages/PublicVacancy';
 import { RedirectStaff } from '@/routing/RedirectStaff';
+import SubmissionDetailPage from '@/features/vacancySubmissions/pages/SubmissionDetailPage';
 
 const routes = createBrowserRouter([
   {
@@ -90,6 +91,10 @@ const routes = createBrowserRouter([
                         Component: ScreeningQuestionsView,
                       },
                     ],
+                  },
+                  {
+                    path: '/vacancies/:vacancyId/vacancy-submissions/:submissionId',
+                    Component: SubmissionDetailPage,
                   },
                 ],
               },

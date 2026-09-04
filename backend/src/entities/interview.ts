@@ -15,6 +15,9 @@ export class Interview {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ type: 'varchar', length: 120, default: 'Interview' })
+  title: string;
+
   @Column({ name: 'meet_link', type: 'text', nullable: false })
   meetLink: string;
 

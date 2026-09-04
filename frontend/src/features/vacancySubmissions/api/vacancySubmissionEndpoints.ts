@@ -1,5 +1,7 @@
 import { baseApi } from '@/app/api/baseApi';
+import { allWithin } from '@/app/api/cacheTags';
 import type {
+  MatchScoreExplanation,
   SubmissionFilters,
   SubmissionSortQuery,
   VacancySubmission,
@@ -8,6 +10,16 @@ import type {
 export const vacancySubmissionApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // SUBMISSION QUERIES
+    findSubmissionById: builder.query<VacancySubmission, string>({
+      query: (submissionId) => ({
+        url: `/vacanciesSubmissions/${submissionId}`,
+        method: 'GET',
+      }),
+      providesTags: (_result, _error, submissionId) => [
+        { type: 'Submission', id: submissionId },
+      ],
+    }),
+
     getSubmissionsByVacancyId: builder.query<
       VacancySubmission[],
       {
@@ -32,17 +44,18 @@ export const vacancySubmissionApi = baseApi.injectEndpoints({
                 type: 'Submission' as const,
                 id: submission.id,
               })),
-              { type: 'Submission', id: `VACANCY_${vacancyId}` },
+              { type: 'Submission', id: allWithin('VACANCY', vacancyId) },
             ]
-          : [{ type: 'Submission', id: `VACANCY_${vacancyId}` }],
+          : [{ type: 'Submission', id: allWithin('VACANCY', vacancyId) }],
     }),
+
     getAllSubmissionsCitiesByVacancyId: builder.query<string[], string>({
       query: (vacancyId) => ({
         url: `/vacanciesSubmissions/${vacancyId}/existing-cities`,
         method: 'GET',
       }),
       providesTags: (_result, _error, vacancyId) => [
-        { type: 'Submission', id: `VACANCY_${vacancyId}` },
+        { type: 'Submission', id: allWithin('VACANCY', vacancyId) },
       ],
     }),
 
@@ -52,7 +65,7 @@ export const vacancySubmissionApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
       providesTags: (_result, _error, vacancyId) => [
-        { type: 'Submission', id: `VACANCY_${vacancyId}` },
+        { type: 'Submission', id: allWithin('VACANCY', vacancyId) },
       ],
     }),
 
@@ -63,10 +76,20 @@ export const vacancySubmissionApi = baseApi.injectEndpoints({
           method: 'GET',
         }),
         providesTags: (_result, _error, vacancyId) => [
-          { type: 'Submission', id: `VACANCY_${vacancyId}` },
+          { type: 'Submission', id: allWithin('VACANCY', vacancyId) },
         ],
       },
     ),
+
+    getMatchScoreExplanation: builder.query<MatchScoreExplanation, string>({
+      query: (submissionId) => ({
+        url: `/vacanciesSubmissions/${submissionId}/match-score`,
+        method: 'GET',
+      }),
+      providesTags: (_result, _error, submissionId) => [
+        { type: 'Submission', id: submissionId },
+      ],
+    }),
 
     // SUBMISSION MUTATIONS
     approveSubmission: builder.mutation<VacancySubmission, string>({
@@ -92,10 +115,12 @@ export const vacancySubmissionApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useFindSubmissionByIdQuery,
   useGetSubmissionsByVacancyIdQuery,
   useGetAllSubmissionsCitiesByVacancyIdQuery,
   useGetAllSubmissionsCountriesByVacancyIdQuery,
   useGetAllSubmissionsLanguagesCodesByVacancyIdQuery,
+  useGetMatchScoreExplanationQuery,
   useApproveSubmissionMutation,
   useRejectSubmissionMutation,
 } = vacancySubmissionApi;

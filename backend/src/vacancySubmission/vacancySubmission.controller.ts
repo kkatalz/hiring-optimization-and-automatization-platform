@@ -41,6 +41,22 @@ export class VacancySubmissionController {
   ) {}
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
+  @Get(':submissionId')
+  async findOneById(
+    @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
+    @AuthUser() requester: UserDto,
+  ): Promise<VacancySubmissionDto> {
+    const submissionTenantId =
+      await this.vacancySubmissionService.getTenantIdBySubmissionId(
+        submissionId,
+      );
+
+    validateTenantAccess(requester, submissionTenantId);
+
+    return await this.vacancySubmissionService.findSubmissionById(submissionId);
+  }
+
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Post(':submissionId/approve')
   async approveVacancySubmission(
     @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
@@ -279,16 +295,45 @@ export class VacancySubmissionController {
     );
   }
 
-  @Roles(UserRole.candidate)
+  /**
+   * Returns the candidate's match score breakdown for a submission.
+   * May be called by:
+   * - the candidate who owns the submission
+   * - admin\recruiter that belong to the same tenant
+   * - super admins.
+   */
+  @Roles(
+    UserRole.admin,
+    UserRole.recruiter,
+    UserRole.superAdmin,
+    UserRole.candidate,
+  )
   @Get(':submissionId/match-score')
   async showMatchScoreBySubmissionId(
     @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
-    @AuthUser() candidate: UserDto,
+    @AuthUser() user: UserDto,
   ): Promise<MatchScoreExplanationDto> {
-    return this.vacancySubmissionService.getMatchScoreExplanation(
-      submissionId,
-      candidate.id,
-    );
+    const submissionTenantId =
+      await this.vacancySubmissionService.getTenantIdBySubmissionId(
+        submissionId,
+      );
+
+    validateTenantAccess(user, submissionTenantId);
+
+    if (user.role === UserRole.candidate) {
+      const submissionOwnerUserId =
+        await this.vacancySubmissionService.getCandidateUserIdBySubmissionId(
+          submissionId,
+        );
+
+      if (submissionOwnerUserId !== user.id) {
+        throw new ForbiddenException(
+          'Candidates can view the match score only for their own submissions.',
+        );
+      }
+    }
+
+    return this.vacancySubmissionService.getMatchScoreExplanation(submissionId);
   }
 
   @Roles(UserRole.candidate)

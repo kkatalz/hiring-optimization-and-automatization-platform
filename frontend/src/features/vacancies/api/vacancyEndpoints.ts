@@ -1,4 +1,5 @@
 import { baseApi, PUBLIC_ENDPOINT } from '@/app/api/baseApi';
+import { ALL, allWithin } from '@/app/api/cacheTags';
 import type {
   CreateVacancyInput,
   CreateVacancyQuestionInput,
@@ -41,9 +42,9 @@ export const vacancyApi = baseApi.injectEndpoints({
                 type: 'Vacancy' as const,
                 id: v.id,
               })),
-              { type: 'Vacancy', id: 'LIST' },
+              { type: 'Vacancy', id: ALL },
             ]
-          : [{ type: 'Vacancy', id: 'LIST' }],
+          : [{ type: 'Vacancy', id: ALL }],
     }),
 
     // Public search
@@ -64,17 +65,7 @@ export const vacancyApi = baseApi.injectEndpoints({
         url: '/vacancies/existing-tags',
         method: 'GET',
       }),
-
-      providesTags: (result) =>
-        result
-          ? [
-              ...result.map((tag) => ({
-                type: 'Vacancy' as const,
-                id: tag,
-              })),
-              { type: 'Vacancy', id: 'LIST' },
-            ]
-          : [{ type: 'Vacancy', id: 'LIST' }],
+      providesTags: [{ type: 'Vacancy', id: ALL }],
     }),
 
     getAllVacanciesLanguagesCodes: builder.query<string[], void>({
@@ -82,16 +73,7 @@ export const vacancyApi = baseApi.injectEndpoints({
         url: '/vacancies/existing-languages-codes',
         method: 'GET',
       }),
-      providesTags: (result) =>
-        result
-          ? [
-              ...result.map((code) => ({
-                type: 'Vacancy' as const,
-                id: code,
-              })),
-              { type: 'Vacancy', id: 'LIST' },
-            ]
-          : [{ type: 'Vacancy', id: 'LIST' }],
+      providesTags: [{ type: 'Vacancy', id: ALL }],
     }),
 
     // VACANCY MUTATIONS
@@ -101,7 +83,7 @@ export const vacancyApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
-      invalidatesTags: [{ type: 'Vacancy', id: 'LIST' }],
+      invalidatesTags: [{ type: 'Vacancy', id: ALL }],
     }),
 
     updateVacancy: builder.mutation<
@@ -113,7 +95,11 @@ export const vacancyApi = baseApi.injectEndpoints({
         method: 'PATCH',
         body,
       }),
-      invalidatesTags: (_result, _error, { id }) => [{ type: 'Vacancy', id }],
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Vacancy', id },
+        { type: 'Vacancy', id: ALL },
+        { type: 'Question', id: allWithin('VACANCY', id) },
+      ],
     }),
 
     deleteVacancy: builder.mutation<Vacancy, string>({
@@ -123,7 +109,7 @@ export const vacancyApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, id) => [
         { type: 'Vacancy', id },
-        { type: 'Vacancy', id: 'LIST' },
+        { type: 'Vacancy', id: ALL },
       ],
     }),
 
@@ -143,7 +129,8 @@ export const vacancyApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { vacancyId }) => [
         { type: 'Vacancy', id: vacancyId },
-        { type: 'Vacancy', id: 'LIST' },
+        { type: 'Vacancy', id: ALL },
+        { type: 'Question', id: allWithin('VACANCY', vacancyId) },
       ],
     }),
 
@@ -157,7 +144,8 @@ export const vacancyApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { vacancyId }) => [
         { type: 'Vacancy', id: vacancyId },
-        { type: 'Vacancy', id: 'LIST' },
+        { type: 'Vacancy', id: ALL },
+        { type: 'Question', id: allWithin('VACANCY', vacancyId) },
       ],
     }),
 
@@ -170,7 +158,7 @@ export const vacancyApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
       providesTags: (_result, _error, vacancyId) => [
-        { type: 'Vacancy', id: vacancyId },
+        { type: 'Question', id: allWithin('VACANCY', vacancyId) },
       ],
     }),
   }),

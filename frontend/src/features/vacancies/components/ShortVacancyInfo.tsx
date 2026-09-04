@@ -1,9 +1,9 @@
 import { Chip, Stack, Typography } from '@mui/material';
 import BagOfMoney from '@/assets/BagOfMoney.svg';
 import Statistics from '@/assets/Statistics.svg';
-import TalkingPerson from '@/assets/TalkingPerson.svg';
 import type { VacancySummary } from '@/types';
 import { capitalizeName } from '@/shared/lib/formatText';
+import LanguagesChips from '@/shared/ui/LanguagesChips';
 
 const getSalaryLabel = (vacancy: VacancySummary) => {
   const { minSalary, maxSalary } = vacancy;
@@ -89,22 +89,8 @@ const ShortVacancyInfo = ({
             sx={{ px: 0.5, justifyContent: 'space-between' }}
           />
         )}
-        {vacancy.languageRequirements &&
-          vacancy.languageRequirements.length > 0 &&
-          vacancy.languageRequirements.map((lang, langIndex) => (
-            <Chip
-              key={`${lang.code ?? 'any'}-${lang.level ?? 'any'}-${langIndex}`}
-              label={`${lang.code?.toUpperCase() ?? 'Any'} - ${lang.level ?? 'Any'}`}
-              icon={
-                <img
-                  src={TalkingPerson}
-                  alt='Language'
-                  style={{ width: 16, height: 16 }}
-                />
-              }
-              sx={{ px: 0.5, justifyContent: 'space-between' }}
-            />
-          ))}
+
+        <LanguagesChips languages={vacancy.languageRequirements} />
 
         {vacancy.createdAt && (
           <Chip

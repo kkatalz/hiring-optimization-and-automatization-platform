@@ -31,3 +31,9 @@ export interface MatchScoreOptions {
   expectedSalary?: number | null;
   customWeights?: CustomWeights;
 }
+
+/** Candidate-facing breakdown of how a submission's match score was derived. */
+export interface MatchScoreExplanation {
+  matchScore: number;
+  explanation: string[];
+}

@@ -8,7 +8,8 @@ export type Permission =
   | 'vacancySubmissions:getByVacancyId'
   | 'vacancySubmissions:approve'
   | 'vacancySubmissions:reject'
-  | 'clustering:runByVacancyId';
+  | 'clustering:runByVacancyId'
+  | 'interview:schedule';
 
 /** Mirrors the @Roles(...) decorator of the backend controllers.
     If a decorator changes, change it here too. This file is the only
@@ -38,6 +39,7 @@ export const PERMISSIONS: Record<Permission, readonly UserRole[]> = {
     UserRole.admin,
     UserRole.recruiter,
   ],
+  'interview:schedule': [UserRole.admin, UserRole.recruiter],
 };
 
 export const hasPermission = (

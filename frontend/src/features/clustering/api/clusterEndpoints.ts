@@ -7,9 +7,7 @@ export const clusterApi = baseApi.injectEndpoints({
         url: `/clustering/run/${vacancyId}`,
         method: 'POST',
       }),
-      invalidatesTags: (_result, _error, vacancyId) => [
-        { type: 'Submission', id: `VACANCY_${vacancyId}` },
-      ],
+      invalidatesTags: ['Submission'],
     }),
   }),
 });

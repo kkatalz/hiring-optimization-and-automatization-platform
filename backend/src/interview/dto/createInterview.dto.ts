@@ -3,6 +3,7 @@ import {
   IsDate,
   IsEmail,
   IsInt,
+  IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
@@ -15,6 +16,11 @@ import { Type } from 'class-transformer';
 export class CreateInterviewDto {
   @IsUUID()
   submissionId: string;
+
+  @IsString()
+  @MaxLength(120)
+  @IsNotEmpty()
+  title: string;
 
   @IsUrl({ require_protocol: true })
   meetLink: string;

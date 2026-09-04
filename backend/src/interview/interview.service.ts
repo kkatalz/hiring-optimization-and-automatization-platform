@@ -53,6 +53,27 @@ export class InterviewService {
     );
   }
 
+  async getInterviewsBySubmissionId(
+    submissionId: string,
+    viewer: UserDto,
+  ): Promise<InterviewViewDto[]> {
+    const submissionTenantId =
+      await this.vacancySubmissionService.getTenantIdBySubmissionId(
+        submissionId,
+      );
+
+    validateTenantAccess(viewer, submissionTenantId);
+
+    const interviews = await this.interviewRepository.find({
+      where: { submissionId },
+      order: { scheduledDate: 'DESC' }, // Newest interviews first
+    });
+
+    return interviews.map((interview) =>
+      toInterviewViewDto(interview, viewer.role),
+    );
+  }
+
   async scheduleInterview(
     dto: CreateInterviewDto,
     recruiter: UserDto,
@@ -78,6 +99,7 @@ export class InterviewService {
     }
 
     const interview = this.interviewRepository.create({
+      title: dto.title,
       meetLink: dto.meetLink,
       scheduledDate: dto.scheduledDate,
       durationMinutes: dto.durationMinutes ?? 60,

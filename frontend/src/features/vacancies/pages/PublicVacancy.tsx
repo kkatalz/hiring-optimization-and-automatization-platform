@@ -3,7 +3,8 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { Alert, CircularProgress } from '@mui/material';
 import { useBrowseVacancyByIdQuery } from '@/features/vacancies/api/vacancyEndpoints';
 import { getErrorMessage } from '@/shared/lib/errorMessage';
-import VacancyDetailsBreadcrumbs from '../components/details/VacancyDetailsBreadcrumbs';
+import { capitalizeName } from '@/shared/lib/formatText';
+import AppBreadcrumbs from '@/shared/ui/AppBreadcrumbs';
 import VacancyDetailsHeader from '../components/details/VacancyDetailsHeader';
 import type { VacancyOutletContext } from '../model/useVacancyOutletContext';
 
@@ -27,7 +28,12 @@ const PublicVacancy = () => {
 
   return (
     <>
-      <VacancyDetailsBreadcrumbs vacancyName={vacancy.name} rootTo='/' />
+      <AppBreadcrumbs
+        items={[
+          { label: 'Vacancies', to: '/' },
+          { label: capitalizeName(vacancy.name) },
+        ]}
+      />
 
       <VacancyDetailsHeader vacancy={vacancy} />
 

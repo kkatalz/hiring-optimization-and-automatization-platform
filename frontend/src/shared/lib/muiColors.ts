@@ -1,6 +1,6 @@
 import { useTheme } from '@mui/material/styles';
 import type { ChipProps, Palette } from '@mui/material';
-import { VacancySubmissionStatus } from '../../types';
+import { InterviewStatus, VacancySubmissionStatus } from '../../types';
 
 export const useChipColors = (): NonNullable<ChipProps['color']>[] => {
   const theme = useTheme();
@@ -32,6 +32,23 @@ export const progressBarColorBasedOnScore = (
 
   return { bgColor };
 };
+
+export const aiDetectionBarColorBasedOnScore = (
+  score: number,
+  baseThemePalette: Palette,
+): { bgColor: string } => {
+  const isLow = score <= 30;
+  const isMedium = score <= 70;
+
+  const bgColor = isLow
+    ? baseThemePalette.primary.main
+    : isMedium
+      ? baseThemePalette.info.main
+      : baseThemePalette.secondary.main;
+
+  return { bgColor };
+};
+
 /** Used for Resume AI score (Chip) */
 export const themeColorsBasedOnScore = (
   score: number,
@@ -55,6 +72,31 @@ export const themeColorsBasedOnScore = (
   return { bgColor, textColor };
 };
 
+/** Used for Interview status (Chip) */
+export const chipColorsBasedOnInterviewStatus = (
+  status: InterviewStatus,
+  baseThemePalette: Palette,
+): { bgColor: string; textColor: string } => {
+  if (status === InterviewStatus.completed)
+    return {
+      bgColor: baseThemePalette.success.light,
+      textColor: baseThemePalette.success.main,
+    };
+
+  // A canceled interview is usually just a reschedule, so it reads as
+  // 'no longer relevant' (grey) rather than as an error (red)
+  if (status === InterviewStatus.canceled)
+    return {
+      bgColor: baseThemePalette.grey[300],
+      textColor: baseThemePalette.text.secondary,
+    };
+
+  return {
+    bgColor: baseThemePalette.info.light,
+    textColor: baseThemePalette.info.main,
+  };
+};
+
 /** Used for Vacancy Submission Status (Chip) */
 export const chipColorBasedOnStatus = (
   status: string,
@@ -66,7 +108,7 @@ export const chipColorBasedOnStatus = (
       : status === VacancySubmissionStatus.pending
         ? baseThemePalette.info.light
         : status === VacancySubmissionStatus.rejected
-          ? baseThemePalette.warning.main
+          ? baseThemePalette.error.main
           : status === VacancySubmissionStatus.approved
             ? baseThemePalette.success.main
             : baseThemePalette.grey[300];

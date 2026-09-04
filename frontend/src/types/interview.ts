@@ -1,7 +1,19 @@
 import type { InterviewStatus } from './statuses.enum';
 
+export interface CreateInterviewInput {
+  submissionId: string;
+  title: string;
+  meetLink: string;
+  // ISO string - the backend parses it into a Date
+  scheduledDate: string;
+  durationMinutes?: number;
+  interviewersEmails?: string[];
+  notes?: string;
+}
+
 export interface Interview {
   id: string;
+  title: string;
   meetLink: string;
   scheduledDate: string;
   durationMinutes: number;

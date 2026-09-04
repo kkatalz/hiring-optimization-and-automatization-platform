@@ -1843,6 +1843,85 @@ describe('VacancySubmissionService', () => {
     });
   });
 
+  describe('findSubmissionById', () => {
+    it('should return the submission of the given id', async () => {
+      const submissionId = testVacancySubmissions[0].id;
+
+      const submission: VacancySubmissionDto =
+        await service.findSubmissionById(submissionId);
+
+      expect(submission.id).to.equal(submissionId);
+      expect(submission.vacancyId).to.equal(
+        testVacancySubmissions[0].vacancyId,
+      );
+      expect(submission.status).to.equal(testVacancySubmissions[0].status);
+    });
+
+    it('should load the candidate profile together with its user', async () => {
+      const submissionId = testVacancySubmissions[0].id;
+      const owner = testUsers[6];
+
+      const submission = await service.findSubmissionById(submissionId);
+
+      expect(submission.candidateProfile).to.not.equal(undefined);
+      expect(submission.candidateProfile?.userId).to.equal(owner.id);
+      expect(submission.candidateProfile?.email).to.equal(owner.email);
+      expect(submission.candidateProfile?.firstName).to.equal(owner.firstName);
+    });
+
+    it('should load the answers of the submission', async () => {
+      const submissionId = testVacancySubmissions[0].id;
+
+      const submission = await service.findSubmissionById(submissionId);
+
+      expect(submission.answers?.length).to.equal(
+        testSubmissionAnswers.filter(
+          (answer) => answer.submissionId === submissionId,
+        ).length,
+      );
+    });
+
+    it('should throw NOT_FOUND when submission does not exist', async () => {
+      try {
+        await service.findSubmissionById(nonExistentUUIDId);
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e: any) {
+        expect(e.response).to.equal(
+          `Vacancy submission with id ${nonExistentUUIDId} not found`,
+        );
+      }
+    });
+  });
+
+  describe('getCandidateUserIdBySubmissionId', () => {
+    it('should return the id of the user who owns the submission', async () => {
+      const submissionId = testVacancySubmissions[0].id;
+
+      const ownerUserId =
+        await service.getCandidateUserIdBySubmissionId(submissionId);
+
+      expect(ownerUserId).to.equal(testUsers[6].id);
+    });
+
+    it('should not return the id of a candidate who does not own the submission', async () => {
+      const submissionId = testVacancySubmissions[0].id;
+
+      const ownerUserId =
+        await service.getCandidateUserIdBySubmissionId(submissionId);
+
+      expect(ownerUserId).to.not.equal(testUsers[5].id);
+    });
+
+    it('should throw NOT_FOUND when submission does not exist', async () => {
+      try {
+        await service.getCandidateUserIdBySubmissionId(nonExistentUUIDId);
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e: any) {
+        expect(e.response).to.equal('Vacancy Submission not found.');
+      }
+    });
+  });
+
   describe('getTenantIdBySubmissionId', () => {
     it('should return the tenantId for a given submission', async () => {
       const submissionId = testVacancySubmissions[0].id;

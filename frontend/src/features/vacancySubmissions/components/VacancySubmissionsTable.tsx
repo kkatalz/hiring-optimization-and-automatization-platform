@@ -1,13 +1,4 @@
-import CircleIcon from '@mui/icons-material/Circle';
-import StarIcon from '@mui/icons-material/Star';
-import {
-  Button,
-  Chip,
-  LinearProgress,
-  Stack,
-  TableFooter,
-  Typography,
-} from '@mui/material';
+import { Button, TableFooter } from '@mui/material';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -17,30 +8,27 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { useState } from 'react';
 import type { Notification, VacancySubmission } from '@/types';
-import {
-  useApproveSubmissionMutation,
-  useRejectSubmissionMutation,
-} from '@/features/vacancySubmissions/api/vacancySubmissionEndpoints';
 import { formatDate } from '@/shared/lib/formatDate';
-import { capitalizeName } from '@/shared/lib/formatText';
-import {
-  chipColorBasedOnStatus,
-  progressBarColorBasedOnScore,
-  themeColorsBasedOnScore,
-} from '@/shared/lib/muiColors';
-import CandidateInfo from '@/features/candidateProfile/components/CandidateInfo';
+import CandidateInfo from '@/features/vacancySubmissions/components/CandidateInfo';
+import SubmissionDecisionButtons from '@/features/vacancySubmissions/components/details/SubmissionDecisionButtons';
 import NotificationAlert from '@/shared/ui/NotificationAlert';
 import { CustomTablePagination } from './SubmissionTablePagination';
+import { useNavigate } from 'react-router-dom';
+import ApplicationStatusChip from '@/features/vacancySubmissions/components/details/ApplicationStatusChip';
+import ClusterChip from '@/features/vacancySubmissions/components/details/ClusterChip';
+import ExpectedSalary from '@/features/vacancySubmissions/components/details/ExpectedSalary';
+import MatchScoreBar from '@/features/vacancySubmissions/components/details/MatchScoreBar';
+import RecruiterRating from '@/features/vacancySubmissions/components/details/RecruiterRating';
+import PercentageChip from '@/features/vacancySubmissions/components/details/PercentageChip';
 
 interface Props {
   submissions?: VacancySubmission[];
 }
 
 export const VacancySubmissionsTable = ({ submissions }: Props) => {
-  const [notification, setNotification] = useState<Notification | null>(null);
+  const navigate = useNavigate();
 
-  const [approveSubmission] = useApproveSubmissionMutation();
-  const [rejectSubmission] = useRejectSubmissionMutation();
+  const [notification, setNotification] = useState<Notification | null>(null);
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -65,36 +53,11 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
     setPage(0);
   };
 
-  const handleApprove = async (submissionId: string) => {
-    try {
-      await approveSubmission(submissionId).unwrap();
-      setNotification({
-        message: 'Submission approved successfully.',
-        severity: 'success',
-      });
-    } catch (error) {
-      console.error('Error approving submission:', error);
-      setNotification({
-        message: 'Failed to approve submission.',
-        severity: 'error',
-      });
-    }
-  };
-
-  const handleReject = async (submissionId: string) => {
-    try {
-      await rejectSubmission(submissionId).unwrap();
-      setNotification({
-        message: 'Submission rejected successfully.',
-        severity: 'success',
-      });
-    } catch (error) {
-      console.error('Error rejecting submission:', error);
-      setNotification({
-        message: 'Failed to reject submission.',
-        severity: 'error',
-      });
-    }
+  const handleShowSubmissionDetail = (
+    vacancyId: string,
+    submissionId: string,
+  ) => {
+    navigate(`/vacancies/${vacancyId}/vacancy-submissions/${submissionId}`);
   };
 
   return (
@@ -126,9 +89,9 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
             <TableCell align='center'>Status</TableCell>
             <TableCell align='center'>Rating</TableCell>
             <TableCell align='center'>Cluster</TableCell>
-            {/* Approve & Reject & View */}
+            {/* View */}
             <TableCell align='center'></TableCell>
-            <TableCell align='center'></TableCell>
+            {/* Approve & Reject */}
             <TableCell align='center'></TableCell>
           </TableRow>
         </TableHead>
@@ -148,6 +111,8 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
                 {submission.candidateProfile && (
                   <CandidateInfo
                     candidateProfile={submission.candidateProfile}
+                    globalDirection='row'
+                    showChipOrAvatar='chip'
                   />
                 )}
               </TableCell>
@@ -157,146 +122,26 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
               </TableCell>
 
               <TableCell align='center'>
-                <Stack
-                  direction='row'
-                  spacing={1}
-                  sx={{
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <LinearProgress
-                    variant='determinate'
-                    aria-label='Match score'
-                    value={submission.matchScore ?? 0}
-                    sx={(theme) => {
-                      const { bgColor } = progressBarColorBasedOnScore(
-                        submission.matchScore!,
-                        theme.palette,
-                      );
-
-                      return {
-                        flex: 1, // Prevents collapse by telling flexbox to expand the progress bar
-                        minWidth: 80,
-                        height: 8,
-                        borderRadius: 4,
-                        color: bgColor,
-                        '& .MuiLinearProgress-bar': {
-                          backgroundColor: bgColor,
-                        },
-                      };
-                    }}
-                  />
-                  <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                    {submission.matchScore}
-                  </Typography>
-                </Stack>
-              </TableCell>
-              <TableCell align='center'>
-                {submission.expectedSalary != null ? (
-                  `$${submission.expectedSalary}`
-                ) : (
-                  <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                    Not specified
-                  </Typography>
-                )}
+                <MatchScoreBar matchScore={submission.matchScore} />
               </TableCell>
 
               <TableCell align='center'>
-                {submission.resumeAiScore != null ? (
-                  <Chip
-                    icon={<CircleIcon />}
-                    label={`${submission.resumeAiScore}% AI`}
-                    sx={(theme) => {
-                      const { bgColor, textColor } = themeColorsBasedOnScore(
-                        submission.resumeAiScore!,
-                        theme.palette,
-                      );
-
-                      return {
-                        backgroundColor: bgColor,
-                        color: textColor,
-                        padding: '2px',
-                        // Target the Chip icon slot directly for contrast
-                        '& .MuiChip-icon': {
-                          color: textColor, // Matches text for clear contrast against light background
-                          fontSize: 'medium',
-                        },
-                      };
-                    }}
-                  />
-                ) : (
-                  <Chip label='No resume' />
-                )}
+                <ExpectedSalary expectedSalary={submission.expectedSalary} />
               </TableCell>
 
               <TableCell align='center'>
-                <Chip
-                  label={capitalizeName(submission.status)}
-                  sx={(theme) => {
-                    const { bgColor } = chipColorBasedOnStatus(
-                      submission.status,
-                      theme.palette,
-                    );
-                    return {
-                      backgroundColor: bgColor,
-                      color: theme.palette.getContrastText(bgColor),
-                    };
-                  }}
-                />
+                <PercentageChip score={submission.resumeAiScore} label='AI' />
               </TableCell>
 
               <TableCell align='center'>
-                {submission.recruiterRating != null ? (
-                  <Chip
-                    label={`${submission.recruiterRating}/10`}
-                    icon={<StarIcon />}
-                    sx={{
-                      '& .MuiChip-icon': {
-                        color: 'info.main',
-                      },
-                    }}
-                  />
-                ) : (
-                  <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                    Not rated
-                  </Typography>
-                )}
-              </TableCell>
-              <TableCell align='center'>
-                {submission.clusterId != null ? (
-                  <Chip
-                    label={`Cluster ${submission.clusterId}`}
-                    variant='outlined'
-                  />
-                ) : (
-                  <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                    Not clustered
-                  </Typography>
-                )}
+                <ApplicationStatusChip submissionStatus={submission.status} />
               </TableCell>
 
               <TableCell align='center'>
-                <Button
-                  variant='text'
-                  color='success'
-                  size='small'
-                  onClick={() => handleApprove(submission.id)}
-                >
-                  Approve
-                </Button>
+                <RecruiterRating recruiterRating={submission.recruiterRating} />
               </TableCell>
-
               <TableCell align='center'>
-                <Button
-                  variant='text'
-                  color='error'
-                  size='small'
-                  onClick={() => handleReject(submission.id)}
-                >
-                  Reject
-                </Button>
+                <ClusterChip clusterId={submission.clusterId} />
               </TableCell>
 
               <TableCell align='center'>
@@ -304,15 +149,31 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
                   variant='text'
                   size='small'
                   sx={{ color: 'info.contrastText' }}
+                  onClick={() =>
+                    handleShowSubmissionDetail(
+                      submission.vacancyId,
+                      submission.id,
+                    )
+                  }
                 >
                   View
                 </Button>
+              </TableCell>
+
+              <TableCell align='center'>
+                <SubmissionDecisionButtons
+                  submissionId={submission.id}
+                  submissionStatus={submission.status}
+                  onNotify={(message, severity) =>
+                    setNotification({ message, severity })
+                  }
+                />
               </TableCell>
             </TableRow>
           ))}
           {emptyRows > 0 && (
             <tr style={{ height: 41 * emptyRows }}>
-              <td colSpan={3} aria-hidden />
+              <td colSpan={10} aria-hidden />
             </tr>
           )}
         </TableBody>

@@ -45,6 +45,18 @@ export class InterviewController {
     return this.interviewService.getMyInterviews(viewer);
   }
 
+  @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
+  @Get('submission/:submissionId')
+  async getInterviewsBySubmissionId(
+    @AuthUser() viewer: UserDto,
+    @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
+  ): Promise<InterviewViewDto[]> {
+    return this.interviewService.getInterviewsBySubmissionId(
+      submissionId,
+      viewer,
+    );
+  }
+
   @Roles(UserRole.admin, UserRole.recruiter)
   @Post()
   async scheduleInterview(
