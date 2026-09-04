@@ -21,6 +21,7 @@ export const candidateToCandidateProfileDto = (
     submissions: candidateProfile?.submissions?.map((s) => ({
       id: s.id,
       vacancyId: s.vacancyId,
+      vacancyName: s.vacancy?.name,
       status: s.status,
       comment: s.comment,
       resume: s.resume,

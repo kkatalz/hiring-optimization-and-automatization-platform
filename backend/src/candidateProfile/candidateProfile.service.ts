@@ -32,6 +32,22 @@ export class CandidateProfileService {
     private readonly saplingService: SaplingService,
   ) {}
 
+  async findMyCandidateProfile(userId: string): Promise<CandidateProfileDto> {
+    const candidateProfile = await this.candidateProfileRepository.findOne({
+      where: { userId },
+      relations: ['user', 'submissions', 'submissions.vacancy'],
+    });
+
+    if (!candidateProfile) {
+      throw new HttpException(
+        'Candidate profile with given user ID not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return candidateToCandidateProfileDto(candidateProfile);
+  }
+
   async findAllCandidateSubmissionsByCandidateId(
     candidateId: string,
   ): Promise<CandidateProfileDto> {

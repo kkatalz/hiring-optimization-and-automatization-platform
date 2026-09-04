@@ -85,6 +85,79 @@ describe('CandidateProfileService', () => {
     expect(!!candidateProfileService).to.deep.equal(true);
   });
 
+  describe('findMyCandidateProfile', () => {
+    it('should return the profile of the candidate behind the given user id', async () => {
+      const owner = testUsers[6];
+
+      const profile: CandidateProfileDto =
+        await candidateProfileService.findMyCandidateProfile(owner.id);
+
+      expect(profile.userId).to.equal(owner.id);
+      expect(profile.email).to.equal(owner.email);
+      expect(profile.yearsOfExperience).to.equal(
+        testCandidatesProfiles[1].yearsOfExperience,
+      );
+      expect(profile.city).to.equal(testCandidatesProfiles[1].city);
+    });
+
+    it('should return the submissions of that candidate', async () => {
+      const profile = await candidateProfileService.findMyCandidateProfile(
+        testUsers[6].id,
+      );
+
+      expect(profile.submissions?.length).to.equal(1);
+      expect(profile.submissions?.[0].id).to.equal(
+        testVacancySubmissions[0].id,
+      );
+      expect(profile.submissions?.[0].status).to.equal(
+        testVacancySubmissions[0].status,
+      );
+    });
+
+    it('should name the vacancy each submission was created for', async () => {
+      const profile = await candidateProfileService.findMyCandidateProfile(
+        testUsers[6].id,
+      );
+
+      expect(profile.submissions?.[0].vacancyId).to.equal(testVacancies[1].id);
+      expect(profile.submissions?.[0].vacancyName).to.equal(
+        testVacancies[1].name,
+      );
+    });
+
+    it('should return an empty submission list for a candidate who never applied', async () => {
+      const profile = await candidateProfileService.findMyCandidateProfile(
+        testUsers[5].id,
+      );
+
+      expect(profile.userId).to.equal(testUsers[5].id);
+      expect(profile.submissions).to.deep.equal([]);
+    });
+
+    it('should throw NOT_FOUND when the user has no candidate profile', async () => {
+      try {
+        // testUsers[0] is an admin, so no candidate profile exists for them
+        await candidateProfileService.findMyCandidateProfile(testUsers[0].id);
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e: any) {
+        expect(e.response).to.deep.equal(
+          'Candidate profile with given user ID not found.',
+        );
+      }
+    });
+
+    it('should throw NOT_FOUND when the user does not exist', async () => {
+      try {
+        await candidateProfileService.findMyCandidateProfile(nonExistentUUIDId);
+        expect.fail('Should have thrown a NOT_FOUND error but did not');
+      } catch (e: any) {
+        expect(e.response).to.deep.equal(
+          'Candidate profile with given user ID not found.',
+        );
+      }
+    });
+  });
+
   describe('find all candidate submissions by candidate id', () => {
     it('should find all candidate submissions by candidate id', async () => {
       const candidateSubmissions: CandidateProfileDto =

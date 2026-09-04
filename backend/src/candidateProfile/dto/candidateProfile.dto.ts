@@ -6,6 +6,8 @@ import { SentenceScore } from '../../sapling/types/scores.interface';
 export class CandidateSubmissionDto {
   id: string;
   vacancyId: string;
+  // Only set when the caller loaded the `vacancy` relation of the submission.
+  vacancyName?: string;
   status: VacancySubmissionStatus;
   comment?: string;
   resume?: string;
