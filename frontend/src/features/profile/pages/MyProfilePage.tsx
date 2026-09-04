@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useAppSelector } from '@/app/hooks';
 import { useHasPermission } from '@/features/auth/model/useHasPermission';
 import { useGetMyCandidateProfileQuery } from '@/features/profile/api/profileEndpoints';
+import AccountSecurityCard from '@/features/profile/components/AccountSecurityCard';
 import CandidateDetailsCard from '@/features/profile/components/CandidateDetailsCard';
 import MyApplicationsCard from '@/features/profile/components/MyApplicationsCard';
 import ProfileHeaderCard from '@/features/profile/components/ProfileHeaderCard';
@@ -59,6 +60,13 @@ const MyProfilePage = () => {
         <Grid container spacing={{ xs: 2, sm: 3 }}>
           <Grid size={{ xs: 12, md: 5 }}>
             <Stack spacing={{ xs: 2, sm: 3 }}>
+              <AccountSecurityCard
+                user={user}
+                onNotify={(message, severity) =>
+                  setNotification({ message, severity })
+                }
+              />
+
               {isLoading && <Skeleton variant='rounded' height={260} />}
 
               {candidateProfile && (
