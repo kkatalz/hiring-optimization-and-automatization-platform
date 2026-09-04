@@ -14,6 +14,7 @@ export interface CandidateSubmission {
   tags?: string[];
   expectedSalary?: number | null;
   createdAt: string;
+  matchScore?: number;
 }
 
 export interface CandidateProfile {

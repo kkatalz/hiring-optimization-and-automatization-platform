@@ -85,6 +85,11 @@ export default function AppTopBar({ onMobileMenuClick }: AppTopBarProps) {
     setAnchorEl(null);
   };
 
+  const handleShowMyProfile = () => {
+    handleMenuClose();
+    navigate('/my-profile');
+  };
+
   const handleLogin = () => {
     if (status !== 'authenticated') {
       navigate('/login');
@@ -121,7 +126,7 @@ export default function AppTopBar({ onMobileMenuClick }: AppTopBarProps) {
       disableScrollLock
     >
       {status === 'authenticated' && (
-        <MenuItem onClick={handleMenuClose}>My account</MenuItem>
+        <MenuItem onClick={handleShowMyProfile}>My profile</MenuItem>
       )}
       <MenuItem onClick={handleLogin}>Login</MenuItem>
       <MenuItem onClick={handleLogout}>Logout</MenuItem>

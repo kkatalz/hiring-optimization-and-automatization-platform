@@ -29,6 +29,7 @@ export const candidateToCandidateProfileDto = (
       expectedSalary:
         s.expectedSalary != null ? Number(s.expectedSalary) : null,
       createdAt: s.createdAt,
+      matchScore: s.matchScore,
     })),
   };
 };

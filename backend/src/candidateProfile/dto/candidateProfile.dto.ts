@@ -13,6 +13,7 @@ export class CandidateSubmissionDto {
   resume?: string;
   tags?: string[];
   expectedSalary?: number | null;
+  matchScore?: number;
   createdAt: Date;
 }
 
