@@ -26,7 +26,7 @@ export const LoginForm = () => {
     email: '',
     password: '',
   });
-  const { status, user, error } = useAppSelector((state) => state.auth);
+  const { status, error } = useAppSelector((state) => state.auth);
 
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
@@ -37,17 +37,14 @@ export const LoginForm = () => {
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await dispatch(
+      const signedInUser = await dispatch(
         login({ email: loginFields.email, password: loginFields.password }),
       ).unwrap();
-      if (status === 'authenticated' && user) {
-        if (user.role === UserRole.candidate) navigate('/');
-        else {
-          navigate('/vacancies');
-        }
-      }
+
+      if (signedInUser.role === UserRole.candidate) navigate('/');
+      else navigate('/vacancies');
     } catch (err) {
-      console.error('Login failed:', err);
+      console.error(err);
     }
   };
 
@@ -91,7 +88,9 @@ export const LoginForm = () => {
             label='Email'
             type='email'
             size='small'
+            required
             fullWidth
+            autoComplete='email'
             value={loginFields.email}
             onChange={handleChange}
           />
@@ -100,7 +99,9 @@ export const LoginForm = () => {
             label='Password'
             type='password'
             size='small'
+            required
             fullWidth
+            autoComplete='current-password'
             value={loginFields.password}
             onChange={handleChange}
           />
