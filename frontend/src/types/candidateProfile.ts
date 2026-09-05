@@ -6,12 +6,15 @@ import type { SentenceScore } from './scores.interface';
 export interface CandidateSubmission {
   id: string;
   vacancyId: string;
+  /** Only set by endpoints that load the submission's vacancy. */
+  vacancyName?: string;
   status: VacancySubmissionStatus;
   comment?: string;
   resume?: string;
   tags?: string[];
   expectedSalary?: number | null;
   createdAt: string;
+  matchScore?: number;
 }
 
 export interface CandidateProfile {

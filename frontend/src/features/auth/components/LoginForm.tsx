@@ -9,6 +9,8 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
+import Link from '@mui/material/Link';
+import ForgotPasswordDialog from '@/features/auth/components/ForgotPasswordDialog';
 import { UserRole } from '@/types';
 
 interface LoginFields {
@@ -24,7 +26,9 @@ export const LoginForm = () => {
     email: '',
     password: '',
   });
-  const { status, user, error } = useAppSelector((state) => state.auth);
+  const { status, error } = useAppSelector((state) => state.auth);
+
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoginFields({ ...loginFields, [e.target.name]: e.target.value });
@@ -33,17 +37,14 @@ export const LoginForm = () => {
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await dispatch(
+      const signedInUser = await dispatch(
         login({ email: loginFields.email, password: loginFields.password }),
       ).unwrap();
-      if (status === 'authenticated' && user) {
-        if (user.role === UserRole.candidate) navigate('/');
-        else {
-          navigate('/vacancies');
-        }
-      }
+
+      if (signedInUser.role === UserRole.candidate) navigate('/');
+      else navigate('/vacancies');
     } catch (err) {
-      console.error('Login failed:', err);
+      console.error(err);
     }
   };
 
@@ -87,7 +88,9 @@ export const LoginForm = () => {
             label='Email'
             type='email'
             size='small'
+            required
             fullWidth
+            autoComplete='email'
             value={loginFields.email}
             onChange={handleChange}
           />
@@ -96,7 +99,9 @@ export const LoginForm = () => {
             label='Password'
             type='password'
             size='small'
+            required
             fullWidth
+            autoComplete='current-password'
             value={loginFields.password}
             onChange={handleChange}
           />
@@ -108,8 +113,24 @@ export const LoginForm = () => {
           >
             {status === 'loading' ? 'Logging in...' : 'SIGN IN'}
           </Button>
+
+          <Link
+            component='button'
+            type='button'
+            underline='hover'
+            variant='body2'
+            onClick={() => setIsForgotPasswordOpen(true)}
+            sx={{ alignSelf: 'center' }}
+          >
+            Forgot your password?
+          </Link>
         </Stack>
       </Paper>
+
+      <ForgotPasswordDialog
+        open={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
+      />
     </Container>
   );
 };

@@ -13,6 +13,8 @@ import BrowseVacancies from '../features/vacancies/pages/BrowseVacancies';
 import PublicVacancy from '../features/vacancies/pages/PublicVacancy';
 import { RedirectStaff } from '@/routing/RedirectStaff';
 import SubmissionDetailPage from '@/features/vacancySubmissions/pages/SubmissionDetailPage';
+import MyProfilePage from '@/features/profile/pages/MyProfilePage';
+import ResetPasswordPage from '@/features/auth/pages/ResetPasswordPage';
 
 const routes = createBrowserRouter([
   {
@@ -21,6 +23,14 @@ const routes = createBrowserRouter([
       {
         path: '/login',
         Component: LoginForm,
+      },
+
+      // Where the emailed password-reset link lands. Public by necessity: the
+      // visitor cannot sign in, and the token in the query string is the only
+      // credential they have.
+      {
+        path: '/reset-password',
+        Component: ResetPasswordPage,
       },
 
       {
@@ -69,6 +79,8 @@ const routes = createBrowserRouter([
           {
             Component: RequireAuth,
             children: [
+              { path: '/my-profile', Component: MyProfilePage },
+
               {
                 // Only for admin, superAdmin and recruiter
                 Component: RequireRole,

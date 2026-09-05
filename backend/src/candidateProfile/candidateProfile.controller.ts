@@ -30,6 +30,17 @@ export class CandidateProfileController {
     private readonly candidateProfileService: CandidateProfileService,
   ) {}
 
+  /** The requester's own candidate profile, with the vacancies they applied to. */
+  @Roles(UserRole.candidate)
+  @Get('me')
+  async findMyProfile(
+    @AuthUser() requester: UserDto,
+  ): Promise<CandidateProfileDto> {
+    return await this.candidateProfileService.findMyCandidateProfile(
+      requester.id,
+    );
+  }
+
   @Roles(UserRole.candidate, UserRole.superAdmin)
   @Get(':candidateId/submissions')
   async findAllCandidateSubmissionsByCandidateId(

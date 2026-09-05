@@ -7,6 +7,7 @@ import { jwtDecode } from 'jwt-decode';
 import { getAxiosErrorMessage } from '@/shared/lib/errorMessage';
 import type { User } from '@/types';
 import api from '@/app/api/httpClient';
+import { authApi } from '@/features/auth/api/authEndpoints';
 import { vacancyApi } from '@/features/vacancies/api/vacancyEndpoints';
 
 interface AuthState {
@@ -63,6 +64,16 @@ const authSlice = createSlice({
       state.user = null;
       state.status = 'unauthenticated';
     });
+
+    // The signed-in user's email is shown from the session, so a successful
+    // change has to land here too - otherwise the profile page keeps
+    // displaying the old address until the next refresh.
+    builder.addMatcher(
+      authApi.endpoints.changeEmail.matchFulfilled,
+      (state, action) => {
+        if (state.user) state.user.email = action.payload.email;
+      },
+    );
   },
 });
 

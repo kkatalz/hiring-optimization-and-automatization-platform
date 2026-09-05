@@ -91,6 +91,13 @@ export class AuthController {
     return { message: 'Logged out successfully.' };
   }
 
+  /**
+   * Step one of a password reset: ask for the email that carries the link.
+   *
+   * Deliberately separate from `reset-password` below.
+   * This one is called by a logged-out visitor who has only an email address, sends mail and
+   * changes nothing.
+   */
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 5, ttl: 3600000 } })
@@ -104,8 +111,12 @@ export class AuthController {
     };
   }
 
+  /**
+   * Step two: use the emailed token for a new password.
+   */
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 3600000 } })
   async resetPassword(
     @Body() resetPasswordDto: ResetPasswordDto,
   ): Promise<{ message: string }> {
