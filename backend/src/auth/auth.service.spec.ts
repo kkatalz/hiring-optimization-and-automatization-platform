@@ -35,7 +35,7 @@ describe('AuthService', () => {
     process.env.JWT_REFRESH_SECRET = 'test-refresh-secret';
     process.env.SENDGRID_API_KEY = 'SG.test';
     process.env.SENDGRID_FROM_EMAIL = 'noreply@test.com';
-    process.env.FRONTEND_URL = 'http://localhost:3000';
+    process.env.FRONTEND_URL = 'http://localhost:5173';
 
     userRepository = {
       findOne: sinon.stub(),
@@ -151,7 +151,7 @@ describe('AuthService', () => {
       expect(msg.subject).to.equal('Reset your password');
       expect(msg.html).to.contain('Ada');
       expect(msg.html).to.contain(
-        'http://localhost:3000/reset-password?token=',
+        'http://localhost:5173/reset-password?token=',
       );
       expect(msg.text).to.contain('Ada');
     });
