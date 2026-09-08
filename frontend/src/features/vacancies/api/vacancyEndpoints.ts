@@ -5,6 +5,7 @@ import type {
   CreateVacancyQuestionInput,
   GeneralVacancy,
   PaginatedResponse,
+  PublicVacancyQuestion,
   UpdateVacancyInput,
   VacanciesFilters,
   Vacancy,
@@ -93,6 +94,19 @@ export const vacancyApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
       providesTags: [{ type: 'Vacancy', id: ALL }],
+      extraOptions: PUBLIC_ENDPOINT,
+    }),
+
+    // The screening questions a candidate answers when applying. Public, and
+    // without the scoring rules the staff endpoint returns.
+    getPublicVacancyQuestions: builder.query<PublicVacancyQuestion[], string>({
+      query: (vacancyId) => ({
+        url: `/vacancies/public/${vacancyId}/questions`,
+        method: 'GET',
+      }),
+      providesTags: (_result, _error, vacancyId) => [
+        { type: 'Question', id: allWithin('VACANCY', vacancyId) },
+      ],
       extraOptions: PUBLIC_ENDPOINT,
     }),
 
@@ -191,6 +205,7 @@ export const {
   useBrowseVacanciesQuery,
   useGetAllVacanciesTagsQuery,
   useGetAllVacanciesLanguagesCodesQuery,
+  useGetPublicVacancyQuestionsQuery,
   useBrowseVacanciesTagsQuery,
   useBrowseVacanciesLanguagesCodesQuery,
   useCreateVacancyMutation,

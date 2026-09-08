@@ -1,6 +1,7 @@
 import { baseApi } from '@/app/api/baseApi';
-import { allWithin } from '@/app/api/cacheTags';
+import { ALL, allWithin } from '@/app/api/cacheTags';
 import type {
+  CreateSubmissionInput,
   MatchScoreExplanation,
   SubmissionFilters,
   SubmissionSortQuery,
@@ -92,6 +93,46 @@ export const vacancySubmissionApi = baseApi.injectEndpoints({
     }),
 
     // SUBMISSION MUTATIONS
+    applyToVacancy: builder.mutation<
+      VacancySubmission,
+      { vacancyId: string; body: CreateSubmissionInput }
+    >({
+      query: ({ vacancyId, body }) => ({
+        url: `/vacanciesSubmissions/${vacancyId}`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: (_result, _error, { vacancyId }) => [
+        { type: 'Submission', id: allWithin('VACANCY', vacancyId) },
+        { type: 'CandidateProfile', id: ALL },
+      ],
+    }),
+
+    /**
+     * Uploads a PDF or DOCX and lets the backend parse it into the
+     * submission's resume text. Sent as multipart, so the body is a FormData
+     * whose single field is named `file` - what UploadResume() expects.
+     */
+    uploadSubmissionResume: builder.mutation<
+      VacancySubmission,
+      { submissionId: string; file: File }
+    >({
+      query: ({ submissionId, file }) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        return {
+          url: `/vacanciesSubmissions/${submissionId}/parse-resume-file`,
+          method: 'POST',
+          body: formData,
+        };
+      },
+      invalidatesTags: (_result, _error, { submissionId }) => [
+        { type: 'Submission', id: submissionId },
+        { type: 'CandidateProfile', id: ALL },
+      ],
+    }),
+
     approveSubmission: builder.mutation<VacancySubmission, string>({
       query: (submissionId) => ({
         url: `/vacanciesSubmissions/${submissionId}/approve`,
@@ -121,6 +162,8 @@ export const {
   useGetAllSubmissionsCountriesByVacancyIdQuery,
   useGetAllSubmissionsLanguagesCodesByVacancyIdQuery,
   useGetMatchScoreExplanationQuery,
+  useApplyToVacancyMutation,
+  useUploadSubmissionResumeMutation,
   useApproveSubmissionMutation,
   useRejectSubmissionMutation,
 } = vacancySubmissionApi;

@@ -14,6 +14,21 @@ export interface VacancyQuestionDetailed extends VacancyQuestion {
   answerOptions?: string[] | null;
 }
 
+/**
+ * A screening question as a candidate sees it while applying.
+ *
+ * Carries no `priority` or `expectedValue`: those are the recruiter's scoring
+ * rules, and the public endpoint does not return them.
+ */
+export interface PublicVacancyQuestion {
+  vacancyId: string;
+  questionId: string;
+  isRequired: boolean;
+  label: string;
+  type: QuestionType;
+  answerOptions?: string[] | null;
+}
+
 export interface VacancyQuestionInput {
   questionId?: string; // present for existing questions, omitted for newly added ones
   label: string;

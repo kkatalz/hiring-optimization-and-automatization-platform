@@ -28,6 +28,15 @@ export interface VacancySubmission {
   answers?: QuestionAnswer[];
 }
 
+/** What a candidate sends when applying to a vacancy. */
+export interface CreateSubmissionInput {
+  comment?: string;
+  tags?: string[];
+  answers?: QuestionAnswer[];
+  expectedSalary?: number;
+  resume?: string;
+}
+
 export const SUBMISSION_SORT_FIELDS = [
   'createdAt',
   'expectedSalary',

@@ -28,6 +28,8 @@ import { QuestionService } from '../question/question.service';
 import { CreateVacancyQuestionDto } from './dto/createVacancyQuestion.dto';
 import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
 import { vacancyQuestionToDetailedDto } from './map/vacancyQuestionDetailed.map';
+import { PublicVacancyQuestionDto } from './dto/publicVacancyQuestion.dto';
+import { vacancyQuestionToPublicDto } from './map/publicVacancyQuestion.map';
 import { CreateVacancyQuestionInlineDto } from './dto/createVacancyWithQuestions.dto';
 import { UpdateVacancyQuestionInlineDto } from './dto/updateVacancyWithQuestions.dto';
 import { VacancySubmissionService } from '../vacancySubmission/vacancySubmission.service';
@@ -512,6 +514,23 @@ export class VacancyService {
         .getMany();
 
     return vacancyQuestions.map(vacancyQuestionToDetailedDto);
+  }
+
+  /**
+   * The same questions as findAllQuestionsByVacancyId, minus the scoring
+   * rules. This is what a candidate needs in order to fill in an application.
+   */
+  async findPublicQuestionsByVacancyId(
+    vacancyId: string,
+  ): Promise<PublicVacancyQuestionDto[]> {
+    const vacancyQuestions: VacancyQuestion[] =
+      await this.vacancyQuestionRepository
+        .createQueryBuilder('vq')
+        .innerJoinAndSelect('vq.question', 'question')
+        .where('vq.vacancyId = :vacancyId', { vacancyId })
+        .getMany();
+
+    return vacancyQuestions.map(vacancyQuestionToPublicDto);
   }
 
   async findAllVacanciesThatHaveQuestions(
