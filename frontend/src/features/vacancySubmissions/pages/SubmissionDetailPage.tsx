@@ -101,7 +101,12 @@ const SubmissionDetailPage = () => {
               </CardContent>
             </Card>
 
-            <SubmissionScoresCard submission={submission} />
+            <SubmissionScoresCard
+              submission={submission}
+              onNotify={(message, severity) =>
+                setNotification({ message, severity })
+              }
+            />
           </Stack>
         </Grid>
         <Grid size={{ xs: 12, sm: 8 }}>

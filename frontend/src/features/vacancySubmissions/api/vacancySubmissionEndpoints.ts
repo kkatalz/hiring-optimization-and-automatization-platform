@@ -133,6 +133,50 @@ export const vacancySubmissionApi = baseApi.injectEndpoints({
       ],
     }),
 
+    /**
+     * Puts a first rating on a submission. The backend rejects this once a
+     * rating exists, so callers must switch to updateRating - see
+     * CandidateRatingEditor, which picks between the two.
+     */
+    addRating: builder.mutation<
+      VacancySubmission,
+      { submissionId: string; rating: number }
+    >({
+      query: ({ submissionId, rating }) => ({
+        url: `/vacanciesSubmissions/add-rating/${submissionId}`,
+        method: 'POST',
+        body: { rating },
+      }),
+      invalidatesTags: (_result, _error, { submissionId }) => [
+        { type: 'Submission', id: submissionId },
+      ],
+    }),
+
+    /** Changes an existing rating. Rejected when there is none yet. */
+    updateRating: builder.mutation<
+      VacancySubmission,
+      { submissionId: string; rating: number }
+    >({
+      query: ({ submissionId, rating }) => ({
+        url: `/vacanciesSubmissions/update-rating/${submissionId}`,
+        method: 'PATCH',
+        body: { rating },
+      }),
+      invalidatesTags: (_result, _error, { submissionId }) => [
+        { type: 'Submission', id: submissionId },
+      ],
+    }),
+
+    removeRating: builder.mutation<VacancySubmission, string>({
+      query: (submissionId) => ({
+        url: `/vacanciesSubmissions/remove-rating/${submissionId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _error, submissionId) => [
+        { type: 'Submission', id: submissionId },
+      ],
+    }),
+
     approveSubmission: builder.mutation<VacancySubmission, string>({
       query: (submissionId) => ({
         url: `/vacanciesSubmissions/${submissionId}/approve`,
@@ -164,6 +208,9 @@ export const {
   useGetMatchScoreExplanationQuery,
   useApplyToVacancyMutation,
   useUploadSubmissionResumeMutation,
+  useAddRatingMutation,
+  useUpdateRatingMutation,
+  useRemoveRatingMutation,
   useApproveSubmissionMutation,
   useRejectSubmissionMutation,
 } = vacancySubmissionApi;

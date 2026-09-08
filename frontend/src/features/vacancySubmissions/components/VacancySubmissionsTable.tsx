@@ -18,7 +18,7 @@ import ApplicationStatusChip from '@/features/vacancySubmissions/components/deta
 import ClusterChip from '@/features/vacancySubmissions/components/details/ClusterChip';
 import ExpectedSalary from '@/features/vacancySubmissions/components/details/ExpectedSalary';
 import MatchScoreBar from '@/features/vacancySubmissions/components/details/MatchScoreBar';
-import RecruiterRating from '@/features/vacancySubmissions/components/details/RecruiterRating';
+import CandidateRating from '@/features/vacancySubmissions/components/details/CandidateRating';
 import PercentageChip from '@/features/vacancySubmissions/components/details/PercentageChip';
 
 interface Props {
@@ -137,7 +137,7 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
               </TableCell>
 
               <TableCell align='center'>
-                <RecruiterRating recruiterRating={submission.recruiterRating} />
+                <CandidateRating rating={submission.rating} />
               </TableCell>
               <TableCell align='center'>
                 <ClusterChip clusterId={submission.clusterId} />

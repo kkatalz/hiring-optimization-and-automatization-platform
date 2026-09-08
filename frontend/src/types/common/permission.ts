@@ -11,7 +11,9 @@ export type Permission =
   | 'clustering:runByVacancyId'
   | 'interview:schedule'
   | 'candidateProfile:getMine'
-  | 'vacancySubmission:create';
+  | 'vacancySubmission:create'
+  | 'vacancySubmissions:rate'
+  | 'vacancySubmissions:removeRating';
 
 /** Mirrors the @Roles(...) decorator of the backend controllers.
     If a decorator changes, change it here too. This file is the only
@@ -44,6 +46,16 @@ export const PERMISSIONS: Record<Permission, readonly UserRole[]> = {
   'interview:schedule': [UserRole.admin, UserRole.recruiter],
   'candidateProfile:getMine': [UserRole.candidate],
   'vacancySubmission:create': [UserRole.candidate],
+  'vacancySubmissions:rate': [
+    UserRole.recruiter,
+    UserRole.admin,
+    UserRole.superAdmin,
+  ],
+  'vacancySubmissions:removeRating': [
+    UserRole.superAdmin,
+    UserRole.admin,
+    UserRole.recruiter,
+  ],
 };
 
 export const hasPermission = (

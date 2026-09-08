@@ -3,23 +3,28 @@ import { Chip, Stack, Typography } from '@mui/material';
 
 const STAR_SX = { '& .MuiChip-icon': { color: 'info.main' } };
 
-interface RecruiterRatingProps {
-  recruiterRating?: number | null;
+interface CandidateRatingProps {
+  rating?: number | null;
   variant?: 'chip' | 'text';
+  onClick?: () => void;
 }
 
-const RecruiterRating = ({
-  recruiterRating,
+const CandidateRating = ({
+  rating,
   variant = 'chip',
-}: RecruiterRatingProps) => {
-  if (recruiterRating == null)
-    return (
+  onClick,
+}: CandidateRatingProps) => {
+  if (rating == null)
+    return onClick ? (
+      // An unrated submission still needs something to click on
+      <Chip label='Not rated' variant='outlined' onClick={onClick} />
+    ) : (
       <Typography variant='body2' sx={{ color: 'text.secondary' }}>
         Not rated
       </Typography>
     );
 
-  const label = `${recruiterRating}/10`;
+  const label = `${rating}/10`;
 
   if (variant === 'text')
     return (
@@ -29,7 +34,9 @@ const RecruiterRating = ({
       </Stack>
     );
 
-  return <Chip label={label} icon={<StarIcon />} sx={STAR_SX} />;
+  return (
+    <Chip label={label} icon={<StarIcon />} sx={STAR_SX} onClick={onClick} />
+  );
 };
 
-export default RecruiterRating;
+export default CandidateRating;
