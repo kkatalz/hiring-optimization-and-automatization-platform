@@ -12,15 +12,12 @@ import {
 } from '@/types';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import {
-  useGetAllVacanciesLanguagesCodesQuery,
-  useGetAllVacanciesTagsQuery,
-} from '@/features/vacancies/api/vacancyEndpoints';
-import {
   applyFilters,
   resetFilters,
   setOrder,
   setSortBy,
 } from '@/features/vacancies/model/vacancyFiltersSlice';
+import { useVacancyFilterOptions } from '@/features/vacancies/model/useVacancyFilterOptions';
 import SortOrderLimitFilters from '../../../shared/ui/SortOrderLimitFilters';
 import { LanguageRequirementsFilter } from '../../../shared/ui/filters/LanguageRequirementsFilter';
 import { Grid } from '@mui/material';
@@ -31,8 +28,7 @@ export const VacanciesFilters = () => {
   const appliedFilters = useAppSelector((state) => state.vacancyFilters);
   const [draft, setDraft] = useState(appliedFilters);
 
-  const { data: allTags } = useGetAllVacanciesTagsQuery();
-  const { data: languageCodes } = useGetAllVacanciesLanguagesCodesQuery();
+  const { tags: allTags, languageCodes } = useVacancyFilterOptions();
 
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -112,7 +108,7 @@ export const VacanciesFilters = () => {
             <Autocomplete
               multiple
               id='tags-outlined'
-              options={allTags || []}
+              options={allTags}
               value={draft.tags ?? []}
               getOptionLabel={(option) => option}
               filterSelectedOptions
@@ -219,7 +215,7 @@ export const VacanciesFilters = () => {
           onChange={(next) =>
             setDraft({ ...draft, languageRequirements: next })
           }
-          languageCodes={languageCodes ?? []}
+          languageCodes={languageCodes}
         />
 
         <SortOrderLimitFilters
