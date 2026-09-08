@@ -1,14 +1,13 @@
-import { List, Pagination } from '@mui/material';
-import { useState, type ReactNode } from 'react';
+import { Alert, List, Pagination } from '@mui/material';
+import { type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { setPage } from '@/features/vacancies/model/vacancyFiltersSlice';
 import { getErrorMessage } from '@/shared/lib/errorMessage';
 import VacancyCard from './VacancyCard';
-import type { Notification, PaginatedResponse, VacancySummary } from '@/types';
+import type { PaginatedResponse, VacancySummary } from '@/types';
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import type { SerializedError } from '@reduxjs/toolkit';
-import NotificationAlert from '@/shared/ui/NotificationAlert';
 
 interface Props<VacancyExtended extends VacancySummary> {
   data?: PaginatedResponse<VacancyExtended>;
@@ -28,17 +27,10 @@ export const VacanciesList = <VacancyExtended extends VacancySummary>({
 }: Props<VacancyExtended>) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const [notification, setNotification] = useState<Notification | null>(null);
 
   const appliedFilters = useAppSelector((state) => state.vacancyFilters);
 
   const currentPage = appliedFilters.page ?? 1;
-
-  if (isError)
-    setNotification({
-      message: `Could not load vacancies - ${getErrorMessage(error)}. Try refreshing the page or contact support if the problem persists.`,
-      severity: 'error',
-    });
 
   return (
     <List
@@ -50,10 +42,12 @@ export const VacanciesList = <VacancyExtended extends VacancySummary>({
         gap: 1,
       }}
     >
-      <NotificationAlert
-        notification={notification}
-        onClose={() => setNotification(null)}
-      />
+      {isError && (
+        <Alert severity='error'>
+          Could not load vacancies - {getErrorMessage(error)}. Try refreshing
+          the page or contact support if the problem persists.
+        </Alert>
+      )}
 
       {data?.data.map((vacancy, index) => (
         <VacancyCard

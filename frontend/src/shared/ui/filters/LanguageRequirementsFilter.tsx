@@ -33,7 +33,7 @@ export const LanguageRequirementsFilter = ({
   const [level, setLevel] = useState<LanguageLevel | null>(null);
 
   // Hide languages that are already added, so one language can't be added twice.
-  const selectedCodes = value.map((pair) => pair.code);
+  const selectedCodes = value.map((pair) => pair.code || '');
   const availableCodes = languageCodes.filter(
     (c) => !selectedCodes.includes(c),
   );
@@ -81,7 +81,7 @@ export const LanguageRequirementsFilter = ({
         <Autocomplete
           sx={{ flex: 1, maxWidth: 500 }}
           options={availableCodes}
-          value={code}
+          value={code ?? ''}
           onChange={(_event, newCode) => setCode(newCode)}
           getOptionLabel={(code) => code.toUpperCase()}
           renderInput={(params) => (
@@ -114,7 +114,7 @@ export const LanguageRequirementsFilter = ({
           <Select
             labelId='lang-level-label'
             label='Level'
-            value={level}
+            value={level ?? ''}
             onChange={(e) => setLevel(e.target.value as LanguageLevel)}
             displayEmpty
             renderValue={(selected) => {
