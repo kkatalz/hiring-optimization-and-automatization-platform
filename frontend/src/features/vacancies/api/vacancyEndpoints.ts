@@ -76,6 +76,26 @@ export const vacancyApi = baseApi.injectEndpoints({
       providesTags: [{ type: 'Vacancy', id: ALL }],
     }),
 
+    // The two queries above are staff only and tenant scoped. These fill the
+    // same filters, but on the public browse page, where the visitor has no tenant.
+    browseVacanciesTags: builder.query<string[], void>({
+      query: () => ({
+        url: '/vacancies/public/existing-tags',
+        method: 'GET',
+      }),
+      providesTags: [{ type: 'Vacancy', id: ALL }],
+      extraOptions: PUBLIC_ENDPOINT,
+    }),
+
+    browseVacanciesLanguagesCodes: builder.query<string[], void>({
+      query: () => ({
+        url: '/vacancies/public/existing-languages-codes',
+        method: 'GET',
+      }),
+      providesTags: [{ type: 'Vacancy', id: ALL }],
+      extraOptions: PUBLIC_ENDPOINT,
+    }),
+
     // VACANCY MUTATIONS
     createVacancy: builder.mutation<Vacancy, CreateVacancyInput>({
       query: (body) => ({
@@ -171,6 +191,8 @@ export const {
   useBrowseVacanciesQuery,
   useGetAllVacanciesTagsQuery,
   useGetAllVacanciesLanguagesCodesQuery,
+  useBrowseVacanciesTagsQuery,
+  useBrowseVacanciesLanguagesCodesQuery,
   useCreateVacancyMutation,
   useUpdateVacancyMutation,
   useDeleteVacancyMutation,

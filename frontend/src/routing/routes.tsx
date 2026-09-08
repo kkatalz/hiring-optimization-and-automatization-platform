@@ -34,7 +34,7 @@ const routes = createBrowserRouter([
       },
 
       {
-        element: <AppLayout showDrawer />,
+        element: <AppLayout />,
         children: [
           {
             Component: RedirectStaff,
@@ -58,9 +58,9 @@ const routes = createBrowserRouter([
         ],
       },
 
-      // Detail screens - no drawer
+      // Detail screens
       {
-        element: <AppLayout showDrawer={false} />,
+        element: <AppLayout />,
         children: [
           {
             path: '/browse/:vacancyId',

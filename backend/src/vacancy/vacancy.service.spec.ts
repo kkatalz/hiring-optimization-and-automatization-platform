@@ -206,6 +206,65 @@ describe('VacancyService', () => {
     });
   });
 
+  describe('findAllExistingTags', () => {
+    it('should return every tag across all vacancies without duplicates', async () => {
+      const tags = await service.findAllExistingTags();
+
+      expect(tags).to.have.members([
+        'React',
+        'TypeScript',
+        'Frontend',
+        'Node.js',
+        'Backend',
+      ]);
+      // 'TypeScript' sits on two fixtures, so a duplicate would show up here
+      expect(tags.length).to.equal(5);
+    });
+
+    it('should only return tags of the given tenant', async () => {
+      const tags = await service.findAllExistingTags(testTenants[0].id);
+
+      expect(tags).to.have.members([
+        'React',
+        'TypeScript',
+        'Frontend',
+        'Node.js',
+        'Backend',
+      ]);
+    });
+
+    it('should return empty array when the tenant has no vacancies', async () => {
+      const tags = await service.findAllExistingTags(nonExistentUUIDId);
+
+      expect(tags).to.deep.equal([]);
+    });
+  });
+
+  describe('findAllExistingLanguagesCodes', () => {
+    it('should return every language code across all vacancies without duplicates', async () => {
+      const codes = await service.findAllExistingLanguagesCodes();
+
+      expect(codes).to.have.members(['en', 'uk']);
+      // 'en' sits on two fixtures, so a duplicate would show up here
+      expect(codes.length).to.equal(2);
+    });
+
+    it('should only return language codes of the given tenant', async () => {
+      const codes = await service.findAllExistingLanguagesCodes(
+        testTenants[0].id,
+      );
+
+      expect(codes).to.have.members(['en', 'uk']);
+    });
+
+    it('should return empty array when the tenant has no vacancies', async () => {
+      const codes =
+        await service.findAllExistingLanguagesCodes(nonExistentUUIDId);
+
+      expect(codes).to.deep.equal([]);
+    });
+  });
+
   describe('create', () => {
     it('should create and save vacancy', async () => {
       const createVacancyDto: CreateVacancyDto = {

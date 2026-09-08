@@ -7,6 +7,7 @@ import {
   Button,
   Stack,
   TextField,
+  Typography,
 } from '@mui/material';
 import SortOrderLimitFilters from '@/shared/ui/SortOrderLimitFilters';
 import SubmissionStatusToggleButtons from './SubmissionStatusToggleButtons';
@@ -73,45 +74,46 @@ const VacancySubmissionsFilters = () => {
 
   return (
     <Box component='form' onSubmit={handleSubmit}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 2,
+        }}
+      >
+        <SortOrderLimitFilters
+          sortFields={SUBMISSION_SORT_FIELDS}
+          sortBy={appliedFilters.sortBy}
+          order={appliedFilters.order}
+          onSortByChange={(sortBy) => {
+            dispatch(setSortBy(sortBy as SubmissionSortColumn));
+            setDraft({
+              ...draft,
+              sortBy: sortBy as SubmissionSortColumn,
+            });
+          }}
+          onOrderChange={(order) => {
+            dispatch(setOrder(order));
+            setDraft({ ...draft, order });
+          }}
+        />
+        <SubmissionStatusToggleButtons
+          value={appliedFilters.status}
+          onChange={(status) => {
+            dispatch(setStatus(status));
+            setDraft({ ...draft, status });
+          }}
+        />
+      </Box>
+
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls='submission-filters-content'
           id='submission-filters-header'
         >
-          <Box
-            onClick={(e) => e.stopPropagation()}
-            onFocus={(e) => e.stopPropagation()}
-            sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 2,
-            }}
-          >
-            <SortOrderLimitFilters
-              sortFields={SUBMISSION_SORT_FIELDS}
-              sortBy={appliedFilters.sortBy}
-              order={appliedFilters.order}
-              onSortByChange={(sortBy) => {
-                dispatch(setSortBy(sortBy as SubmissionSortColumn));
-                setDraft({
-                  ...draft,
-                  sortBy: sortBy as SubmissionSortColumn,
-                });
-              }}
-              onOrderChange={(order) => {
-                dispatch(setOrder(order));
-                setDraft({ ...draft, order });
-              }}
-            />
-            <SubmissionStatusToggleButtons
-              value={appliedFilters.status}
-              onChange={(status) => {
-                dispatch(setStatus(status));
-                setDraft({ ...draft, status });
-              }}
-            />
-          </Box>
+          <Typography>More filters</Typography>
         </AccordionSummary>
 
         <AccordionDetails

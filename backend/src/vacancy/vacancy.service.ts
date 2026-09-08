@@ -65,6 +65,34 @@ export class VacancyService {
     return vacancies.map(vacancyToVacancyDto);
   }
 
+  /** Tags across all vacancies, scoped to one tenant when a tenantId
+   * is given and across every tenant when it is not. */
+  async findAllExistingTags(tenantId?: string): Promise<string[]> {
+    const vacancies = await this.findAllVacancies(tenantId);
+
+    const tags = new Set<string>();
+    vacancies.forEach((vacancy) => {
+      vacancy.tags?.forEach((tag) => tags.add(tag));
+    });
+
+    return Array.from(tags);
+  }
+
+  /** Language codes across all vacancies, scoped to one tenant when a
+   * tenantId is given and across every tenant when it is not. */
+  async findAllExistingLanguagesCodes(tenantId?: string): Promise<string[]> {
+    const vacancies = await this.findAllVacancies(tenantId);
+
+    const languagesCodes = new Set<string>();
+    vacancies.forEach((vacancy) => {
+      vacancy.languageRequirements?.forEach((lang) => {
+        if (lang.code) languagesCodes.add(lang.code);
+      });
+    });
+
+    return Array.from(languagesCodes);
+  }
+
   async findAllWithFilters(
     filterDto?: VacancyFilterDto,
     tenantId?: string,

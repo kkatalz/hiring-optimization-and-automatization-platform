@@ -6,11 +6,7 @@ import { Outlet } from 'react-router-dom';
 import AppTopBar from './AppTopBar';
 import PermanentDrawer from './PermanentDrawer';
 
-interface AppLayoutProps {
-  showDrawer: boolean;
-}
-
-export const AppLayout = ({ showDrawer }: AppLayoutProps) => {
+export const AppLayout = () => {
   const isScreenMobile = useMediaQuery((theme) => theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -20,18 +16,13 @@ export const AppLayout = ({ showDrawer }: AppLayoutProps) => {
         display: 'flex',
       }}
     >
-      <AppTopBar
-        onMobileMenuClick={
-          showDrawer ? () => setDrawerOpen((prev) => !prev) : undefined
-        }
+      <AppTopBar onMobileMenuClick={() => setDrawerOpen((prev) => !prev)} />
+
+      <PermanentDrawer
+        variant={isScreenMobile ? 'temporary' : 'permanent'}
+        open={isScreenMobile ? drawerOpen : true}
+        onClose={() => setDrawerOpen(false)}
       />
-      {showDrawer && (
-        <PermanentDrawer
-          variant={isScreenMobile ? 'temporary' : 'permanent'}
-          open={isScreenMobile ? drawerOpen : true}
-          onClose={() => setDrawerOpen(false)}
-        />
-      )}
 
       <Box
         component='main'

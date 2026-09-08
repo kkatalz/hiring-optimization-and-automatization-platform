@@ -80,7 +80,6 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
               },
             }}
           >
-            {' '}
             <TableCell>Candidate</TableCell>
             <TableCell align='center'>Applied</TableCell>
             <TableCell align='center'>Match score</TableCell>

@@ -113,43 +113,33 @@ export class VacancyController {
   /** Returns all tags that exist across all vacancies within tenant, if provided */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get('existing-tags')
-  async findAllExistingTags(@AuthUser() requester: UserDto): Promise<string[]> {
+  findAllExistingTags(@AuthUser() requester: UserDto): Promise<string[]> {
     const tenantId =
       requester.role === UserRole.superAdmin ? undefined : requester.tenantId;
 
-    const vacancies = await this.vacancyService.findAllVacancies(tenantId);
+    return this.vacancyService.findAllExistingTags(tenantId);
+  }
 
-    const tagsSet = new Set<string>();
-    vacancies.forEach((vacancy) => {
-      if (vacancy.tags) {
-        vacancy.tags.forEach((tag) => tagsSet.add(tag));
-      }
-    });
-
-    return Array.from(tagsSet);
+  /** Same as findAllExistingTags, but for the public browse page.*/
+  @Get('public/existing-tags')
+  findAllExistingTagsPublic(): Promise<string[]> {
+    return this.vacancyService.findAllExistingTags();
   }
 
   // Returns all existing languages' codes across all vacancies within tenant, if provided
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Get('existing-languages-codes')
-  async findAllExistingLanguages(
-    @AuthUser() requester: UserDto,
-  ): Promise<string[]> {
+  findAllExistingLanguages(@AuthUser() requester: UserDto): Promise<string[]> {
     const tenantId =
       requester.role === UserRole.superAdmin ? undefined : requester.tenantId;
 
-    const vacancies = await this.vacancyService.findAllVacancies(tenantId);
+    return this.vacancyService.findAllExistingLanguagesCodes(tenantId);
+  }
 
-    const languagesCodes = new Set<string>();
-    vacancies.forEach((vacancy) => {
-      if (vacancy.languageRequirements) {
-        vacancy.languageRequirements.forEach((lang) => {
-          if (lang.code) languagesCodes.add(lang.code);
-        });
-      }
-    });
-
-    return Array.from(languagesCodes);
+  /** Same as findAllExistingLanguages, for the public browse page. */
+  @Get('public/existing-languages-codes')
+  findAllExistingLanguagesPublic(): Promise<string[]> {
+    return this.vacancyService.findAllExistingLanguagesCodes();
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
