@@ -19,8 +19,8 @@ export const vacancySubmToVacancySubmDto = ({
   matchScore,
   createdAt,
   expectedSalary,
-  recruiterRating,
-  ratedByRecruiterId,
+  rating,
+  ratedById,
   clusterId,
   candidateProfile,
   answers,
@@ -45,8 +45,8 @@ export const vacancySubmToVacancySubmDto = ({
     matchScore: matchScore ? Number(matchScore) : 0,
     createdAt,
     expectedSalary,
-    recruiterRating,
-    ratedByRecruiterId,
+    rating,
+    ratedById,
     clusterId,
     candidateProfile: candidateProfile
       ? candidateToCandidateProfileDto(candidateProfile)

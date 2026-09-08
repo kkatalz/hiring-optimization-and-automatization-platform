@@ -4,7 +4,7 @@ import { IsEnum, IsIn, IsOptional, IsUUID } from 'class-validator';
 export const SUBMISSION_SORT_FIELDS = [
   'createdAt',
   'expectedSalary',
-  'recruiterRating',
+  'rating',
   'matchScore',
   'commentAiScore',
   'resumeAiScore',

@@ -89,7 +89,7 @@ export class VacancySubmissionController {
 
   /**
    * Filter submissions by Candidate fields: minYearsOfExperience, maxYearsOfExperience, countries, cities, languages
-   * Sort by submissionDate (createdAt), expectedSalary, recruiterRating, matchScore.
+   * Sort by submissionDate (createdAt), expectedSalary, rating, matchScore.
    */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Post('get/filter/within/tenant')
@@ -114,7 +114,7 @@ export class VacancySubmissionController {
    * Super admin can view all submissions across all tenants.
    * Admin and recruiter can only view submissions within their own tenant.
    * Filter submissions by Candidate fields: minYearsOfExperience, maxYearsOfExperience, countries, cities, languages.
-   * Sort by submissionDate (createdAt), expectedSalary, recruiterRating, matchScore.
+   * Sort by submissionDate (createdAt), expectedSalary, rating, matchScore.
    */
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
   @Post('get/filter/within/vacancy/:vacancyId')
@@ -188,11 +188,11 @@ export class VacancySubmissionController {
     );
   }
 
-  @Roles(UserRole.recruiter)
-  @Post('add-recruiter-rating/:submissionId')
-  async addRecruiterRatingToSubmission(
+  @Roles(UserRole.recruiter, UserRole.admin, UserRole.superAdmin)
+  @Post('add-rating/:submissionId')
+  async addRatingToSubmission(
     @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
-    @AuthUser() recruiter: UserDto,
+    @AuthUser() user: UserDto,
     @Body() submissionRatingDto: SubmissionRatingDto,
   ): Promise<VacancySubmissionDto> {
     const submissionTenantId =
@@ -200,19 +200,19 @@ export class VacancySubmissionController {
         submissionId,
       );
 
-    validateTenantAccess(recruiter, submissionTenantId);
+    validateTenantAccess(user, submissionTenantId);
 
-    return await this.vacancySubmissionService.addRecruiterRating(
+    return await this.vacancySubmissionService.addRating(
       submissionId,
-      recruiter.id,
+      user.id,
       submissionRatingDto.rating,
     );
   }
-  @Roles(UserRole.recruiter)
-  @Patch('update-recruiter-rating/:submissionId')
-  async updateRecruiterRatingToSubmission(
+  @Roles(UserRole.recruiter, UserRole.admin, UserRole.superAdmin)
+  @Patch('update-rating/:submissionId')
+  async updateRatingToSubmission(
     @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
-    @AuthUser() recruiter: UserDto,
+    @AuthUser() user: UserDto,
     @Body() submissionRatingDto: SubmissionRatingDto,
   ): Promise<VacancySubmissionDto> {
     const submissionTenantId =
@@ -220,31 +220,29 @@ export class VacancySubmissionController {
         submissionId,
       );
 
-    validateTenantAccess(recruiter, submissionTenantId);
+    validateTenantAccess(user, submissionTenantId);
 
-    return await this.vacancySubmissionService.updateRecruiterRating(
+    return await this.vacancySubmissionService.updateRating(
       submissionId,
-      recruiter.id,
+      user.id,
       submissionRatingDto.rating,
     );
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)
-  @Delete('remove-recruiter-rating/:submissionId')
-  async removeRecruiterRatingToSubmission(
+  @Delete('remove-rating/:submissionId')
+  async removeRatingFromSubmission(
     @Param('submissionId', new ParseUUIDPipe()) submissionId: string,
-    @AuthUser() recruiter: UserDto,
+    @AuthUser() user: UserDto,
   ): Promise<VacancySubmissionDto> {
     const submissionTenantId =
       await this.vacancySubmissionService.getTenantIdBySubmissionId(
         submissionId,
       );
 
-    validateTenantAccess(recruiter, submissionTenantId);
+    validateTenantAccess(user, submissionTenantId);
 
-    return await this.vacancySubmissionService.removeRecruiterRating(
-      submissionId,
-    );
+    return await this.vacancySubmissionService.removeRating(submissionId);
   }
 
   @Roles(UserRole.candidate)

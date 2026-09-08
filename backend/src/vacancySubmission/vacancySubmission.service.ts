@@ -214,21 +214,21 @@ export class VacancySubmissionService {
     );
   }
 
-  async addRecruiterRating(
+  async addRating(
     submissionId: string,
-    recruiterId: string,
+    ratedById: string,
     rating: number,
   ): Promise<VacancySubmissionDto> {
     const submission = await this.findOneById(submissionId);
 
-    if (submission.recruiterRating) {
+    if (submission.rating) {
       throw new BadRequestException(
-        'This submission has already been rated by a recruiter. Please use updateRecruiterRating endpoint to change the rating.',
+        'This submission has already been rated. Please use the updateRating endpoint to change the rating.',
       );
     }
 
-    submission.ratedByRecruiterId = recruiterId;
-    submission.recruiterRating = rating;
+    submission.ratedById = ratedById;
+    submission.rating = rating;
 
     const savedSubmission =
       await this.vacancySubmissionRepository.save(submission);
@@ -254,34 +254,32 @@ export class VacancySubmissionService {
     return submission.candidateProfile?.user?.id;
   }
 
-  async updateRecruiterRating(
+  async updateRating(
     submissionId: string,
-    recruiterId: string,
+    ratedById: string,
     rating: number,
   ): Promise<VacancySubmissionDto> {
     const submission = await this.findOneById(submissionId);
 
-    if (!submission.recruiterRating) {
+    if (!submission.rating) {
       throw new BadRequestException(
-        'This submission has not been rated by a recruiter yet. Please use addRecruiterRating endpoint to add a rating.',
+        'This submission has not been rated yet. Please use the addRating endpoint to add a rating.',
       );
     }
 
-    submission.ratedByRecruiterId = recruiterId;
-    submission.recruiterRating = rating;
+    submission.ratedById = ratedById;
+    submission.rating = rating;
 
     const savedSubmission =
       await this.vacancySubmissionRepository.save(submission);
     return vacancySubmToVacancySubmDto(savedSubmission);
   }
 
-  async removeRecruiterRating(
-    submissionId: string,
-  ): Promise<VacancySubmissionDto> {
+  async removeRating(submissionId: string): Promise<VacancySubmissionDto> {
     const submission = await this.findOneById(submissionId);
 
-    submission.ratedByRecruiterId = null;
-    submission.recruiterRating = null;
+    submission.ratedById = null;
+    submission.rating = null;
 
     const savedSubmission =
       await this.vacancySubmissionRepository.save(submission);

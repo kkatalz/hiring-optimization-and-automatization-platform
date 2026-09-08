@@ -2027,25 +2027,21 @@ describe('VacancySubmissionService', () => {
     });
   });
 
-  describe('addRecruiterRating', () => {
+  describe('addRating', () => {
     it('should add a recruiter rating to a submission', async () => {
       const submissionId = testVacancySubmissions[0].id;
-      const recruiterId = testUsers[1].id;
+      const raterId = testUsers[1].id;
       const rating = 5;
 
-      const result = await service.addRecruiterRating(
-        submissionId,
-        recruiterId,
-        rating,
-      );
+      const result = await service.addRating(submissionId, raterId, rating);
 
-      expect(result.recruiterRating).to.equal(rating);
-      expect(result.ratedByRecruiterId).to.equal(recruiterId);
+      expect(result.rating).to.equal(rating);
+      expect(result.ratedById).to.equal(raterId);
     });
 
     it('should throw NOT_FOUND error if submission does not exist', async () => {
       try {
-        await service.addRecruiterRating(nonExistentUUIDId, testUsers[1].id, 5);
+        await service.addRating(nonExistentUUIDId, testUsers[1].id, 5);
         expect.fail('Should have thrown a NOT_FOUND error but did not');
       } catch (e: any) {
         expect(e.status).to.equal(404);
@@ -2055,68 +2051,56 @@ describe('VacancySubmissionService', () => {
 
     it('should throw BadRequestException if submission was already rated', async () => {
       const submissionId = testVacancySubmissions[0].id;
-      const recruiterId = testUsers[1].id;
+      const raterId = testUsers[1].id;
 
       // add initial rating
-      testVacancySubmissions[0].recruiterRating = 5;
+      testVacancySubmissions[0].rating = 5;
 
-      await service.addRecruiterRating(submissionId, recruiterId, 5);
+      await service.addRating(submissionId, raterId, 5);
 
       try {
-        await service.addRecruiterRating(submissionId, recruiterId, 4);
+        await service.addRating(submissionId, raterId, 4);
         expect.fail('Should have thrown a BadRequestException but did not');
       } catch (e: any) {
         expect(e.response.statusCode).to.equal(400);
         expect(e.response.message).to.equal(
-          'This submission has already been rated by a recruiter. Please use updateRecruiterRating endpoint to change the rating.',
+          'This submission has already been rated. Please use the updateRating endpoint to change the rating.',
         );
       }
       // cleanup: reset rating to null for other tests
-      testVacancySubmissions[0].recruiterRating = null;
+      testVacancySubmissions[0].rating = null;
     });
   });
 
-  describe('updateRecruiterRating', () => {
+  describe('updateRating', () => {
     it('should update an existing recruiter rating', async () => {
       const submissionId = testVacancySubmissions[0].id;
-      const recruiterId = testUsers[1].id;
+      const raterId = testUsers[1].id;
 
-      await service.addRecruiterRating(submissionId, recruiterId, 3);
+      await service.addRating(submissionId, raterId, 3);
 
-      const result = await service.updateRecruiterRating(
-        submissionId,
-        recruiterId,
-        5,
-      );
+      const result = await service.updateRating(submissionId, raterId, 5);
 
-      expect(result.recruiterRating).to.equal(5);
-      expect(result.ratedByRecruiterId).to.equal(recruiterId);
+      expect(result.rating).to.equal(5);
+      expect(result.ratedById).to.equal(raterId);
     });
 
     it('should allow a different recruiter to update the rating', async () => {
       const submissionId = testVacancySubmissions[0].id;
-      const firstRecruiterId = testUsers[1].id;
-      const secondRecruiterId = testUsers[3].id;
+      const firstRaterId = testUsers[1].id;
+      const secondRaterId = testUsers[3].id;
 
-      await service.addRecruiterRating(submissionId, firstRecruiterId, 3);
+      await service.addRating(submissionId, firstRaterId, 3);
 
-      const result = await service.updateRecruiterRating(
-        submissionId,
-        secondRecruiterId,
-        4,
-      );
+      const result = await service.updateRating(submissionId, secondRaterId, 4);
 
-      expect(result.recruiterRating).to.equal(4);
-      expect(result.ratedByRecruiterId).to.equal(secondRecruiterId);
+      expect(result.rating).to.equal(4);
+      expect(result.ratedById).to.equal(secondRaterId);
     });
 
     it('should throw NOT_FOUND error if submission does not exist', async () => {
       try {
-        await service.updateRecruiterRating(
-          nonExistentUUIDId,
-          testUsers[1].id,
-          5,
-        );
+        await service.updateRating(nonExistentUUIDId, testUsers[1].id, 5);
         expect.fail('Should have thrown a NOT_FOUND error but did not');
       } catch (e: any) {
         expect(e.status).to.equal(404);
@@ -2126,45 +2110,45 @@ describe('VacancySubmissionService', () => {
 
     it('should throw BadRequestException if submission has not been rated yet', async () => {
       const submissionId = testVacancySubmissions[0].id;
-      const recruiterId = testUsers[1].id;
+      const raterId = testUsers[1].id;
 
       try {
-        await service.updateRecruiterRating(submissionId, recruiterId, 4);
+        await service.updateRating(submissionId, raterId, 4);
         expect.fail('Should have thrown a BadRequestException but did not');
       } catch (e: any) {
         expect(e.response.statusCode).to.equal(400);
         expect(e.response.message).to.equal(
-          'This submission has not been rated by a recruiter yet. Please use addRecruiterRating endpoint to add a rating.',
+          'This submission has not been rated yet. Please use the addRating endpoint to add a rating.',
         );
       }
     });
   });
 
-  describe('removeRecruiterRating', () => {
+  describe('removeRating', () => {
     it('should remove an existing recruiter rating', async () => {
       const submissionId = testVacancySubmissions[0].id;
-      const recruiterId = testUsers[1].id;
+      const raterId = testUsers[1].id;
 
-      await service.addRecruiterRating(submissionId, recruiterId, 5);
+      await service.addRating(submissionId, raterId, 5);
 
-      const result = await service.removeRecruiterRating(submissionId);
+      const result = await service.removeRating(submissionId);
 
-      expect(result.recruiterRating).to.equal(null);
-      expect(result.ratedByRecruiterId).to.equal(null);
+      expect(result.rating).to.equal(null);
+      expect(result.ratedById).to.equal(null);
     });
 
     it('should succeed even when submission has no rating', async () => {
       const submissionId = testVacancySubmissions[0].id;
 
-      const result = await service.removeRecruiterRating(submissionId);
+      const result = await service.removeRating(submissionId);
 
-      expect(result.recruiterRating).to.equal(null);
-      expect(result.ratedByRecruiterId).to.equal(null);
+      expect(result.rating).to.equal(null);
+      expect(result.ratedById).to.equal(null);
     });
 
     it('should throw NOT_FOUND error if submission does not exist', async () => {
       try {
-        await service.removeRecruiterRating(nonExistentUUIDId);
+        await service.removeRating(nonExistentUUIDId);
         expect.fail('Should have thrown a NOT_FOUND error but did not');
       } catch (e: any) {
         expect(e.status).to.equal(404);

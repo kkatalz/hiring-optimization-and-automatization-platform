@@ -21,8 +21,8 @@ export interface VacancySubmission {
   matchScore?: number;
   createdAt: string;
   expectedSalary?: number | null;
-  recruiterRating?: number | null;
-  ratedByRecruiterId?: string | null;
+  rating?: number | null;
+  ratedById?: string | null;
   clusterId?: number | null;
   candidateProfile?: CandidateProfile;
   answers?: QuestionAnswer[];
@@ -40,7 +40,7 @@ export interface CreateSubmissionInput {
 export const SUBMISSION_SORT_FIELDS = [
   'createdAt',
   'expectedSalary',
-  'recruiterRating',
+  'rating',
   'matchScore',
   'commentAiScore',
   'resumeAiScore',
