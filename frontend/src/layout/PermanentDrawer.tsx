@@ -2,62 +2,60 @@ import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import Toolbar from '@mui/material/Toolbar';
 import List from '@mui/material/List';
-import Divider from '@mui/material/Divider';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import WorkIcon from '@mui/icons-material/Work';
-import PeopleIcon from '@mui/icons-material/People';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import EventIcon from '@mui/icons-material/Event';
-import SettingsIcon from '@mui/icons-material/Settings';
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { Link, useLocation } from 'react-router-dom';
+import { useAppSelector } from '@/app/hooks';
+import { isStaff } from '@/shared/auth/roles';
 import type { ReactNode } from 'react';
 
 const drawerWidth = 240;
 
 type NavItem = {
   label: string;
+  to: string;
   icon: ReactNode;
 };
-
-const mainNavItems: NavItem[] = [
-  { label: 'Vacancies', icon: <WorkIcon /> },
-  { label: 'Candidates', icon: <PeopleIcon /> },
-  { label: 'Submissions', icon: <AssignmentIcon /> },
-  { label: 'Interviews', icon: <EventIcon /> },
-];
-
-const adminNavItems: NavItem[] = [
-  { label: 'Tenant settings', icon: <SettingsIcon /> },
-  { label: 'Users & Roles', icon: <ManageAccountsIcon /> },
-];
-
-const renderNavList = (items: NavItem[]) => (
-  <List>
-    {items.map(({ label, icon }) => (
-      <ListItem key={label} disablePadding>
-        <ListItemButton>
-          <ListItemIcon>{icon}</ListItemIcon>
-          <ListItemText primary={label} />
-        </ListItemButton>
-      </ListItem>
-    ))}
-  </List>
-);
 
 interface PermanentDrawerProps {
   variant: 'permanent' | 'temporary';
   open: boolean;
   onClose: () => void;
 }
-// TODO: Implement navigation functionality for the drawer items.
+
 export default function PermanentDrawer({
   variant,
   open,
   onClose,
 }: PermanentDrawerProps) {
+  const { status, user } = useAppSelector((state) => state.auth);
+  const { pathname } = useLocation();
+
+  const vacanciesItem: NavItem = isStaff(user?.role)
+    ? { label: 'Vacancies', to: '/vacancies', icon: <WorkIcon /> }
+    : { label: 'Browse vacancies', to: '/', icon: <WorkIcon /> };
+
+  const navItems: NavItem[] = [
+    vacanciesItem,
+    ...(status === 'authenticated'
+      ? [
+          {
+            label: 'My profile',
+            to: '/my-profile',
+            icon: <AccountCircleIcon />,
+          },
+        ]
+      : []),
+  ];
+
+  // '/vacancies' stays selected while a vacancy or submission is open.
+  const isSelected = (to: string) =>
+    to === '/' ? pathname === '/' : pathname.startsWith(to);
+
   return (
     <Drawer
       variant={variant}
@@ -76,9 +74,23 @@ export default function PermanentDrawer({
     >
       <Toolbar />
       <Box sx={{ overflow: 'auto' }}>
-        {renderNavList(mainNavItems)}
-        <Divider />
-        {renderNavList(adminNavItems)}
+        <List>
+          {navItems.map(({ label, to, icon }) => (
+            <ListItem key={to} disablePadding>
+              <ListItemButton
+                component={Link}
+                to={to}
+                selected={isSelected(to)}
+                // The temporary drawer sits over the page, so it has to get
+                // out of the way once it has been used.
+                onClick={variant === 'temporary' ? onClose : undefined}
+              >
+                <ListItemIcon>{icon}</ListItemIcon>
+                <ListItemText primary={label} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
       </Box>
     </Drawer>
   );

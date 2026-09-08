@@ -17,7 +17,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface AppTopBarProps {
-  onMobileMenuClick?: () => void;
+  onMobileMenuClick: () => void;
 }
 
 export default function AppTopBar({ onMobileMenuClick }: AppTopBarProps) {
@@ -37,11 +37,6 @@ export default function AppTopBar({ onMobileMenuClick }: AppTopBarProps) {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
-  };
-
-  const handleShowMyProfile = () => {
-    handleMenuClose();
-    navigate('/my-profile');
   };
 
   const handleLogin = () => {
@@ -79,9 +74,6 @@ export default function AppTopBar({ onMobileMenuClick }: AppTopBarProps) {
       onClose={handleMenuClose}
       disableScrollLock
     >
-      {status === 'authenticated' && (
-        <MenuItem onClick={handleShowMyProfile}>My profile</MenuItem>
-      )}
       <MenuItem onClick={handleLogin}>Login</MenuItem>
       <MenuItem onClick={handleLogout}>Logout</MenuItem>
     </Menu>
@@ -91,18 +83,16 @@ export default function AppTopBar({ onMobileMenuClick }: AppTopBarProps) {
     <>
       <AppBar sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar>
-          {onMobileMenuClick && (
-            <IconButton
-              size='large'
-              edge='start'
-              color='inherit'
-              aria-label='open navigation menu'
-              onClick={onMobileMenuClick}
-              sx={{ display: { md: 'none' }, mr: 1 }}
-            >
-              <MenuIcon />
-            </IconButton>
-          )}
+          <IconButton
+            size='large'
+            edge='start'
+            color='inherit'
+            aria-label='open navigation menu'
+            onClick={onMobileMenuClick}
+            sx={{ display: { md: 'none' }, mr: 1 }}
+          >
+            <MenuIcon />
+          </IconButton>
           <Stack
             direction='row'
             sx={{ alignItems: 'center', cursor: 'pointer' }}
