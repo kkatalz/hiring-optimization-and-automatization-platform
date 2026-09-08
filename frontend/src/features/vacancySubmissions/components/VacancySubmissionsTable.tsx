@@ -1,4 +1,4 @@
-import { Button, TableFooter } from '@mui/material';
+import { Button, Stack, TableFooter } from '@mui/material';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -88,10 +88,7 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
             <TableCell align='center'>Status</TableCell>
             <TableCell align='center'>Rating</TableCell>
             <TableCell align='center'>Cluster</TableCell>
-            {/* View */}
-            <TableCell align='center'></TableCell>
-            {/* Approve & Reject */}
-            <TableCell align='center'></TableCell>
+            <TableCell align='center'>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -144,35 +141,39 @@ export const VacancySubmissionsTable = ({ submissions }: Props) => {
               </TableCell>
 
               <TableCell align='center'>
-                <Button
-                  variant='text'
-                  size='small'
-                  sx={{ color: 'info.contrastText' }}
-                  onClick={() =>
-                    handleShowSubmissionDetail(
-                      submission.vacancyId,
-                      submission.id,
-                    )
-                  }
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  sx={{ justifyContent: 'center', alignItems: 'center' }}
                 >
-                  View
-                </Button>
-              </TableCell>
+                  <Button
+                    variant='text'
+                    size='small'
+                    sx={{ color: 'info.contrastText' }}
+                    onClick={() =>
+                      handleShowSubmissionDetail(
+                        submission.vacancyId,
+                        submission.id,
+                      )
+                    }
+                  >
+                    View
+                  </Button>
 
-              <TableCell align='center'>
-                <SubmissionDecisionButtons
-                  submissionId={submission.id}
-                  submissionStatus={submission.status}
-                  onNotify={(message, severity) =>
-                    setNotification({ message, severity })
-                  }
-                />
+                  <SubmissionDecisionButtons
+                    submissionId={submission.id}
+                    submissionStatus={submission.status}
+                    onNotify={(message, severity) =>
+                      setNotification({ message, severity })
+                    }
+                  />
+                </Stack>
               </TableCell>
             </TableRow>
           ))}
           {emptyRows > 0 && (
             <tr style={{ height: 41 * emptyRows }}>
-              <td colSpan={10} aria-hidden />
+              <td colSpan={9} aria-hidden />
             </tr>
           )}
         </TableBody>

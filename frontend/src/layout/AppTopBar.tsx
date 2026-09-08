@@ -85,7 +85,6 @@ export default function AppTopBar({ onMobileMenuClick }: AppTopBarProps) {
         <Toolbar>
           <IconButton
             size='large'
-            edge='start'
             color='inherit'
             aria-label='open navigation menu'
             onClick={onMobileMenuClick}
@@ -105,24 +104,17 @@ export default function AppTopBar({ onMobileMenuClick }: AppTopBarProps) {
           </Stack>
 
           <Box sx={{ flexGrow: 1 }} />
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'row',
-            }}
+
+          <IconButton
+            size='large'
+            aria-label='account of current user'
+            aria-controls={menuId}
+            aria-haspopup='true'
+            onClick={handleProfileMenuOpen}
+            color='inherit'
           >
-            <IconButton
-              size='large'
-              edge='end'
-              aria-label='account of current user'
-              aria-controls={menuId}
-              aria-haspopup='true'
-              onClick={handleProfileMenuOpen}
-              color='inherit'
-            >
-              <AccountCircle />
-            </IconButton>
-          </Box>
+            <AccountCircle />
+          </IconButton>
         </Toolbar>
       </AppBar>
       {renderMenu}
