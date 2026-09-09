@@ -22,6 +22,7 @@ import { VacancyQuestionDto } from '../vacancy/dto/vacancyQuestion.dto';
 import { VacancyService } from '../vacancy/vacancy.service';
 import { CreateVacancyQuestionDto } from './dto/createVacancyQuestion.dto';
 import { VacancyQuestionDetailedDto } from './dto/vacancyQuestionDetailed.dto';
+import { PublicVacancyQuestionDto } from './dto/publicVacancyQuestion.dto';
 import { VacancyFilterDto } from './dto/vacancyFilter.dto';
 import { PaginatedResponse, PaginationQueryDto } from '../types/pagination';
 import { VacancyWithQuestionsPaginationQueryDto } from './dto/vacancyPaginationQuery.dto';
@@ -167,6 +168,17 @@ export class VacancyController {
     validateTenantAccess(requester, vacancy.tenantId);
 
     return await this.vacancyService.findAllQuestionsByVacancyId(vacancyId);
+  }
+
+  /**
+   * The screening questions a candidate has to answer to apply. Public
+   * endpoint: it carries the labels and the dropdown options.
+   */
+  @Get('public/:vacancyId/questions')
+  findPublicQuestionsByVacancyId(
+    @Param('vacancyId', new ParseUUIDPipe()) vacancyId: string,
+  ): Promise<PublicVacancyQuestionDto[]> {
+    return this.vacancyService.findPublicQuestionsByVacancyId(vacancyId);
   }
 
   @Roles(UserRole.superAdmin, UserRole.admin, UserRole.recruiter)

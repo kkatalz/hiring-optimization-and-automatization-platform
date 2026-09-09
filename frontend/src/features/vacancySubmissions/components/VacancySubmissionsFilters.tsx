@@ -113,7 +113,9 @@ const VacancySubmissionsFilters = () => {
           aria-controls='submission-filters-content'
           id='submission-filters-header'
         >
-          <Typography>More filters</Typography>
+          <Typography variant='overline' sx={{ fontWeight: 'bold' }}>
+            More filters
+          </Typography>
         </AccordionSummary>
 
         <AccordionDetails

@@ -21,17 +21,26 @@ export interface VacancySubmission {
   matchScore?: number;
   createdAt: string;
   expectedSalary?: number | null;
-  recruiterRating?: number | null;
-  ratedByRecruiterId?: string | null;
+  rating?: number | null;
+  ratedById?: string | null;
   clusterId?: number | null;
   candidateProfile?: CandidateProfile;
   answers?: QuestionAnswer[];
 }
 
+/** What a candidate sends when applying to a vacancy. */
+export interface CreateSubmissionInput {
+  comment?: string;
+  tags?: string[];
+  answers?: QuestionAnswer[];
+  expectedSalary?: number;
+  resume?: string;
+}
+
 export const SUBMISSION_SORT_FIELDS = [
   'createdAt',
   'expectedSalary',
-  'recruiterRating',
+  'rating',
   'matchScore',
   'commentAiScore',
   'resumeAiScore',

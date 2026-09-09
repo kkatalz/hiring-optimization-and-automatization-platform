@@ -19,8 +19,8 @@ export class VacancySubmissionDto {
   matchScore?: number;
   createdAt: Date;
   expectedSalary?: number | null;
-  recruiterRating?: number | null;
-  ratedByRecruiterId?: string | null;
+  rating?: number | null;
+  ratedById?: string | null;
   clusterId?: number | null;
   candidateProfile?: CandidateProfileDto;
   answers?: QuestionAnswerFilterEntry[];

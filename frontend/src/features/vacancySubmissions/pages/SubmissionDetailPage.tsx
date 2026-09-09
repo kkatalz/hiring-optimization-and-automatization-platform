@@ -24,6 +24,7 @@ import { useParams } from 'react-router-dom';
 import ApplicationStatusChip from '@/features/vacancySubmissions/components/details/ApplicationStatusChip';
 import SubmissionScoresCard from '@/features/vacancySubmissions/components/details/SubmissionScoresCard';
 import AiDetectionCard from '@/features/vacancySubmissions/components/details/AiDetectionCard';
+import SimilarCandidatesCard from '@/features/vacancySubmissions/components/details/SimilarCandidatesCard';
 
 const SubmissionDetailPage = () => {
   const { vacancyId, submissionId } = useParams();
@@ -100,7 +101,12 @@ const SubmissionDetailPage = () => {
               </CardContent>
             </Card>
 
-            <SubmissionScoresCard submission={submission} />
+            <SubmissionScoresCard
+              submission={submission}
+              onNotify={(message, severity) =>
+                setNotification({ message, severity })
+              }
+            />
           </Stack>
         </Grid>
         <Grid size={{ xs: 12, sm: 8 }}>
@@ -142,6 +148,12 @@ const SubmissionDetailPage = () => {
             <AiDetectionCard submission={submission} />
 
             <InterviewsCard submissionId={submission.id} />
+
+            <SimilarCandidatesCard
+              submissionId={submission.id}
+              vacancyId={submission.vacancyId}
+              clusterId={submission.clusterId}
+            />
           </Stack>
         </Grid>
       </Grid>

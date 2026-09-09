@@ -1,6 +1,7 @@
 import { baseApi } from '@/app/api/baseApi';
-import { allWithin } from '@/app/api/cacheTags';
+import { ALL, allWithin } from '@/app/api/cacheTags';
 import type {
+  CreateSubmissionInput,
   MatchScoreExplanation,
   SubmissionFilters,
   SubmissionSortQuery,
@@ -92,6 +93,90 @@ export const vacancySubmissionApi = baseApi.injectEndpoints({
     }),
 
     // SUBMISSION MUTATIONS
+    applyToVacancy: builder.mutation<
+      VacancySubmission,
+      { vacancyId: string; body: CreateSubmissionInput }
+    >({
+      query: ({ vacancyId, body }) => ({
+        url: `/vacanciesSubmissions/${vacancyId}`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: (_result, _error, { vacancyId }) => [
+        { type: 'Submission', id: allWithin('VACANCY', vacancyId) },
+        { type: 'CandidateProfile', id: ALL },
+      ],
+    }),
+
+    /**
+     * Uploads a PDF or DOCX and lets the backend parse it into the
+     * submission's resume text. Sent as multipart, so the body is a FormData
+     * whose single field is named `file` - what UploadResume() expects.
+     */
+    uploadSubmissionResume: builder.mutation<
+      VacancySubmission,
+      { submissionId: string; file: File }
+    >({
+      query: ({ submissionId, file }) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        return {
+          url: `/vacanciesSubmissions/${submissionId}/parse-resume-file`,
+          method: 'POST',
+          body: formData,
+        };
+      },
+      invalidatesTags: (_result, _error, { submissionId }) => [
+        { type: 'Submission', id: submissionId },
+        { type: 'CandidateProfile', id: ALL },
+      ],
+    }),
+
+    /**
+     * Puts a first rating on a submission. The backend rejects this once a
+     * rating exists, so callers must switch to updateRating - see
+     * CandidateRatingEditor, which picks between the two.
+     */
+    addRating: builder.mutation<
+      VacancySubmission,
+      { submissionId: string; rating: number }
+    >({
+      query: ({ submissionId, rating }) => ({
+        url: `/vacanciesSubmissions/add-rating/${submissionId}`,
+        method: 'POST',
+        body: { rating },
+      }),
+      invalidatesTags: (_result, _error, { submissionId }) => [
+        { type: 'Submission', id: submissionId },
+      ],
+    }),
+
+    /** Changes an existing rating. Rejected when there is none yet. */
+    updateRating: builder.mutation<
+      VacancySubmission,
+      { submissionId: string; rating: number }
+    >({
+      query: ({ submissionId, rating }) => ({
+        url: `/vacanciesSubmissions/update-rating/${submissionId}`,
+        method: 'PATCH',
+        body: { rating },
+      }),
+      invalidatesTags: (_result, _error, { submissionId }) => [
+        { type: 'Submission', id: submissionId },
+      ],
+    }),
+
+    removeRating: builder.mutation<VacancySubmission, string>({
+      query: (submissionId) => ({
+        url: `/vacanciesSubmissions/remove-rating/${submissionId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _error, submissionId) => [
+        { type: 'Submission', id: submissionId },
+      ],
+    }),
+
     approveSubmission: builder.mutation<VacancySubmission, string>({
       query: (submissionId) => ({
         url: `/vacanciesSubmissions/${submissionId}/approve`,
@@ -121,6 +206,11 @@ export const {
   useGetAllSubmissionsCountriesByVacancyIdQuery,
   useGetAllSubmissionsLanguagesCodesByVacancyIdQuery,
   useGetMatchScoreExplanationQuery,
+  useApplyToVacancyMutation,
+  useUploadSubmissionResumeMutation,
+  useAddRatingMutation,
+  useUpdateRatingMutation,
+  useRemoveRatingMutation,
   useApproveSubmissionMutation,
   useRejectSubmissionMutation,
 } = vacancySubmissionApi;

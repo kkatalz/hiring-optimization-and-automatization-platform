@@ -13,12 +13,12 @@ import {
 import { useState, type ReactNode } from 'react';
 import { useGetMatchScoreExplanationQuery } from '@/features/vacancySubmissions/api/vacancySubmissionEndpoints';
 import { getErrorMessage } from '@/shared/lib/errorMessage';
-import type { VacancySubmission } from '@/types';
+import type { NotifyHandler, VacancySubmission } from '@/types';
 import ClusterChip from './ClusterChip';
 import ExpectedSalary from './ExpectedSalary';
 import MatchScoreBar from './MatchScoreBar';
 import MatchScoreExplanationList from './MatchScoreExplanationList';
-import RecruiterRating from './RecruiterRating';
+import CandidateRatingEditor from './CandidateRatingEditor';
 
 interface ScoreRowProps {
   label: string;
@@ -28,7 +28,12 @@ interface ScoreRowProps {
 const ScoreRow = ({ label, children }: ScoreRowProps) => (
   <Stack
     direction='row'
-    sx={{ justifyContent: 'space-between', alignItems: 'center' }}
+    sx={{
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: 1,
+    }}
   >
     <Typography variant='body2' sx={{ color: 'text.secondary' }}>
       {label}
@@ -39,9 +44,13 @@ const ScoreRow = ({ label, children }: ScoreRowProps) => (
 
 interface SubmissionScoresCardProps {
   submission: VacancySubmission;
+  onNotify: NotifyHandler;
 }
 
-const SubmissionScoresCard = ({ submission }: SubmissionScoresCardProps) => {
+const SubmissionScoresCard = ({
+  submission,
+  onNotify,
+}: SubmissionScoresCardProps) => {
   const [isExplanationOpen, setIsExplanationOpen] = useState(false);
 
   const {
@@ -100,10 +109,11 @@ const SubmissionScoresCard = ({ submission }: SubmissionScoresCardProps) => {
           <ExpectedSalary expectedSalary={submission.expectedSalary} />
         </ScoreRow>
 
-        <ScoreRow label='Recruiter rating'>
-          <RecruiterRating
-            recruiterRating={submission.recruiterRating}
-            variant='text'
+        <ScoreRow label='Rating'>
+          <CandidateRatingEditor
+            submissionId={submission.id}
+            rating={submission.rating}
+            onNotify={onNotify}
           />
         </ScoreRow>
 

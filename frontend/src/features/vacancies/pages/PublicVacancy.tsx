@@ -6,6 +6,7 @@ import { getErrorMessage } from '@/shared/lib/errorMessage';
 import { capitalizeName } from '@/shared/lib/formatText';
 import AppBreadcrumbs from '@/shared/ui/AppBreadcrumbs';
 import VacancyDetailsHeader from '../components/details/VacancyDetailsHeader';
+import ApplyToVacancyAction from '@/features/vacancySubmissions/components/apply/ApplyToVacancyAction';
 import type { VacancyOutletContext } from '../model/useVacancyOutletContext';
 
 const PublicVacancy = () => {
@@ -35,7 +36,16 @@ const PublicVacancy = () => {
         ]}
       />
 
-      <VacancyDetailsHeader vacancy={vacancy} />
+      <VacancyDetailsHeader
+        vacancy={vacancy}
+        actions={
+          <ApplyToVacancyAction
+            vacancyId={vacancy.id}
+            vacancyName={vacancy.name}
+            vacancyTags={vacancy.tags}
+          />
+        }
+      />
 
       <Outlet context={{ vacancy } satisfies VacancyOutletContext} />
     </>

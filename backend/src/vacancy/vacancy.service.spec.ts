@@ -1155,6 +1155,50 @@ describe('VacancyService', () => {
     });
   });
 
+  describe('findPublicQuestionsByVacancyId', () => {
+    it('should return the labels and options a candidate needs to answer', async () => {
+      const vacancyId = testVacancies[0].id;
+
+      const result = await service.findPublicQuestionsByVacancyId(vacancyId);
+
+      // vacancy[0] is linked to testQuestions[0] and testQuestions[2]
+      expect(result.length).to.equal(2);
+      result.forEach((question) => {
+        expect(question).to.have.property('label');
+        expect(question).to.have.property('type');
+        expect(question).to.have.property('isRequired');
+        expect(question).to.have.property('vacancyId');
+        expect(question).to.have.property('questionId');
+      });
+    });
+
+    it('should not expose the scoring rules', async () => {
+      const result = await service.findPublicQuestionsByVacancyId(
+        testVacancies[0].id,
+      );
+
+      // A candidate who could read these would know how to answer to the key
+      result.forEach((question) => {
+        expect(question).to.not.have.property('priority');
+        expect(question).to.not.have.property('expectedValue');
+      });
+    });
+
+    it('should return empty array for a vacancy with no questions', async () => {
+      const admin = testUsers[0];
+      const newVacancy = await service.create(
+        { name: 'No questions', description: 'desc' },
+        admin,
+      );
+
+      const result = await service.findPublicQuestionsByVacancyId(
+        newVacancy.id,
+      );
+
+      expect(result).to.deep.equal([]);
+    });
+  });
+
   describe('findAllVacanciesThatHaveQuestions', () => {
     it('should find all vacancies that have questions linked', async () => {
       const result = await service.findAllVacanciesThatHaveQuestions();

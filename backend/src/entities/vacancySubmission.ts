@@ -92,11 +92,11 @@ export class VacancySubmission {
   })
   expectedSalary?: number | null;
 
-  @Column({ name: 'recruiter_rating', type: 'int', nullable: true })
-  recruiterRating?: number | null;
+  @Column({ name: 'rating', type: 'int', nullable: true })
+  rating?: number | null;
 
-  @Column({ name: 'rated_by_recruiter_id', type: 'uuid', nullable: true })
-  ratedByRecruiterId?: string | null;
+  @Column({ name: 'rated_by_id', type: 'uuid', nullable: true })
+  ratedById?: string | null;
 
   @Column({ name: 'cluster_id', type: 'int', nullable: true })
   clusterId?: number | null;
