@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class RenameRecruiterRatingToRating1788884871459
+export class RenameRecruiterRatingToRatingAndRatedByRecruiterIdToRatedById1788884871459
   implements MigrationInterface
 {
   name =
