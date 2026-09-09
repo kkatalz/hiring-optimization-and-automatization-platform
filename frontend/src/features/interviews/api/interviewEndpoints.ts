@@ -1,5 +1,5 @@
 import { baseApi } from '@/app/api/baseApi';
-import { allWithin } from '@/app/api/cacheTags';
+import { listWithin } from '@/app/api/cacheTags';
 import type { CreateInterviewInput, Interview } from '@/types';
 
 export const interviewApi = baseApi.injectEndpoints({
@@ -11,8 +11,16 @@ export const interviewApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
       providesTags: (_result, _error, submissionId) => [
-        { type: 'Interview', id: allWithin('SUBMISSION', submissionId) },
+        { type: 'Interview', id: listWithin('SUBMISSION', submissionId) },
       ],
+    }),
+
+    getMyInterviews: builder.query<Interview[], void>({
+      query: () => ({
+        url: '/interviews/me',
+        method: 'GET',
+      }),
+      providesTags: [{ type: 'Interview', id: 'LIST' }],
     }),
 
     // INTERVIEW MUTATIONS
@@ -22,10 +30,8 @@ export const interviewApi = baseApi.injectEndpoints({
         method: 'POST',
         body: createInterviewDto,
       }),
-      // Scheduling moves a pending submission to `interviewing`,
-      // so its cached copy has to be refetched as well
       invalidatesTags: (_result, _error, { submissionId }) => [
-        { type: 'Interview', id: allWithin('SUBMISSION', submissionId) },
+        { type: 'Interview' },
         { type: 'Submission', id: submissionId },
       ],
     }),
@@ -34,5 +40,6 @@ export const interviewApi = baseApi.injectEndpoints({
 
 export const {
   useGetInterviewsBySubmissionIdQuery,
+  useGetMyInterviewsQuery,
   useScheduleInterviewMutation,
 } = interviewApi;

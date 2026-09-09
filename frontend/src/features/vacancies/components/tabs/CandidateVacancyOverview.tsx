@@ -1,4 +1,5 @@
 import { Skeleton, Stack } from '@mui/material';
+import MyVacancyInterviewsCard from '@/features/interviews/components/MyVacancyInterviewsCard';
 import MyApplicationCard from '@/features/vacancySubmissions/components/candidate/MyApplicationCard';
 import { useMyVacancySubmission } from '@/features/vacancySubmissions/model/useMyVacancySubmission';
 import { useVacancyOutletContext } from '../../model/useVacancyOutletContext';
@@ -27,6 +28,7 @@ const CandidateVacancyOverview = () => {
       {submission && (
         <>
           <MyApplicationCard submission={submission} />
+          <MyVacancyInterviewsCard submissionId={submission.id} />
         </>
       )}
     </Stack>
