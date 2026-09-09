@@ -1,5 +1,4 @@
 import { baseApi } from '@/app/api/baseApi';
-import { ALL } from '@/app/api/cacheTags';
 import type { CandidateProfile } from '@/types';
 
 export const profileApi = baseApi.injectEndpoints({
@@ -9,7 +8,7 @@ export const profileApi = baseApi.injectEndpoints({
         url: '/candidatesProfiles/me',
         method: 'GET',
       }),
-      providesTags: [{ type: 'CandidateProfile', id: ALL }],
+      providesTags: [{ type: 'CandidateProfile', id: 'LIST' }],
     }),
   }),
 });
