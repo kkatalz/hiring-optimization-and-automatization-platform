@@ -6,6 +6,7 @@ import MainVacanciesPage from '../features/vacancies/pages/MainVacanciesPage';
 import VacancyDetailsPage from '../features/vacancies/pages/VacancyDetailsPage';
 import MainVacancySubmissionsPage from '../features/vacancySubmissions/pages/MainVacancySubmissionsPage';
 import VacancyOverview from '../features/vacancies/components/tabs/VacancyOverview';
+import CandidateVacancyOverview from '../features/vacancies/components/tabs/CandidateVacancyOverview';
 import ScreeningQuestionsView from '../features/vacancies/components/tabs/ScreeningQuestionsView';
 import AppLayout from '../layout/AppLayout';
 import { RequireRole } from './RequireRole';
@@ -72,7 +73,7 @@ const routes = createBrowserRouter([
               },
               {
                 path: 'overview',
-                Component: VacancyOverview,
+                Component: CandidateVacancyOverview,
               },
             ],
           },
