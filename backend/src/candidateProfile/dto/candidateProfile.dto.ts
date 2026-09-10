@@ -2,6 +2,7 @@ import { LanguageProficiency } from '../../entities/hiring.enum';
 import { UserRole } from '../../entities/role.enum';
 import { VacancySubmissionStatus } from '../../entities/statuses.enum';
 import { SentenceScore } from '../../sapling/types/scores.interface';
+import { QuestionAnswerFilterEntry } from '../../vacancySubmission/dto/vacancySubmissionFilter.dto';
 
 export class CandidateSubmissionDto {
   id: string;
@@ -15,6 +16,7 @@ export class CandidateSubmissionDto {
   expectedSalary?: number | null;
   matchScore?: number;
   createdAt: Date;
+  answers?: QuestionAnswerFilterEntry[];
 }
 
 export class CandidateProfileDto {

@@ -35,7 +35,12 @@ export class CandidateProfileService {
   async findMyCandidateProfile(userId: string): Promise<CandidateProfileDto> {
     const candidateProfile = await this.candidateProfileRepository.findOne({
       where: { userId },
-      relations: ['user', 'submissions', 'submissions.vacancy'],
+      relations: [
+        'user',
+        'submissions',
+        'submissions.vacancy',
+        'submissions.answers',
+      ],
     });
 
     if (!candidateProfile) {
@@ -53,7 +58,7 @@ export class CandidateProfileService {
   ): Promise<CandidateProfileDto> {
     const candidateProfile = await this.candidateProfileRepository.findOne({
       where: { id: candidateId },
-      relations: ['user', 'submissions'],
+      relations: ['user', 'submissions', 'submissions.answers'],
     });
 
     if (!candidateProfile) {

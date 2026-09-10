@@ -1,6 +1,7 @@
 import type { CandidateLanguageProficiency } from './hiring.enum';
 import type { UserRole } from './role.enum';
 import type { VacancySubmissionStatus } from './statuses.enum';
+import type { QuestionAnswer } from './question';
 import type { SentenceScore } from './scores.interface';
 
 export interface CandidateSubmission {
@@ -15,6 +16,7 @@ export interface CandidateSubmission {
   expectedSalary?: number | null;
   createdAt: string;
   matchScore?: number;
+  answers?: QuestionAnswer[];
 }
 
 export interface CandidateProfile {
