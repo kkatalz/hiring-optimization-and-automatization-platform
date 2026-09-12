@@ -50,7 +50,7 @@ export const LoginForm = () => {
         login({ email: loginFields.email, password: loginFields.password }),
       ).unwrap();
 
-      if (signedInUser.role === UserRole.candidate) navigate('/');
+      if (signedInUser.role === UserRole.candidate) navigate('/browse');
       else navigate('/vacancies');
     } catch (err) {
       console.error(err);

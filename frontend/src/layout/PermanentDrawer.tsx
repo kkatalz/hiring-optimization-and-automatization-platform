@@ -7,6 +7,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import WorkIcon from '@mui/icons-material/Work';
+import HomeIcon from '@mui/icons-material/Home';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { Link, useLocation } from 'react-router-dom';
 import { useAppSelector } from '@/app/hooks';
@@ -37,9 +38,10 @@ export default function PermanentDrawer({
 
   const vacanciesItem: NavItem = isStaff(user?.role)
     ? { label: 'Vacancies', to: '/vacancies', icon: <WorkIcon /> }
-    : { label: 'Browse vacancies', to: '/', icon: <WorkIcon /> };
+    : { label: 'Browse vacancies', to: '/browse', icon: <WorkIcon /> };
 
   const navItems: NavItem[] = [
+    { label: 'Home', to: '/', icon: <HomeIcon /> },
     vacanciesItem,
     ...(status === 'authenticated'
       ? [

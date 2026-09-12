@@ -11,11 +11,11 @@ import AppLayout from '../layout/AppLayout';
 import { RequireRole } from './RequireRole';
 import BrowseVacancies from '../features/vacancies/pages/BrowseVacancies';
 import PublicVacancy from '../features/vacancies/pages/PublicVacancy';
-import { RedirectStaff } from '@/routing/RedirectStaff';
 import SubmissionDetailPage from '@/features/vacancySubmissions/pages/SubmissionDetailPage';
 import MyProfilePage from '@/features/profile/pages/MyProfilePage';
 import ResetPasswordPage from '@/features/auth/pages/ResetPasswordPage';
 import RegisterPage from '@/features/auth/pages/RegisterPage';
+import HomePage from '@/features/home/pages/HomePage';
 
 const routes = createBrowserRouter([
   {
@@ -42,12 +42,11 @@ const routes = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          {
-            Component: RedirectStaff,
-            children: [
-              { path: '/', Component: BrowseVacancies }, // public endpoint
-            ],
-          },
+          // The landing page. Open to everyone
+          { path: '/', Component: HomePage },
+
+          // The public vacancy list
+          { path: '/browse', Component: BrowseVacancies },
 
           {
             Component: RequireAuth,
