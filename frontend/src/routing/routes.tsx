@@ -15,6 +15,7 @@ import { RedirectStaff } from '@/routing/RedirectStaff';
 import SubmissionDetailPage from '@/features/vacancySubmissions/pages/SubmissionDetailPage';
 import MyProfilePage from '@/features/profile/pages/MyProfilePage';
 import ResetPasswordPage from '@/features/auth/pages/ResetPasswordPage';
+import RegisterPage from '@/features/auth/pages/RegisterPage';
 
 const routes = createBrowserRouter([
   {
@@ -23,6 +24,11 @@ const routes = createBrowserRouter([
       {
         path: '/login',
         Component: LoginForm,
+      },
+
+      {
+        path: '/register',
+        Component: RegisterPage,
       },
 
       // Where the emailed password-reset link lands. Public by necessity: the
