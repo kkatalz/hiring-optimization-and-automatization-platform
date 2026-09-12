@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { login } from '@/features/auth/model/authSlice';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -11,6 +11,7 @@ import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
 import Link from '@mui/material/Link';
 import ForgotPasswordDialog from '@/features/auth/components/ForgotPasswordDialog';
+import PasswordField from '@/shared/ui/PasswordField';
 import { UserRole } from '@/types';
 
 interface LoginFields {
@@ -20,6 +21,14 @@ interface LoginFields {
 
 export const LoginForm = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Set when registration succeeded but the automatic sign-in that follows it
+  // did not, so the visitor is told their account exists before being asked
+  // for the password again.
+  const justRegistered = Boolean(
+    (location.state as { justRegistered?: boolean } | null)?.justRegistered,
+  );
 
   const dispatch = useAppDispatch();
   const [loginFields, setLoginFields] = useState<LoginFields>({
@@ -41,7 +50,7 @@ export const LoginForm = () => {
         login({ email: loginFields.email, password: loginFields.password }),
       ).unwrap();
 
-      if (signedInUser.role === UserRole.candidate) navigate('/');
+      if (signedInUser.role === UserRole.candidate) navigate('/browse');
       else navigate('/vacancies');
     } catch (err) {
       console.error(err);
@@ -70,7 +79,7 @@ export const LoginForm = () => {
       >
         <Typography variant='h5'>Sign in</Typography>
         <Typography variant='body2' color='text.secondary'>
-          Hiring Platform · recruiter portal
+          Hiring Platform · candidates and recruiters
         </Typography>
 
         {/* Email & Password */}
@@ -81,6 +90,12 @@ export const LoginForm = () => {
           spacing={2}
           sx={{ width: '100%', mt: 2 }}
         >
+          {justRegistered && (
+            <Alert severity='success'>
+              Your account was created. Sign in to continue.
+            </Alert>
+          )}
+
           {error && <Alert severity='error'>{error}</Alert>}
 
           <TextField
@@ -94,10 +109,9 @@ export const LoginForm = () => {
             value={loginFields.email}
             onChange={handleChange}
           />
-          <TextField
+          <PasswordField
             name='password'
             label='Password'
-            type='password'
             size='small'
             required
             fullWidth
@@ -124,6 +138,17 @@ export const LoginForm = () => {
           >
             Forgot your password?
           </Link>
+
+          <Typography
+            variant='body2'
+            color='text.secondary'
+            sx={{ alignSelf: 'center' }}
+          >
+            No account yet?{' '}
+            <Link component={RouterLink} to='/register' underline='hover'>
+              Create one
+            </Link>
+          </Typography>
         </Stack>
       </Paper>
 
