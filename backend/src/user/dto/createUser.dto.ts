@@ -5,14 +5,14 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
+import { IsValidPassword } from '../../decorators/isValidPassword.decorator';
 
 export class CreateUserDto {
   @IsNotEmpty()
   @IsEmail()
   email: string;
 
-  @IsNotEmpty()
-  @IsString()
+  @IsValidPassword()
   password: string;
 
   @IsNotEmpty()

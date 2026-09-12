@@ -12,14 +12,14 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CandidateLanguageProficiency } from './candidateLanguageProficiency.dto';
+import { IsValidPassword } from '../../decorators/isValidPassword.decorator';
 
 export class CreateCandidateProfileDto {
   @IsNotEmpty()
   @IsEmail()
   email: string;
 
-  @IsNotEmpty()
-  @IsString()
+  @IsValidPassword()
   password: string;
 
   @IsNotEmpty()
