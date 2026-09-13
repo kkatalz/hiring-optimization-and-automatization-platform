@@ -4,16 +4,19 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
+const databaseUrl = process.env.DATABASE_URL ?? '';
+const isLocalDb = /@(localhost|127\.0\.0\.1)[:/]/.test(databaseUrl);
+
 const dbConfig: PostgresConnectionOptions = {
   type: 'postgres',
-  url: process.env.DATABASE_URL,
+  url: databaseUrl,
 
   entities: [__dirname + '/entities/*.{ts,js}'],
   migrations: [__dirname + '/migrations/*.{ts,js}'],
 
   synchronize: false,
   logging: true,
-  ssl: false,
+  ssl: isLocalDb ? false : { rejectUnauthorized: false },
 };
 
 export const AppDataSource = new DataSource(dbConfig);
