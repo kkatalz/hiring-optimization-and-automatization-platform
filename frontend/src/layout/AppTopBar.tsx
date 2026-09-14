@@ -89,7 +89,7 @@ export default function AppTopBar({ onMobileMenuClick }: AppTopBarProps) {
     >
       <MenuItem onClick={handleLogin}>Login</MenuItem>
       <MenuItem onClick={handleLogout}>Logout</MenuItem>
-      <MenuItem onClick={handleCreateAccount}>Create accountant</MenuItem>
+      <MenuItem onClick={handleCreateAccount}>Create account</MenuItem>
     </Menu>
   );
 
