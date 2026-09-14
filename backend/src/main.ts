@@ -44,7 +44,12 @@ async function bootstrap() {
     }),
   );
 
-  const enableSwagger = process.env.NODE_ENV !== 'production';
+  // Swagger is on by default outside production. In production it stays off
+  // unless ENABLE_SWAGGER is explicitly set, so the deployed API can still be
+  // browsed at /api/docs.
+  const enableSwagger =
+    process.env.ENABLE_SWAGGER === 'true' ||
+    process.env.NODE_ENV !== 'production';
 
   if (enableSwagger) {
     const swaggerConfig = new DocumentBuilder()
