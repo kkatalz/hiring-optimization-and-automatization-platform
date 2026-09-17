@@ -70,6 +70,11 @@ const SortOrderLimitFilters = ({
       {onLimitChange && (
         <TextField
           label='Limit'
+          type='number'
+          slotProps={{
+            htmlInput: { min: 1 },
+          }}
+          placeholder='10'
           value={limit ?? ''}
           onChange={(e) => {
             const next = e.target.value;

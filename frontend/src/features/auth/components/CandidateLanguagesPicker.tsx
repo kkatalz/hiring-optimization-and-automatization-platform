@@ -85,6 +85,7 @@ const CandidateLanguagesPicker = ({
               {...params}
               size='small'
               label='Language'
+              type='text'
               placeholder='e.g. en'
               error={isDuplicate}
               helperText={isDuplicate ? 'Already added.' : ' '}

@@ -225,7 +225,11 @@ const ApplyToVacancyDialog = ({
               <TextField
                 label='Expected salary'
                 placeholder='3000'
-                slotProps={{ inputLabel: { shrink: true } }}
+                type='number'
+                slotProps={{
+                  inputLabel: { shrink: true },
+                  htmlInput: { min: 0, step: 1 },
+                }}
                 value={expectedSalary}
                 onChange={(e) => setExpectedSalary(e.target.value)}
                 sx={{ maxWidth: { sm: 200 } }}
