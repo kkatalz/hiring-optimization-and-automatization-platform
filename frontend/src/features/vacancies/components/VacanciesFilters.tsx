@@ -54,6 +54,7 @@ export const VacanciesFilters = () => {
             <TextField
               label='Name'
               placeholder='e.g. React Developer'
+              type='text'
               slotProps={{
                 inputLabel: { shrink: true },
               }}
@@ -67,8 +68,10 @@ export const VacanciesFilters = () => {
             <TextField
               label='Min salary'
               placeholder='0'
+              type='number'
               slotProps={{
                 inputLabel: { shrink: true },
+                htmlInput: { min: 0 },
               }}
               value={draft.minSalary ?? ''}
               onChange={(e) =>
@@ -86,8 +89,10 @@ export const VacanciesFilters = () => {
             <TextField
               label='Max salary'
               placeholder='5000'
+              type='number'
               slotProps={{
                 inputLabel: { shrink: true },
+                htmlInput: { min: 0 },
               }}
               value={draft.maxSalary ?? ''}
               onChange={(e) =>
@@ -142,8 +147,10 @@ export const VacanciesFilters = () => {
             <TextField
               label='Min experience (yrs)'
               placeholder='0'
+              type='number'
               slotProps={{
                 inputLabel: { shrink: true },
+                htmlInput: { min: 0 },
               }}
               value={draft.minRequiredExperience ?? ''}
               onChange={(e) =>
@@ -160,8 +167,10 @@ export const VacanciesFilters = () => {
             <TextField
               label='Max experience (yrs)'
               placeholder='10'
+              type='number'
               slotProps={{
                 inputLabel: { shrink: true },
+                htmlInput: { min: 0 },
               }}
               value={draft.maxRequiredExperience ?? ''}
               onChange={(e) =>

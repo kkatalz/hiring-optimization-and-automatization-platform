@@ -185,6 +185,7 @@ const RegisterPage = () => {
               name='firstName'
               label='First name'
               size='small'
+              type='text'
               required
               fullWidth
               autoComplete='given-name'
@@ -196,6 +197,7 @@ const RegisterPage = () => {
               name='lastName'
               label='Last name'
               size='small'
+              type='text'
               required
               fullWidth
               autoComplete='family-name'
@@ -208,6 +210,7 @@ const RegisterPage = () => {
               name='country'
               label='Country'
               size='small'
+              type='text'
               required
               fullWidth
               autoComplete='country-name'
@@ -219,6 +222,7 @@ const RegisterPage = () => {
               name='city'
               label='City'
               size='small'
+              type='text'
               required
               fullWidth
               autoComplete='address-level2'

@@ -140,6 +140,7 @@ const ScheduleInterviewDialog = ({
                 required
                 label='Title'
                 placeholder='e.g. Technical screen'
+                type='text'
                 slotProps={{
                   inputLabel: { shrink: true },
                   htmlInput: { maxLength: TITLE_MAX_LENGTH },
@@ -204,6 +205,7 @@ const ScheduleInterviewDialog = ({
                       {...params}
                       label='Interviewers'
                       placeholder='interviewer@company.com'
+                      type='email'
                       slotProps={{
                         ...params.slotProps,
                         inputLabel: {
@@ -235,6 +237,7 @@ const ScheduleInterviewDialog = ({
               <TextField
                 label='Notes'
                 placeholder='e.g. Technical round, focus on React'
+                type='text'
                 multiline
                 minRows={2}
                 slotProps={{
