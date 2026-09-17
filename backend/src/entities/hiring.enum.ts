@@ -1,4 +1,5 @@
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsOptional } from 'class-validator';
+import { IsValidLanguageCode } from '../decorators/isValidLanguageCode.decorator';
 
 export enum TimeCommitment {
   FULL_TIME = 'FULL_TIME',
@@ -36,7 +37,7 @@ export class LanguageProficiency {
    * @example "en"
    */
   @IsOptional()
-  @IsString()
+  @IsValidLanguageCode()
   code?: string;
 
   /**
