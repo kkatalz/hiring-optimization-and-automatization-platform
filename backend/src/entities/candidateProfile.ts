@@ -48,7 +48,9 @@ export class CandidateProfile {
   @Column({ name: 'user_id', type: 'uuid', nullable: false })
   userId?: string;
 
-  @OneToOne(() => User, (user) => user.candidateProfile)
+  @OneToOne(() => User, (user) => user.candidateProfile, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
