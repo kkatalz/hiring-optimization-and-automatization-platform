@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
-  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -60,8 +59,9 @@ const ApplyToVacancyDialog = ({
   const [expectedSalary, setExpectedSalary] = useState('');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
 
-  const { data: questions, isLoading: isLoadingQuestions } =
-    useGetPublicVacancyQuestionsQuery(open ? vacancyId : skipToken);
+  const { data: questions } = useGetPublicVacancyQuestionsQuery(
+    open ? vacancyId : skipToken,
+  );
 
   const [applyToVacancy, { isLoading: isApplying }] =
     useApplyToVacancyMutation();
@@ -283,17 +283,13 @@ const ApplyToVacancyDialog = ({
                 </Stack>
               </Stack>
 
-              {(isLoadingQuestions || questions?.length) && (
+              {!!questions?.length && (
                 <>
                   <Divider />
                   <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
                     Screening questions
                   </Typography>
                 </>
-              )}
-
-              {isLoadingQuestions && (
-                <Skeleton variant='rounded' height={120} />
               )}
 
               {questions?.length ? (
