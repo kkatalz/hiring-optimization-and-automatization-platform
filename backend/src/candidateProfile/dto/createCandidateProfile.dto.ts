@@ -6,7 +6,6 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  MaxLength,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -16,6 +15,7 @@ import { IsValidPassword } from '../../decorators/isValidPassword.decorator';
 import {
   FIRST_NAME_MAX_LENGTH,
   IsValidName,
+  IsValidPlaceName,
   LAST_NAME_MAX_LENGTH,
 } from '../../decorators/isValidName.decorator';
 
@@ -38,14 +38,10 @@ export class CreateCandidateProfileDto {
   @Min(0)
   yearsOfExperience: number;
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(100)
+  @IsValidPlaceName()
   country: string;
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(100)
+  @IsValidPlaceName()
   city: string;
 
   @IsNotEmpty()

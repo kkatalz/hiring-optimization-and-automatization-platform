@@ -12,6 +12,7 @@ import { CandidateLanguageProficiency } from './candidateLanguageProficiency.dto
 import {
   FIRST_NAME_MAX_LENGTH,
   IsValidName,
+  IsValidPlaceName,
   LAST_NAME_MAX_LENGTH,
 } from '../../decorators/isValidName.decorator';
 
@@ -30,11 +31,11 @@ export class UpdateCandidateProfileDto {
   yearsOfExperience?: number;
 
   @IsOptional()
-  @IsString()
+  @IsValidPlaceName()
   country?: string;
 
   @IsOptional()
-  @IsString()
+  @IsValidPlaceName()
   city?: string;
 
   @IsOptional()
