@@ -13,6 +13,11 @@ import {
 import { Type } from 'class-transformer';
 import { CandidateLanguageProficiency } from './candidateLanguageProficiency.dto';
 import { IsValidPassword } from '../../decorators/isValidPassword.decorator';
+import {
+  FIRST_NAME_MAX_LENGTH,
+  IsValidName,
+  LAST_NAME_MAX_LENGTH,
+} from '../../decorators/isValidName.decorator';
 
 export class CreateCandidateProfileDto {
   @IsNotEmpty()
@@ -22,14 +27,10 @@ export class CreateCandidateProfileDto {
   @IsValidPassword()
   password: string;
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(20)
+  @IsValidName(FIRST_NAME_MAX_LENGTH)
   firstName: string;
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(50)
+  @IsValidName(LAST_NAME_MAX_LENGTH)
   lastName: string;
 
   @IsNotEmpty()

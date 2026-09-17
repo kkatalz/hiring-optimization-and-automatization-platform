@@ -1,13 +1,16 @@
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsOptional } from 'class-validator';
+import {
+  FIRST_NAME_MAX_LENGTH,
+  IsValidName,
+  LAST_NAME_MAX_LENGTH,
+} from '../../decorators/isValidName.decorator';
 
 export class UpdateUserDto {
   @IsOptional()
-  @IsString()
-  @MaxLength(20)
+  @IsValidName(FIRST_NAME_MAX_LENGTH)
   firstName?: string;
 
   @IsOptional()
-  @IsString()
-  @MaxLength(50)
+  @IsValidName(LAST_NAME_MAX_LENGTH)
   lastName?: string;
 }
