@@ -15,6 +15,12 @@ import {
   type LanguageProficiency,
 } from '@/types';
 import Divider from '@mui/material/Divider';
+import { formatLanguage } from '@/shared/lib/formatText';
+import {
+  LANGUAGE_CODE_HINT,
+  isValidLanguageCode,
+  normalizeLanguageCode,
+} from '@/shared/lib/validateLanguageCode';
 
 interface LanguageRequirementsFilterProps {
   value: LanguageProficiency[];
@@ -38,15 +44,24 @@ export const LanguageRequirementsFilter = ({
     (c) => !selectedCodes.includes(c),
   );
 
+  const normalizedCode = code === null ? '' : normalizeLanguageCode(code);
+
+  // the person typed something, and that something is not a language
+  const isMalformed =
+    normalizedCode !== '' && !isValidLanguageCode(normalizedCode);
+
   // At least one of code/level must be set, but not necessarily both.
-  const canAdd = code !== null || level !== null;
+  const canAdd = (normalizedCode !== '' || level !== null) && !isMalformed;
 
   const handleAdd = () => {
     if (!canAdd) return;
 
     onChange([
       ...value,
-      { code: code ?? undefined, level: level ?? undefined },
+      {
+        code: normalizedCode === '' ? undefined : normalizedCode,
+        level: level ?? undefined,
+      },
     ]);
 
     setCode(null);
@@ -68,7 +83,7 @@ export const LanguageRequirementsFilter = ({
           {value.map((pair, index) => (
             <Chip
               key={`${pair.code ?? 'any'}-${pair.level ?? 'any'}-${index}`}
-              label={`${pair.code?.toUpperCase() ?? 'Any'} · ${pair.level ?? 'Any'}`}
+              label={`${pair.code ? formatLanguage(pair.code) : 'Any'} · ${pair.level ?? 'Any'}`}
               onDelete={() => handleRemove(index)}
               color='primary'
               variant='outlined'
@@ -83,12 +98,14 @@ export const LanguageRequirementsFilter = ({
           options={availableCodes}
           value={code ?? ''}
           onChange={(_event, newCode) => setCode(newCode)}
-          getOptionLabel={(code) => code.toUpperCase()}
+          getOptionLabel={(code) => formatLanguage(code)}
           renderInput={(params) => (
             <TextField
               {...params}
               label='Language'
-              placeholder='e.g. en'
+              placeholder='e.g. english'
+              error={isMalformed}
+              helperText={isMalformed ? LANGUAGE_CODE_HINT : ' '}
               onKeyDown={(event) => {
                 // Enter commits the typed code inside the Autocomplete, but it
                 // would also submit the surrounding CreateVacancy form. Block

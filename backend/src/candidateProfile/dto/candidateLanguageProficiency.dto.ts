@@ -1,5 +1,6 @@
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty } from 'class-validator';
 import { LanguageLevel } from '../../entities/hiring.enum';
+import { IsValidLanguageCode } from '../../decorators/isValidLanguageCode.decorator';
 
 /**
  * Stricter shape of a language entry for candidate profiles: both `code` and `level`
@@ -8,7 +9,7 @@ import { LanguageLevel } from '../../entities/hiring.enum';
  */
 export class CandidateLanguageProficiency {
   @IsNotEmpty()
-  @IsString()
+  @IsValidLanguageCode()
   code: string;
 
   @IsNotEmpty()

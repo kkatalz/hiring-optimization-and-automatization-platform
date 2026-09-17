@@ -1,4 +1,10 @@
 import { useBrowseVacanciesLanguagesCodesQuery } from '@/features/vacancies/api/vacancyEndpoints';
+import { formatLanguage } from '@/shared/lib/formatText';
+import {
+  LANGUAGE_CODE_HINT,
+  isValidLanguageCode,
+  normalizeLanguageCode,
+} from '@/shared/lib/validateLanguageCode';
 import {
   ALL_LANGUAGE_LEVELS,
   type CandidateLanguageProficiency,
@@ -33,19 +39,32 @@ const CandidateLanguagesPicker = ({
   const [code, setCode] = useState('');
   const [level, setLevel] = useState<LanguageLevel | ''>('');
 
-  const takenCodes = value.map((language) => language.code.toLowerCase());
+  const takenCodes = value.map((language) =>
+    normalizeLanguageCode(language.code),
+  );
   const availableCodes = (knownCodes ?? []).filter(
-    (known) => !takenCodes.includes(known.toLowerCase()),
+    (known) => !takenCodes.includes(normalizeLanguageCode(known)),
   );
 
-  const trimmedCode = code.trim();
-  const isDuplicate = takenCodes.includes(trimmedCode.toLowerCase());
-  const canAdd = trimmedCode !== '' && level !== '' && !isDuplicate;
+  const normalizedCode = normalizeLanguageCode(code);
+  const isDuplicate = takenCodes.includes(normalizedCode);
+
+  // the person typed something, and that something is not a language
+  const isMalformed =
+    normalizedCode !== '' && !isValidLanguageCode(normalizedCode);
+  const canAdd =
+    normalizedCode !== '' && level !== '' && !isDuplicate && !isMalformed;
+
+  const codeError = isDuplicate
+    ? 'Already added.'
+    : isMalformed
+      ? LANGUAGE_CODE_HINT
+      : ' ';
 
   const handleAdd = () => {
     if (!canAdd) return;
 
-    onChange([...value, { code: trimmedCode, level }]);
+    onChange([...value, { code: normalizedCode, level }]);
     setCode('');
     setLevel('');
   };
@@ -63,7 +82,7 @@ const CandidateLanguagesPicker = ({
           {value.map((language, index) => (
             <Chip
               key={language.code.toLowerCase()}
-              label={`${language.code.toUpperCase()} · ${language.level}`}
+              label={`${formatLanguage(language.code)} · ${language.level}`}
               onDelete={() => handleRemove(index)}
               color='primary'
               variant='outlined'
@@ -79,16 +98,16 @@ const CandidateLanguagesPicker = ({
           options={availableCodes}
           inputValue={code}
           onInputChange={(_event, nextCode) => setCode(nextCode)}
-          getOptionLabel={(option) => option.toUpperCase()}
+          getOptionLabel={(option) => formatLanguage(option)}
           renderInput={(params) => (
             <TextField
               {...params}
               size='small'
               label='Language'
               type='text'
-              placeholder='e.g. en'
-              error={isDuplicate}
-              helperText={isDuplicate ? 'Already added.' : ' '}
+              placeholder='e.g. english'
+              error={isDuplicate || isMalformed}
+              helperText={codeError}
               onKeyDown={(event) => {
                 if (event.key !== 'Enter') return;
                 event.preventDefault();
