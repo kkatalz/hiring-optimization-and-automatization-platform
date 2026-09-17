@@ -1,11 +1,10 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { IsValidPassword } from '../../decorators/isValidPassword.decorator';
+import {
+  FIRST_NAME_MAX_LENGTH,
+  IsValidName,
+  LAST_NAME_MAX_LENGTH,
+} from '../../decorators/isValidName.decorator';
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -15,14 +14,10 @@ export class CreateUserDto {
   @IsValidPassword()
   password: string;
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(20)
+  @IsValidName(FIRST_NAME_MAX_LENGTH)
   firstName: string;
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(50)
+  @IsValidName(LAST_NAME_MAX_LENGTH)
   lastName: string;
 
   @IsOptional()

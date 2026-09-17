@@ -4,6 +4,7 @@ import { validateNewPassword } from '@/features/auth/model/passwordPolicy';
 import { login } from '@/features/auth/model/authSlice';
 import { useCreateCandidateProfileMutation } from '@/features/profile/api/profileEndpoints';
 import { getErrorMessage } from '@/shared/lib/errorMessage';
+import { validateName, validatePlaceName } from '@/shared/lib/validateName';
 import PasswordField from '@/shared/ui/PasswordField';
 import type { CandidateLanguageProficiency } from '@/types';
 import Alert from '@mui/material/Alert';
@@ -72,6 +73,16 @@ const RegisterPage = () => {
     );
     if (passwordError) {
       setFormError(passwordError);
+      return;
+    }
+
+    const nameError =
+      validateName(fields.firstName, 'First name') ||
+      validateName(fields.lastName, 'Last name') ||
+      validatePlaceName(fields.country, 'Country') ||
+      validatePlaceName(fields.city, 'City');
+    if (nameError) {
+      setFormError(nameError);
       return;
     }
 
