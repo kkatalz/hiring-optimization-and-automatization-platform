@@ -13,12 +13,22 @@ export const EMPTY_VACANCY_QUESTION: VacancyQuestionInput = {
   isRequired: false,
 };
 
+// The API reads this out of a jsonb column, so a value the type says is a
+// string can arrive as a boolean, a number or an object. Coerce the same way
+// the backend transformer does: JSON.stringify keeps an object readable, where
+// String() would flatten every one of them to "[object Object]".
+const toText = (value: unknown): string =>
+  typeof value === 'string' ? value : JSON.stringify(value);
+
 export const expectedValueToString = (
   expectedValue: VacancyQuestionInput['expectedValue'],
-): string =>
-  Array.isArray(expectedValue)
-    ? expectedValue.join(', ')
-    : (expectedValue ?? '');
+): string => {
+  if (expectedValue === null || expectedValue === undefined) return '';
+
+  return Array.isArray(expectedValue)
+    ? expectedValue.map(toText).join(', ')
+    : toText(expectedValue);
+};
 
 // Dropdowns can expect several accepted options, entered comma-separated.
 export const splitExpectedValues = (text: string): string[] =>
