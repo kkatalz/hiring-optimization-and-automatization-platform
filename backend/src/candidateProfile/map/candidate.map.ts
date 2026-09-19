@@ -30,6 +30,10 @@ export const candidateToCandidateProfileDto = (
         s.expectedSalary != null ? Number(s.expectedSalary) : null,
       createdAt: s.createdAt,
       matchScore: s.matchScore,
+      answers: s.answers?.map(({ questionId, value }) => ({
+        questionId,
+        value,
+      })),
     })),
   };
 };

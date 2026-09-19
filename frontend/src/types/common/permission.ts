@@ -10,6 +10,7 @@ export type Permission =
   | 'vacancySubmissions:reject'
   | 'clustering:runByVacancyId'
   | 'interview:schedule'
+  | 'interview:getMine'
   | 'candidateProfile:getMine'
   | 'vacancySubmission:create'
   | 'vacancySubmissions:rate'
@@ -44,6 +45,12 @@ export const PERMISSIONS: Record<Permission, readonly UserRole[]> = {
     UserRole.recruiter,
   ],
   'interview:schedule': [UserRole.admin, UserRole.recruiter],
+  'interview:getMine': [
+    UserRole.superAdmin,
+    UserRole.admin,
+    UserRole.recruiter,
+    UserRole.candidate,
+  ],
   'candidateProfile:getMine': [UserRole.candidate],
   'vacancySubmission:create': [UserRole.candidate],
   'vacancySubmissions:rate': [

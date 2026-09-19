@@ -1,5 +1,4 @@
 import { baseApi } from '@/app/api/baseApi';
-import { ALL } from '@/app/api/cacheTags';
 import type { CreateQuestionInput, Question } from '@/types';
 
 export const questionEndpoints = baseApi.injectEndpoints({
@@ -17,9 +16,9 @@ export const questionEndpoints = baseApi.injectEndpoints({
                 type: 'Question' as const,
                 id: q.id,
               })),
-              { type: 'Question', id: ALL },
+              { type: 'Question', id: 'LIST' },
             ]
-          : [{ type: 'Question', id: ALL }],
+          : [{ type: 'Question', id: 'LIST' }],
     }),
 
     findQuestionById: builder.query<Question, { id: string }>({
@@ -40,7 +39,7 @@ export const questionEndpoints = baseApi.injectEndpoints({
         params: tenantId ? { tenantId } : undefined,
         body: question,
       }),
-      invalidatesTags: [{ type: 'Question', id: ALL }],
+      invalidatesTags: [{ type: 'Question', id: 'LIST' }],
     }),
 
     removeQuestion: builder.mutation<Question, { id: string }>({

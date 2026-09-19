@@ -5,6 +5,7 @@ import { RequireAuth } from './RequireAuth';
 import MainVacanciesPage from '../features/vacancies/pages/MainVacanciesPage';
 import VacancyDetailsPage from '../features/vacancies/pages/VacancyDetailsPage';
 import MainVacancySubmissionsPage from '../features/vacancySubmissions/pages/MainVacancySubmissionsPage';
+import StaffVacancyOverview from '../features/vacancies/components/tabs/StaffVacancyOverview';
 import VacancyOverview from '../features/vacancies/components/tabs/VacancyOverview';
 import ScreeningQuestionsView from '../features/vacancies/components/tabs/ScreeningQuestionsView';
 import AppLayout from '../layout/AppLayout';
@@ -102,7 +103,7 @@ const routes = createBrowserRouter([
                         path: 'candidates',
                         Component: MainVacancySubmissionsPage,
                       },
-                      { path: 'overview', Component: VacancyOverview },
+                      { path: 'overview', Component: StaffVacancyOverview },
                       {
                         path: 'screening-questions',
                         Component: ScreeningQuestionsView,

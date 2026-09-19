@@ -1,5 +1,5 @@
 import { baseApi } from '@/app/api/baseApi';
-import { ALL, allWithin } from '@/app/api/cacheTags';
+import { allWithin } from '@/app/api/cacheTags';
 import type {
   CreateSubmissionInput,
   MatchScoreExplanation,
@@ -104,7 +104,7 @@ export const vacancySubmissionApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { vacancyId }) => [
         { type: 'Submission', id: allWithin('VACANCY', vacancyId) },
-        { type: 'CandidateProfile', id: ALL },
+        { type: 'CandidateProfile', id: 'LIST' },
       ],
     }),
 
@@ -129,7 +129,7 @@ export const vacancySubmissionApi = baseApi.injectEndpoints({
       },
       invalidatesTags: (_result, _error, { submissionId }) => [
         { type: 'Submission', id: submissionId },
-        { type: 'CandidateProfile', id: ALL },
+        { type: 'CandidateProfile', id: 'LIST' },
       ],
     }),
 

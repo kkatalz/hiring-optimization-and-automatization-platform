@@ -1,5 +1,4 @@
 import { baseApi, PUBLIC_ENDPOINT } from '@/app/api/baseApi';
-import { ALL } from '@/app/api/cacheTags';
 import type { User } from '@/types';
 
 export const authApi = baseApi.injectEndpoints({
@@ -35,7 +34,7 @@ export const authApi = baseApi.injectEndpoints({
         method: 'PATCH',
         body: { email },
       }),
-      invalidatesTags: [{ type: 'CandidateProfile', id: ALL }],
+      invalidatesTags: [{ type: 'CandidateProfile', id: 'LIST' }],
     }),
 
     changePassword: builder.mutation<

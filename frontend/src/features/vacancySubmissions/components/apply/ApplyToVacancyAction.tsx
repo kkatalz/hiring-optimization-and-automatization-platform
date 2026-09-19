@@ -2,7 +2,7 @@ import { Button, Chip } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { useAppSelector } from '@/app/hooks';
 import { useHasPermission } from '@/features/auth/model/useHasPermission';
-import { useGetMyCandidateProfileQuery } from '@/features/profile/api/profileEndpoints';
+import { useMyVacancySubmission } from '@/features/vacancySubmissions/model/useMyVacancySubmission';
 import ApplyToVacancyDialog from './ApplyToVacancyDialog';
 
 interface Props {
@@ -13,9 +13,10 @@ interface Props {
 
 /**
  * Decides what a visitor gets offered on a vacancy page:
- * a candidate who has not applied yet gets the form, one who already has is
- * told so, a signed-out visitor is pointed at the login screen, and staff get
- * nothing at all - only candidates can apply.
+ * - a candidate who has not applied yet gets the form,
+ * - one who already has is told so,
+ * - a signed-out visitor is pointed at the login screen,
+ * - and staff get nothing - only candidates can apply.
  */
 const ApplyToVacancyAction = ({
   vacancyId,
@@ -23,15 +24,10 @@ const ApplyToVacancyAction = ({
   vacancyTags,
 }: Props) => {
   const status = useAppSelector((state) => state.auth.status);
+  const { hasApplied } = useMyVacancySubmission(vacancyId);
+
   const can = useHasPermission();
-
   const canApply = can('vacancySubmission:create');
-
-  // The profile carries the candidate's own submissions, which is how we know
-  // whether this vacancy has already been applied to.
-  const { data: candidateProfile } = useGetMyCandidateProfileQuery(undefined, {
-    skip: !canApply,
-  });
 
   if (status === 'checking' || status === 'loading') return null;
 
@@ -44,11 +40,7 @@ const ApplyToVacancyAction = ({
 
   if (!canApply) return null;
 
-  const alreadyApplied = candidateProfile?.submissions?.some(
-    (submission) => submission.vacancyId === vacancyId,
-  );
-
-  if (alreadyApplied)
+  if (hasApplied)
     return <Chip label='Already applied' color='success' variant='outlined' />;
 
   return (
