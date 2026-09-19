@@ -1,5 +1,5 @@
 import { baseApi, PUBLIC_ENDPOINT } from '@/app/api/baseApi';
-import { listWithin } from '@/app/api/cacheTags';
+import { allWithin } from '@/app/api/cacheTags';
 import type {
   CreateVacancyInput,
   CreateVacancyQuestionInput,
@@ -105,7 +105,7 @@ export const vacancyApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
       providesTags: (_result, _error, vacancyId) => [
-        { type: 'Question', id: listWithin('VACANCY', vacancyId) },
+        { type: 'Question', id: allWithin('VACANCY', vacancyId) },
       ],
       extraOptions: PUBLIC_ENDPOINT,
     }),
@@ -132,7 +132,7 @@ export const vacancyApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'Vacancy', id },
         { type: 'Vacancy', id: 'LIST' },
-        { type: 'Question', id: listWithin('VACANCY', id) },
+        { type: 'Question', id: allWithin('VACANCY', id) },
       ],
     }),
 
@@ -164,7 +164,7 @@ export const vacancyApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, { vacancyId }) => [
         { type: 'Vacancy', id: vacancyId },
         { type: 'Vacancy', id: 'LIST' },
-        { type: 'Question', id: listWithin('VACANCY', vacancyId) },
+        { type: 'Question', id: allWithin('VACANCY', vacancyId) },
       ],
     }),
 
@@ -179,7 +179,7 @@ export const vacancyApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, { vacancyId }) => [
         { type: 'Vacancy', id: vacancyId },
         { type: 'Vacancy', id: 'LIST' },
-        { type: 'Question', id: listWithin('VACANCY', vacancyId) },
+        { type: 'Question', id: allWithin('VACANCY', vacancyId) },
       ],
     }),
 
@@ -192,7 +192,7 @@ export const vacancyApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
       providesTags: (_result, _error, vacancyId) => [
-        { type: 'Question', id: listWithin('VACANCY', vacancyId) },
+        { type: 'Question', id: allWithin('VACANCY', vacancyId) },
       ],
     }),
   }),

@@ -1,5 +1,5 @@
 import { baseApi } from '@/app/api/baseApi';
-import { listWithin } from '@/app/api/cacheTags';
+import { allWithin } from '@/app/api/cacheTags';
 import type {
   CreateSubmissionInput,
   MatchScoreExplanation,
@@ -45,9 +45,9 @@ export const vacancySubmissionApi = baseApi.injectEndpoints({
                 type: 'Submission' as const,
                 id: submission.id,
               })),
-              { type: 'Submission', id: listWithin('VACANCY', vacancyId) },
+              { type: 'Submission', id: allWithin('VACANCY', vacancyId) },
             ]
-          : [{ type: 'Submission', id: listWithin('VACANCY', vacancyId) }],
+          : [{ type: 'Submission', id: allWithin('VACANCY', vacancyId) }],
     }),
 
     getAllSubmissionsCitiesByVacancyId: builder.query<string[], string>({
@@ -56,7 +56,7 @@ export const vacancySubmissionApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
       providesTags: (_result, _error, vacancyId) => [
-        { type: 'Submission', id: listWithin('VACANCY', vacancyId) },
+        { type: 'Submission', id: allWithin('VACANCY', vacancyId) },
       ],
     }),
 
@@ -66,7 +66,7 @@ export const vacancySubmissionApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
       providesTags: (_result, _error, vacancyId) => [
-        { type: 'Submission', id: listWithin('VACANCY', vacancyId) },
+        { type: 'Submission', id: allWithin('VACANCY', vacancyId) },
       ],
     }),
 
@@ -77,7 +77,7 @@ export const vacancySubmissionApi = baseApi.injectEndpoints({
           method: 'GET',
         }),
         providesTags: (_result, _error, vacancyId) => [
-          { type: 'Submission', id: listWithin('VACANCY', vacancyId) },
+          { type: 'Submission', id: allWithin('VACANCY', vacancyId) },
         ],
       },
     ),
@@ -103,7 +103,7 @@ export const vacancySubmissionApi = baseApi.injectEndpoints({
         body,
       }),
       invalidatesTags: (_result, _error, { vacancyId }) => [
-        { type: 'Submission', id: listWithin('VACANCY', vacancyId) },
+        { type: 'Submission', id: allWithin('VACANCY', vacancyId) },
         { type: 'CandidateProfile', id: 'LIST' },
       ],
     }),

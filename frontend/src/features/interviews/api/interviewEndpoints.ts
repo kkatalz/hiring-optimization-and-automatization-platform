@@ -1,5 +1,5 @@
 import { baseApi } from '@/app/api/baseApi';
-import { listWithin } from '@/app/api/cacheTags';
+import { allWithin } from '@/app/api/cacheTags';
 import type { CreateInterviewInput, Interview } from '@/types';
 
 export const interviewApi = baseApi.injectEndpoints({
@@ -11,7 +11,7 @@ export const interviewApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
       providesTags: (_result, _error, submissionId) => [
-        { type: 'Interview', id: listWithin('SUBMISSION', submissionId) },
+        { type: 'Interview', id: allWithin('SUBMISSION', submissionId) },
       ],
     }),
 
