@@ -41,6 +41,15 @@ questions and candidates you see. Then log in as `admin@bright.com`. You will no
 of them. Every query is scoped to the caller's company, and a request for another company's resource
 returns `403` rather than an empty list.
 
+**_!! To see the coolest pages_**
+- as candidate: log in as candidate and check these pages:
+    * https://hiring-optimization-and-automatizat.vercel.app/my-profile
+    * https://hiring-optimization-and-automatizat.vercel.app/browse/7e5f6a7b-c9d0-4e5f-a06b-5e0000000003/overview
+
+- as admin: log in as admin and check:
+  * https://hiring-optimization-and-automatizat.vercel.app/vacancies/7e5f6a7b-c9d0-4e5f-a06b-5e0000000001/candidates
+  * https://hiring-optimization-and-automatizat.vercel.app/vacancies/7e5f6a7b-c9d0-4e5f-a06b-5e0000000001/vacancy-submissions/9a7b8c9d-e1f2-4a7b-82cd-7a0000000001
+
 ---
 
 ## Screenshots
@@ -65,6 +74,14 @@ returns `403` rather than an empty list.
 
 <img width="1881" alt="Vacancy list" src="https://github.com/user-attachments/assets/6ee1de6a-d424-4dd7-ae8d-5255166cb44c" />
 
+**Submission detailed**
+<img width="1532" height="860" alt="image" src="https://github.com/user-attachments/assets/b13e5d30-7bf7-4a4e-bc45-b6c0ab57793f" />
+
+**View submission**
+<img width="1527" height="852" alt="image" src="https://github.com/user-attachments/assets/5d0598b3-1350-461f-9687-d0b7f08b2c7a" />
+
+**Candidate profile**
+<img width="1537" height="852" alt="image" src="https://github.com/user-attachments/assets/f5210463-0089-4026-a27e-8e4a0f70117c" />
 </details>
 
 ---
