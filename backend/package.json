@@ -10,6 +10,9 @@
       "module": "commonjs"
     }
   },
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -23,6 +26,7 @@
     "migration:run": "ts-node -r dotenv/config -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run      -d src/ormconfig.ts",
     "migration:revert": "ts-node -r dotenv/config -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:revert   -d src/ormconfig.ts",
     "migration:show": "ts-node -r dotenv/config -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:show     -d src/ormconfig.ts",
+    "migration:run:prod": "typeorm migration:run -d dist/ormconfig.js",
     "db:seed": "ts-node -r dotenv/config -r tsconfig-paths/register src/seed.ts"
   },
   "dependencies": {

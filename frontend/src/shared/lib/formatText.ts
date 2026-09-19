@@ -7,6 +7,10 @@ export const capitalizeName = (name: string) => {
     .join(' ');
 };
 
+// 'en' -> 'EN', 'ukrainian' -> 'Ukrainian'
+export const formatLanguage = (code: string) =>
+  code.length <= 3 ? code.toUpperCase() : capitalizeName(code);
+
 // E.g. 'createdAt' -> 'Created at'
 export const formatSortField = (field: string) => {
   if (!field) return '';

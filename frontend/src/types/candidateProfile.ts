@@ -35,3 +35,16 @@ export interface CandidateProfile {
   resumeAiSentenceScores?: SentenceScore[] | null;
   submissions?: CandidateSubmission[];
 }
+
+/** What a visitor sends to create their own candidate account. */
+export interface CreateCandidateProfileInput {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  yearsOfExperience: number;
+  country: string;
+  city: string;
+  languages: CandidateLanguageProficiency[];
+  resume?: string;
+}

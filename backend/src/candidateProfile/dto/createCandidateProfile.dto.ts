@@ -6,30 +6,31 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  MaxLength,
   Min,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CandidateLanguageProficiency } from './candidateLanguageProficiency.dto';
+import { IsValidPassword } from '../../decorators/isValidPassword.decorator';
+import {
+  FIRST_NAME_MAX_LENGTH,
+  IsValidName,
+  IsValidPlaceName,
+  LAST_NAME_MAX_LENGTH,
+} from '../../decorators/isValidName.decorator';
 
 export class CreateCandidateProfileDto {
   @IsNotEmpty()
   @IsEmail()
   email: string;
 
-  @IsNotEmpty()
-  @IsString()
+  @IsValidPassword()
   password: string;
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(20)
+  @IsValidName(FIRST_NAME_MAX_LENGTH)
   firstName: string;
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(50)
+  @IsValidName(LAST_NAME_MAX_LENGTH)
   lastName: string;
 
   @IsNotEmpty()
@@ -37,14 +38,10 @@ export class CreateCandidateProfileDto {
   @Min(0)
   yearsOfExperience: number;
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(100)
+  @IsValidPlaceName()
   country: string;
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(100)
+  @IsValidPlaceName()
   city: string;
 
   @IsNotEmpty()

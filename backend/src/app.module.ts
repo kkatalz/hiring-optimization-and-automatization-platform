@@ -28,8 +28,9 @@ import { ClusteringModule } from './clustering/clustering.module';
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot(ormconfig),
     ScheduleModule.forRoot(),
+    // Sensitive endpoints tighten this locally with @Throttle.
     ThrottlerModule.forRoot({
-      throttlers: [{ ttl: 60000, limit: 10 }],
+      throttlers: [{ ttl: 60000, limit: 200 }],
     }),
     TenantModule,
     UserModule,

@@ -31,6 +31,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   async loginUser(
     @Body() loginUserDto: LoginUserDto,
     @Res({ passthrough: true }) res: Response,
@@ -45,6 +46,7 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   async refresh(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
@@ -86,6 +88,7 @@ export class AuthController {
   }
 
   @Post('logout')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   logout(@Res({ passthrough: true }) res: Response): { message: string } {
     this.clearRefreshTokenCookie(res);
     return { message: 'Logged out successfully.' };
@@ -140,6 +143,7 @@ export class AuthController {
     UserRole.admin,
   )
   @Patch('credentials/email/:userId')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   async changeEmail(
     @AuthUser() requester: UserDto,
     @Param('userId', new ParseUUIDPipe()) userId: string,
@@ -177,6 +181,7 @@ export class AuthController {
     UserRole.admin,
   )
   @Patch('credentials/password/:userId')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   async changePassword(
     @AuthUser() requester: UserDto,
     @Param('userId', new ParseUUIDPipe()) userId: string,
@@ -245,7 +250,7 @@ export class AuthController {
     res.cookie('refresh_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
       path: '/auth',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -267,7 +272,7 @@ export class AuthController {
     res.clearCookie('refresh_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
       path: '/auth',
     });
   }

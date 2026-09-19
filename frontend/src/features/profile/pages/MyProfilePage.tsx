@@ -58,7 +58,7 @@ const MyProfilePage = () => {
         )}
 
         <Grid container spacing={{ xs: 2, sm: 3 }}>
-          <Grid size={{ xs: 12, md: 5 }}>
+          <Grid size={{ xs: 12, lg: 5 }}>
             <Stack spacing={{ xs: 2, sm: 3 }}>
               <AccountSecurityCard
                 user={user}
@@ -76,7 +76,7 @@ const MyProfilePage = () => {
           </Grid>
 
           {(isLoading || candidateProfile) && (
-            <Grid size={{ xs: 12, md: 7 }}>
+            <Grid size={{ xs: 12, lg: 7 }}>
               {isLoading ? (
                 <Skeleton variant='rounded' height={320} />
               ) : (

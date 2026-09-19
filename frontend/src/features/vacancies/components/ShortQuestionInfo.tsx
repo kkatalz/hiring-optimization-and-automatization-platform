@@ -1,5 +1,6 @@
 import type { VacancyQuestionDetailed } from '@/types';
 import { Chip, Stack, Typography } from '@mui/material';
+import { expectedValueToString } from '../model/vacancyQuestionForm';
 
 interface ShortQuestionInfoProps {
   question: VacancyQuestionDetailed;
@@ -38,7 +39,7 @@ const ShortQuestionInfo = ({ question }: ShortQuestionInfoProps) => {
         {question.expectedValue && (
           <Chip
             key={question.questionId + '-expected'}
-            label={`expected ${typeof question.expectedValue === 'string' ? question.expectedValue : question.expectedValue.join(', ')}`}
+            label={`expected ${expectedValueToString(question.expectedValue)}`}
             sx={{
               backgroundColor: 'primary.light',
               color: 'primary.main',

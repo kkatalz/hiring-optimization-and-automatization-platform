@@ -64,6 +64,19 @@ export default function AppTopBar({ onMobileMenuClick }: AppTopBarProps) {
     navigate('/login');
   };
 
+  const handleCreateAccount = () => {
+    if (status !== 'authenticated') {
+      navigate('/register');
+      return;
+    }
+
+    setNotification({
+      message:
+        'You are already logged in! Please log out to create a new account.',
+      severity: 'success',
+    });
+  };
+
   const menuId = 'primary-search-account-menu';
   const renderMenu = (
     <Menu
@@ -76,6 +89,7 @@ export default function AppTopBar({ onMobileMenuClick }: AppTopBarProps) {
     >
       <MenuItem onClick={handleLogin}>Login</MenuItem>
       <MenuItem onClick={handleLogout}>Logout</MenuItem>
+      <MenuItem onClick={handleCreateAccount}>Create account</MenuItem>
     </Menu>
   );
 

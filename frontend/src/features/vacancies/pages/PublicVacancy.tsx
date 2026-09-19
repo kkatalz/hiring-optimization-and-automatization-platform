@@ -31,7 +31,7 @@ const PublicVacancy = () => {
     <>
       <AppBreadcrumbs
         items={[
-          { label: 'Vacancies', to: '/' },
+          { label: 'Vacancies', to: '/browse' },
           { label: capitalizeName(vacancy.name) },
         ]}
       />

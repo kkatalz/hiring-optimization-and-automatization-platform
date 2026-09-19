@@ -5,7 +5,6 @@ import {
   Link,
   Paper,
   Stack,
-  TextField,
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
@@ -20,6 +19,7 @@ import {
   validateNewPassword,
 } from '@/features/auth/model/passwordPolicy';
 import { getErrorMessage } from '@/shared/lib/errorMessage';
+import PasswordField from '@/shared/ui/PasswordField';
 
 /**
  * Where the emailed reset link lands: `/reset-password?token=...`.
@@ -93,10 +93,9 @@ const ResetPasswordPage = () => {
               <Alert severity='warning'>{validationError}</Alert>
             )}
 
-            <TextField
+            <PasswordField
               name='newPassword'
               label='New password'
-              type='password'
               size='small'
               required
               fullWidth
@@ -106,10 +105,9 @@ const ResetPasswordPage = () => {
               onChange={(event) => setPassword(event.target.value)}
             />
 
-            <TextField
+            <PasswordField
               name='confirmPassword'
               label='Repeat new password'
-              type='password'
               size='small'
               required
               fullWidth

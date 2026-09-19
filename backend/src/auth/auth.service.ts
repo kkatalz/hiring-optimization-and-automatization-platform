@@ -6,7 +6,7 @@ import { ChangePasswordDto } from '../auth/dto/changePassword.dto';
 import { User } from '../entities/user';
 import { Not, Repository } from 'typeorm';
 import { compare } from 'bcrypt';
-import { sign, verify } from 'jsonwebtoken';
+import { sign, SignOptions, verify } from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
 import { UserDto } from '../user/dto/user.dto';
 import { userToUserDto } from '../user/map/user.map';
@@ -44,7 +44,10 @@ export class AuthService {
         tenantId: user.tenantId,
       },
       process.env.JWT_ACCESS_SECRET!,
-      { expiresIn: '60m' },
+      {
+        expiresIn: (process.env.JWT_ACCESS_EXPIRES_IN ||
+          '60m') as SignOptions['expiresIn'],
+      },
     );
   }
 
@@ -55,7 +58,10 @@ export class AuthService {
         tokenType: 'refresh',
       },
       process.env.JWT_REFRESH_SECRET!,
-      { expiresIn: '7d' },
+      {
+        expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN ||
+          '7d') as SignOptions['expiresIn'],
+      },
     );
   }
 
